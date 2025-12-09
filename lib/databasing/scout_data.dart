@@ -1,6 +1,3 @@
-// TODO UPDATE ASAP
-
-
 /*
  * Ensure these column names are unchanged (order can differ though)
  * 
@@ -8,15 +5,17 @@
  * match_name
  * defence
  * drive_rating
+ * fouls
  * notes
- *  
+ *
+ * The rest of the column names are there as examples of common FRC columns
 **/
 
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 
-
+// TODO UPDATE
 // This is the model for all the data, since it is easiest to convert this way
 // Whenever you want to add a "column" of data, just add it here and where it says
 // ATTENTION in the database below and the provider_service file
@@ -77,7 +76,8 @@ class ScoutDatabase {
       * Just simply follow the same logical flow as the elements already there
       * but with the elements you want to add, and it should work just fine
       * Oh, and make sure their order is the same as what's on the spreadsheets
-      * And please leave the ones I already provided
+      * And double check deleting the ones I already provided,
+      * most of them are used in the shell
       * 
       **/
 
@@ -111,7 +111,7 @@ class ScoutDatabase {
     ORDER BY match_name''', ['', '%$search%']);
   }
 
-  // This will send back the data of a match in its queeried form 
+  // This will send back the data of a match in its queried form
   static Future<List<Map<String, dynamic>>> matchData(String table, String match) async {
     final db = await ScoutDatabase.scoutDatabase();
     return db.rawQuery("SELECT * FROM $table WHERE match_name = ?",[match]);
@@ -167,4 +167,3 @@ class ScoutDatabase {
     return data;
   }
 }
-
