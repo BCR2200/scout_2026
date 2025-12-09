@@ -1,8 +1,3 @@
-
-
-// TODO UPDATE ASAP
-
-
 import 'package:flutter/foundation.dart';
 import 'scout_data.dart';
 
@@ -27,6 +22,7 @@ class ScoutProvider extends ChangeNotifier {
   Future<void> searchData(String search) async {
     final dataList = await ScoutDatabase.selectSpecific(ScoutDatabase.tableName, search);
 
+    // TODO UPDATE
 
     /* =================================*
      *             ATTENTION            *
