@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scout_shell/shell/aura_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scout_shell/shell/app_layout.dart';
 import 'package:scout_shell/shell/qr_tab.dart';
@@ -27,9 +28,11 @@ void main() async {
 
 
     tabs: [
+      AuraTab(),
       QrTab(),
     ],
     pages: [
+      AuraPage(),
       QRPage(),
     ],  
   )); // Runs the app
