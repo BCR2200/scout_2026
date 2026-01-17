@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:scout_shell/shell/qr_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../databasing/provider_service.dart';
 import '../../databasing/scout_data.dart';
@@ -95,6 +96,8 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
   @override
   Widget build(BuildContext context) {
 
+    List<Widget> pageList = widget.pages + [QRPage(callback: () => setState(() => _tabController.index = 0),)];
+
     // Setting the colours based on the tablet
     Color? colourOfTeam = blueAlliance ? Colors.blue[100] : Colors.red[100];
     Color? colourOfTeamSaturated = blueAlliance ? Colors.blue[50] : Colors.red[50];
@@ -150,14 +153,14 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
           isScrollable: false, // There aren't too many tabs so scrollable is unnecessary
           indicatorPadding: EdgeInsets.all(0), // Makes the tabs squished together by making their spacing 0
           labelPadding: EdgeInsets.all(0),
-          tabs: widget.tabs, // Getting the tab designs from the contructor 
+          tabs: widget.tabs, // Getting the tab designs from the contructor
         ),
       ),
 
       // Creating the body/pages of each tab
       body: TabBarView(
         controller: _tabController, // Setting the controller
-        children: widget.pages, // Getting the pages from the constructor
+        children: pageList, // Getting the pages from the constructor
       ),
 
       drawer: SettingsWidget(

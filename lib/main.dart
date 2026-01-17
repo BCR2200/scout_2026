@@ -39,7 +39,7 @@ void main() async {
       AuraPage(),
       TelePage(),
       TheEndPage(),
-      QRPage(),
+      // QRPage(),  - now is part of app_layout in order to make "next match" go to the first tab
     ],  
   )); // Runs the app
 }
