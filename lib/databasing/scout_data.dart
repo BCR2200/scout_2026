@@ -62,7 +62,7 @@ class ScoutModel {
 
 // This class is used to interact with the database wherever needed
 class ScoutDatabase {
-  static const tableName = 'scout_data_2025'; // Constant table name
+  static const tableName = 'scout_data_2026'; // Constant table name
 
   // This is the method that gives the database
   static Future<Database> scoutDatabase() async {
