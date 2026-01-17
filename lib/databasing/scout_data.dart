@@ -25,7 +25,8 @@ class ScoutModel {
       drive_rating,
       died,
       fouls,
-      climb_level;
+      climb_level,
+      climb_position;
 
    String match_name, notes, placeholder;
 
@@ -37,6 +38,7 @@ class ScoutModel {
     this.died = 0,
     this.fouls = 0,
     this.climb_level = 0,
+    this.climb_position = 0,
     this.placeholder = '',
     this.notes = ' ',
   });
@@ -50,6 +52,7 @@ class ScoutModel {
       'died': died,
       'fouls': fouls,
       'climb_level': climb_level,
+      'climb_position': climb_position,
       'placeholder': placeholder,
       'notes': notes,
     };
@@ -95,6 +98,7 @@ class ScoutDatabase {
         died INTEGER NOT NULL,
         fouls INTEGER NOT NULL,
         climb_level INTEGER NOT NULL,
+        climb_position INTEGER NOT NULL,
         placeholder TEXT,
         notes TEXT
         )

@@ -46,6 +46,7 @@ class ScoutProvider extends ChangeNotifier {
             died: e['died'] as int,
             fouls: e['fouls'] as int,
             climb_level: e['climb_level'] as int,
+            climb_position: e['climb_position'] as int,
             placeholder: e['placeholder'] as String,
             notes: e['notes'] as String,
           ),
