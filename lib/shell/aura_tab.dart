@@ -10,7 +10,7 @@ class AuraTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: Colors.orange[200]!, text: 'Aura',),);
+    return Tab(child: ColouredTab(color: Colors.orange[800]!, text: 'Aura',),);
   }
 }
 
