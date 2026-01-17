@@ -24,7 +24,8 @@ class ScoutModel {
       defence,
       drive_rating,
       died,
-      fouls;
+      fouls,
+      climb_level;
 
    String match_name, notes, placeholder;
 
@@ -35,6 +36,7 @@ class ScoutModel {
     this.drive_rating = -1,
     this.died = 0,
     this.fouls = 0,
+    this.climb_level = 0,
     this.placeholder = '',
     this.notes = ' ',
   });
@@ -47,6 +49,7 @@ class ScoutModel {
       'drive_rating': drive_rating,
       'died': died,
       'fouls': fouls,
+      'climb_level': climb_level,
       'placeholder': placeholder,
       'notes': notes,
     };
@@ -91,6 +94,7 @@ class ScoutDatabase {
         drive_rating INTEGER NOT NULL,
         died INTEGER NOT NULL,
         fouls INTEGER NOT NULL,
+        climb_level INTEGER NOT NULL,
         placeholder TEXT,
         notes TEXT
         )
@@ -155,7 +159,7 @@ class ScoutDatabase {
   static Future<String> getStringData(String table, String matchName, String column) async {
     final db = await ScoutDatabase.scoutDatabase();
     final result = await db.rawQuery('SELECT $column FROM $table WHERE match_name=?', [matchName]);
-    String data = result.first['notes'].toString();
+    String data = result.first[column].toString();
     return data;
   }
 

@@ -45,6 +45,7 @@ class ScoutProvider extends ChangeNotifier {
             drive_rating: e['drive_rating'] as int,
             died: e['died'] as int,
             fouls: e['fouls'] as int,
+            climb_level: e['climb_level'] as int,
             placeholder: e['placeholder'] as String,
             notes: e['notes'] as String,
           ),
