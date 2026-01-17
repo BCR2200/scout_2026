@@ -29,6 +29,7 @@ Go to the right sidebar and open Device Manager
 Add a new virtual device
 Select tablet then click "New hardware profile"
 Make the screen size 7 inches and the screen resolution 600x1024
+    If you go under tablet the one listed as "Medium Tablet" is the perfect size (at least on mac unsure about others).
 After creating the hardware profile, select it and click next
 Choose an API, select the corresponding system image (most recent one should work), and click finish
 
