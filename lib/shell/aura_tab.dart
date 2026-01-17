@@ -10,7 +10,7 @@ class AuraTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: Colors.greenAccent[200]!, text: 'Aura',),);
+    return Tab(child: ColouredTab(color: Colors.orange[200]!, text: 'Aura',),);
   }
 }
 
@@ -30,7 +30,7 @@ class _AuraPageState extends State<AuraPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.greenAccent[100]!, // Setting the background colour
+      color: Colors.orange[800]!, // Setting the background colour
       child: Center(
 
       ),

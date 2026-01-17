@@ -10,7 +10,7 @@ class TheEndTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: Colors.greenAccent[200]!, text: 'THE END',),);
+    return Tab(child: ColouredTab(color: Colors.amber[800]!, text: 'THE END',),);
   }
 }
 
@@ -30,7 +30,7 @@ class _TheEndPageState extends State<TheEndPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.greenAccent[100]!, // Setting the background colour
+      color: Colors.amber[800]!, // Setting the background colour
       child: Center(
 
       ),

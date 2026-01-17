@@ -10,7 +10,7 @@ class TeleTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: Colors.greenAccent[200]!, text: 'Tele',),);
+    return Tab(child: ColouredTab(color: Colors.green[500]!, text: 'Tele',),);
   }
 }
 
@@ -30,7 +30,7 @@ class _TelePageState extends State<TelePage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.greenAccent[100]!, // Setting the background colour
+      color: Colors.green[500]!, // Setting the background colour
       child: Center(
 
       ),

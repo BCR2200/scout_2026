@@ -10,7 +10,7 @@ class QrTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: Colors.purple[200]!, text: 'QR',),);
+    return Tab(child: ColouredTab(color: Colors.red[600]!, text: 'QR',),);
   }
 }
 
@@ -30,7 +30,7 @@ class _QRPageState extends State<QRPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.purple[200]!, // Setting the background colour
+      color: Colors.red[600]!, // Setting the background colour
       child: Center(
         child: FutureBuilder<List<String>>(
 
