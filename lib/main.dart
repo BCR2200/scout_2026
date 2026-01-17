@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:scout_shell/shell/TheEnd(game).dart';
 import 'package:scout_shell/shell/aura_tab.dart';
+import 'package:scout_shell/shell/tele.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scout_shell/shell/app_layout.dart';
 import 'package:scout_shell/shell/qr_tab.dart';
@@ -29,10 +31,14 @@ void main() async {
 
     tabs: [
       AuraTab(),
+      TeleTab(),
+      TheEndTab(),
       QrTab(),
     ],
     pages: [
       AuraPage(),
+      TelePage(),
+      TheEndPage(),
       QRPage(),
     ],  
   )); // Runs the app
