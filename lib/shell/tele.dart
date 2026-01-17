@@ -10,7 +10,7 @@ class TeleTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: randColor(), text: 'Tele',),);
+    return Tab(child: ColouredTab(color: randHighlight(), text: 'Tele',),);
   }
 }
 
@@ -30,7 +30,7 @@ class _TelePageState extends State<TelePage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: randColor(), // Setting the background colour
+      color: randPrimary(), // Setting the background colour
       child: Center(
 
       ),

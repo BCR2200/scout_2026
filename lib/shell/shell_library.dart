@@ -18,11 +18,17 @@ import 'package:provider/provider.dart';
  * 
  * - Cameron Derks
  * 
- */ 
+ */
 
-Color randColor() {
+Color randPrimary() {
   var random = Random();
   var color = Colors.primaries[random.nextInt(Colors.primaries.length)];
+  return color;
+}
+
+Color randHighlight() {
+  var random = Random();
+  var color = Colors.accents[random.nextInt(Colors.accents.length)];
   return color;
 }
 
