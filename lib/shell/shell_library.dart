@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../databasing/provider_service.dart';
@@ -18,7 +20,11 @@ import 'package:provider/provider.dart';
  * 
  */ 
 
-
+Color randColor() {
+  var random = Random();
+  var color = Colors.primaries[random.nextInt(Colors.primaries.length)];
+  return color;
+}
 
 /* ********* FUNCTIONS ********* */
 

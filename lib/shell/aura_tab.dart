@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 //import 'package:aura_flutter/aura_flutter.dart';
@@ -10,7 +12,7 @@ class AuraTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: Colors.orange[800]!, text: 'Aura',),);
+    return Tab(child: ColouredTab(color: randColor(), text: 'Aura',),);
   }
 }
 
@@ -30,7 +32,7 @@ class _AuraPageState extends State<AuraPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.orange[800]!, // Setting the background colour
+      color: randColor(), // Setting the background colour
       child: Center(
 
       ),
