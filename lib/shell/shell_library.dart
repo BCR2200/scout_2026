@@ -671,6 +671,100 @@ class _DefenceSliderState extends State<DefenceSlider> {
   } // build
 } // _DefenceSliderState
 
+class TestSlider extends StatefulWidget {
+  final String? title;
+  final bool useNumbers;
+  final List<String>? labels;
+  final int divisions;
+  final double minVal;
+  final double maxVal;
+  final Color? activeColor;
+
+  const TestSlider({
+    required this.divisions,
+    required this.minVal,
+    required this.maxVal,
+    this.useNumbers=true,
+    this.title,
+    this.labels,
+    this.activeColor,
+    super.key});
+
+  @override
+  State<TestSlider> createState() => _TestSliderState();
+}
+class _TestSliderState extends State<TestSlider> {
+
+  late double _currentSliderValue;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // When this widget is loaded in, the slider value is 0.0 by default,
+    // but it will try to get then set the value with the _loadData() method
+    _currentSliderValue = widget.minVal;
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Use up all vertical the space nicely
+      children: <Widget>[
+
+        // Widget title
+        Container(
+          margin: const EdgeInsets.only(left: 5.0, top: 10.0, right: 5.0),
+          child: BoldText(
+            text: widget.title!,
+            fontSize: 20.0,
+          ),
+        ),
+
+        // Slider (and labels)
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 50.0), // Spacing at edges
+          padding: EdgeInsets.zero, // Vertically ensuring it is squished
+          child:
+
+              // Fill up all available space with Expanded slider
+              Expanded(
+                child: Container(
+                  height: 100,
+                  padding: EdgeInsets.symmetric(horizontal: 15.0), // Ensure spacing between labels
+                  child: Slider(
+
+                    // Displaying the current value to user in a friendly fashion
+                    label: widget.useNumbers ? _currentSliderValue.toInt().toString() : widget.labels![_currentSliderValue.toInt()],
+                    inactiveColor: Colors.white,
+                    activeColor: widget.activeColor != null ? widget.activeColor! : Colors.grey[700],
+
+                    // Making it on a scale from 1–10, and an option of no defence
+                    divisions: widget.divisions,
+                    min: widget.minVal,
+                    max: widget.maxVal,
+                    value: _currentSliderValue,
+
+                    // Sending the current value to the database when changed,
+                    // and updating whether or not to show "no defence"
+                    onChanged: (double value) {
+                      setState(() {
+                        _currentSliderValue = value;
+                        //Provider.of<ScoutProvider>(context, listen: false).updateData(column, _currentSliderValue.toInt());
+                      });
+                    },
+                  ),
+                ),
+              ),
+
+          ),
+      ],
+    );
+  } // build
+} // _DefenceS
+
 // This widget is for inputting notes on the match
 class NotesWidget extends StatefulWidget {
   const NotesWidget({super.key});
