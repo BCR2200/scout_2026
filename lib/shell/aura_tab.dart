@@ -26,6 +26,7 @@ class AuraPage extends StatefulWidget {
   @override
   State<AuraPage> createState() => _AuraPageState();
 }
+
 class _AuraPageState extends State<AuraPage> {
   int _climbStatus = 0; // 0: None, 1: 1L, 2: 1M, 3: 1R, 4: 2L, 5: 2M, 6: 2R, 7: 3L, 8: 3M, 9: 3R
 
