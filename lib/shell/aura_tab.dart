@@ -105,7 +105,7 @@ class _AuraPageState extends State<AuraPage> {
       child: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(150.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
