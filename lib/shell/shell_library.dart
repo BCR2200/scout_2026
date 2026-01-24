@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -719,144 +720,6 @@ class _DefenceSliderState extends State<DefenceSlider> {
     );
   } // build
 } // _DefenceSliderState
-
-enum ClimbPos {left, middle, right}
-
-class ClimbPosSelect extends StatefulWidget {
-  const ClimbPosSelect({super.key});
-
-  @override
-  State<ClimbPosSelect> createState() => _ClimbPosSelect();
-}
-
-class _ClimbPosSelect extends State<ClimbPosSelect> {
-  ClimbPos defaultPos = ClimbPos.middle;
-
-  @override
-  Widget build(BuildContext context) {
-    return SegmentedButton<ClimbPos>(
-      showSelectedIcon: false,
-      style: SegmentedButton.styleFrom(
-        selectedBackgroundColor: randPrimary(),
-      ),
-      segments: const <ButtonSegment<ClimbPos>>[
-        ButtonSegment<ClimbPos>(
-          value: ClimbPos.left,
-          label: Text('Left'),
-        ),
-        ButtonSegment<ClimbPos>(
-          value: ClimbPos.middle,
-          label: Text('Middle'),
-        ),
-        ButtonSegment<ClimbPos>(
-          value: ClimbPos.right,
-          label: Text('Right'),
-        ),
-      ],
-      selected: <ClimbPos>{defaultPos},
-      onSelectionChanged: (Set<ClimbPos> newSelection) {
-        setState(() {
-          // By default there is only a single segment that can be
-          // selected at one time, so its value is always the first
-          // item in the selected set.
-          defaultPos = newSelection.first;
-        });
-      },
-    );
-  }
-}
-class TestSlider extends StatefulWidget {
-  final String? title;
-  final bool useNumbers;
-  final List<String>? labels;
-  final int divisions;
-  final double minVal;
-  final double maxVal;
-  final Color? activeColor;
-  final double? defaultVal;
-
-  const TestSlider({
-    required this.divisions,
-    required this.minVal,
-    required this.maxVal,
-    this.useNumbers = true,
-    this.title,
-    this.labels,
-    this.activeColor,
-    this.defaultVal,
-    super.key,
-  });
-
-  @override
-  State<TestSlider> createState() => _TestSliderState();
-}
-
-class _TestSliderState extends State<TestSlider> {
-  late double _currentSliderValue;
-
-  // This runs once when the widget is initialized
-  @override
-  void initState() {
-    super.initState();
-
-    // When this widget is loaded in, the slider value is 0.0 by default,
-    // but it will try to get then set the value with the _loadData() method
-    _currentSliderValue =
-        widget.defaultVal == null ? widget.minVal : widget.defaultVal!;
-  }
-
-  // Building the widget tree
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceEvenly, // Use up all vertical the space nicely
-      children: <Widget>[
-        // Widget title
-        Text(widget.title!),
-
-        // Slider (and labels)
-        // Fill up all available space with Expanded slider
-        Expanded(
-          child: Container(
-            height: 100,
-            padding: EdgeInsets.only(
-              left: 25,
-              right: 15,
-            ), // Ensure spacing between labels
-            child: Slider(
-              // Displaying the current value to user in a friendly fashion
-              label:
-                  widget.useNumbers
-                      ? _currentSliderValue.toInt().toString()
-                      : widget.labels![_currentSliderValue.toInt()],
-              inactiveColor: Colors.white,
-              activeColor:
-                  widget.activeColor != null
-                      ? widget.activeColor!
-                      : Colors.grey[700],
-
-              // Making it on a scale from 1–10, and an option of no defence
-              divisions: widget.divisions,
-              min: widget.minVal,
-              max: widget.maxVal,
-              value: _currentSliderValue,
-
-              // Sending the current value to the database when changed,
-              // and updating whether or not to show "no defence"
-              onChanged: (double value) {
-                setState(() {
-                  _currentSliderValue = value;
-                  //Provider.of<ScoutProvider>(context, listen: false).updateData(column, _currentSliderValue.toInt());
-                });
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  } // build
-} // _DefenceS
 
 // This widget is for inputting notes on the match
 class NotesWidget extends StatefulWidget {
@@ -1894,6 +1757,8 @@ class LabelledCheckBox extends StatefulWidget {
   State<LabelledCheckBox> createState() => _LabelledCheckBoxState();
 }
 
+enum ClimbPos { left, middle, right }
+
 class _LabelledCheckBoxState extends State<LabelledCheckBox> {
   late bool isChecked;
   late bool isDefault;
@@ -2005,3 +1870,308 @@ class _LabelledCheckBoxState extends State<LabelledCheckBox> {
     );
   } // build
 } // _LabelledCheckBoxState
+
+class AutoClimbWidget extends StatefulWidget {
+  const AutoClimbWidget({super.key});
+  @override
+  State<AutoClimbWidget> createState() => _AutoClimbWidgetState();
+}
+
+class _AutoClimbWidgetState extends State<AutoClimbWidget> {
+  late double _climbLevel;
+  late ClimbPos _climbSide;
+  Color randomCol = randPrimary();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _climbLevel = 0.0;
+    _climbSide = ClimbPos.middle;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomContainer(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(50, 20, 25, 20),
+      margin: EdgeInsets.all(50),
+      child: Row(
+        children: [
+          BoldText(text: "Climb\nStatus", fontSize: 30),
+
+          //flex: 1,
+          Expanded(
+            child: Column(
+              children: [
+                Text('Climb Level'),
+                Expanded(
+                  child: Container(
+                    height: 100,
+                    padding: EdgeInsets.only(
+                      left: 25,
+                      right: 15,
+                    ), // Ensure spacing between labels
+                    child: Slider(
+                      // Displaying the current value to user in a friendly fashion
+                      year2023: false,
+                      label:
+                          _climbLevel == 0
+                              ? "No Climb"
+                              : _climbLevel.toInt().toString(),
+                      inactiveColor: randomCol,
+                      activeColor: randomCol,
+
+                      // Making it on a scale from 1–10, and an option of no defence
+                      divisions: 3,
+                      min: 0.0,
+                      max: 3.0,
+                      value: _climbLevel,
+
+                      // Sending the current value to the database when changed,
+                      // and updating whether or not to show "no defence"
+                      onChanged: (double value) {
+                        setState(() {
+                          _climbLevel = value;
+                          //Provider.of<ScoutProvider>(context, listen: false).updateData(column, _currentSliderValue.toInt());
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                Container(height: 10),
+                Text("Climb Side"),
+                Expanded(
+                  //flex: 1,
+                  child: Opacity(
+                    opacity: _climbLevel == 0 ? 0.3 : 1,
+                    child: SegmentedButton<ClimbPos>(
+                      showSelectedIcon: false,
+                      style: SegmentedButton.styleFrom(
+                        selectedBackgroundColor: randomCol,
+                        fixedSize: Size.fromHeight(30),
+                      ),
+                      segments: const <ButtonSegment<ClimbPos>>[
+                        ButtonSegment<ClimbPos>(
+                          value: ClimbPos.left,
+                          label: Text('Left'),
+                        ),
+                        ButtonSegment<ClimbPos>(
+                          value: ClimbPos.middle,
+                          label: Text('Middle'),
+                        ),
+                        ButtonSegment<ClimbPos>(
+                          value: ClimbPos.right,
+                          label: Text('Right'),
+                        ),
+                      ],
+                      selected: <ClimbPos>{_climbSide},
+                      onSelectionChanged: (Set<ClimbPos> newSelection) {
+                        setState(() {
+                          // By default there is only a single segment that can be
+                          // selected at one time, so its value is always the first
+                          // item in the selected set.
+                          _climbSide =
+                              _climbLevel == 0
+                                  ? _climbSide
+                                  : newSelection.first;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VolleyListItem extends StatefulWidget {
+  final Color col;
+  final bool isVolley;
+
+  const VolleyListItem({this.col = Colors.white,
+    required this.isVolley,
+      super.key});
+
+  @override
+  State<VolleyListItem> createState() => _VolleyListItem();
+}
+
+class _VolleyListItem extends State<VolleyListItem> {
+  late double _percentHopper;
+  late double _percentAcc;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _percentHopper = 0.0;
+    _percentAcc = 0.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isVolley) {
+    return Card(
+      color: widget.col,
+      child: Row(
+        children: [
+          BoldText(text: "Volley"),
+          Expanded(
+            child: Column(
+              children: [
+                Slider(
+                  label: "${_percentHopper.toInt()}%",
+                  value: _percentHopper,
+                  min: 0.0,
+                  max: 100.0,
+                  onChanged: (value) {
+                    setState(() {
+                      _percentHopper = value;
+                    });
+                  },
+                ),
+                Slider(
+                  label: "${_percentHopper.toInt()}%",
+                  value: _percentAcc,
+                  min: 0.0,
+                  max: 100.0,
+                  onChanged: (value) {
+                    setState(() {
+                      _percentAcc = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      )
+    ); }
+    else {
+      return Card(
+        color: widget.col,
+        child: SizedBox(height: 50, child: BoldText(text: "Shift Change"))
+      );
+    }
+  }
+}
+
+class AutoVolleyWidget extends StatefulWidget {
+  const AutoVolleyWidget({super.key});
+  @override
+  State<AutoVolleyWidget> createState() => _AutoVolleyWidget();
+}
+
+class _AutoVolleyWidget extends State<AutoVolleyWidget> {
+  final buttonCol = randPrimary();
+  final cardCol = randPrimary().withAlpha(150);
+  final List<VolleyListItem> _items = List.empty(growable: true);
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Card> cards = <Card>[
+      for (int index = 0; index < _items.length; index += 1)
+        Card(
+          key: Key('$index'),
+          color: randPrimary(),
+          child: SizedBox(
+            height: 80,
+            child: Center(child: Text('Card ${_items[index]}')),
+          ),
+        ),
+    ];
+
+    Widget proxyDecorator(
+      Widget child,
+      int index,
+      Animation<double> animation,
+    ) {
+      return AnimatedBuilder(
+        animation: animation,
+        builder: (BuildContext context, Widget? child) {
+          final double animValue = Curves.easeInOut.transform(animation.value);
+          final double elevation = lerpDouble(1, 6, animValue)!;
+          final double scale = lerpDouble(1, 1.02, animValue)!;
+          return Transform.scale(
+            scale: scale,
+            // Create a Card based on the color and the content of the dragged one
+            // and set its elevation to the animated value.
+            child: Card(
+              elevation: elevation,
+              color: cards[index].color,
+              child: cards[index].child,
+            ),
+          );
+        },
+        child: child,
+      );
+    }
+
+    return Column(
+      children: [
+        BoldText(text: "Volley History", fontSize: 30),
+        SizedBox(height: 10),
+
+        Expanded(
+          flex: 7,
+          child: ReorderableListView(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            proxyDecorator: proxyDecorator,
+            onReorder: (int oldIndex, int newIndex) {
+              setState(() {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                final int item = _items.removeAt(oldIndex);
+                _items.insert(newIndex, item);
+              });
+            },
+            children: cards,
+          ),
+        ),
+        SizedBox(height: 10),
+
+        Expanded(
+          flex: 1,
+          child: CustomContainer(
+            margin: EdgeInsets.all(0),
+            color: randPrimary(),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Shift Change", textAlign: TextAlign.center),
+                SizedBox(width: 20),
+                IconButton.filled(
+                  onPressed: () {
+                    setState(() {
+                      _items.add(_items.length);
+                    });
+                  },
+                  icon: const Icon(Icons.add),
+                  style: IconButton.styleFrom(backgroundColor: buttonCol),
+                ),
+                SizedBox(width: 100),
+                Text("Volleys", textAlign: TextAlign.center),
+                SizedBox(width: 20),
+                IconButton.filled(
+                  onPressed: () {
+                    setState(() {
+                      _items.add(_items.length);
+                    });
+                  },
+                  icon: const Icon(Icons.add),
+                  style: IconButton.styleFrom(backgroundColor: buttonCol),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
