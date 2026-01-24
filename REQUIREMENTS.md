@@ -16,7 +16,7 @@ This repo is for the 2026 scouting app.
 
 * QR code display is a tab. It displays data collected for that team and match.
 
-#### Auto tab
+#### Auto tab (AKA "Aura tab")
 
 * There is a tab that contains match data pertaining to the auto period.
 * It tracks where the robot started on the field
