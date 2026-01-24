@@ -8,14 +8,17 @@
  * fouls
  * notes
  *
- * The rest of the column names are there as examples of common FRC columns
+ * team, match_name, defence, drive_rating, died, fouls, notes
+ * start_position, auto_moved
+ * auto_climb_level, auto_climb_position
+ * teleop_climb_level, teleop_climb_position
+ * auto_volleys, teleop_volleys (JSON arrays)
 **/
 
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 
-// TODO UPDATE
 // This is the model for all the data, since it is easiest to convert this way
 // Whenever you want to add a "column" of data, just add it here and where it says
 // ATTENTION in the database below and the provider_service file
@@ -25,10 +28,14 @@ class ScoutModel {
       drive_rating,
       died,
       fouls,
-      climb_level,
-      climb_position;
+      start_position,
+      auto_moved,
+      auto_climb_level,
+      auto_climb_position,
+      teleop_climb_level,
+      teleop_climb_position;
 
-   String match_name, notes, placeholder;
+   String match_name, notes, auto_volleys, teleop_volleys;
 
   ScoutModel({
     this.team = 0,
@@ -37,9 +44,14 @@ class ScoutModel {
     this.drive_rating = -1,
     this.died = 0,
     this.fouls = 0,
-    this.climb_level = 0,
-    this.climb_position = 0,
-    this.placeholder = '',
+    this.start_position = 0,
+    this.auto_moved = 0,
+    this.auto_climb_level = 0,
+    this.auto_climb_position = 0,
+    this.teleop_climb_level = 0,
+    this.teleop_climb_position = 0,
+    this.auto_volleys = '[]',
+    this.teleop_volleys = '[]',
     this.notes = ' ',
   });
 
@@ -51,9 +63,14 @@ class ScoutModel {
       'drive_rating': drive_rating,
       'died': died,
       'fouls': fouls,
-      'climb_level': climb_level,
-      'climb_position': climb_position,
-      'placeholder': placeholder,
+      'start_position': start_position,
+      'auto_moved': auto_moved,
+      'auto_climb_level': auto_climb_level,
+      'auto_climb_position': auto_climb_position,
+      'teleop_climb_level': teleop_climb_level,
+      'teleop_climb_position': teleop_climb_position,
+      'auto_volleys': auto_volleys,
+      'teleop_volleys': teleop_volleys,
       'notes': notes,
     };
   }
@@ -62,7 +79,7 @@ class ScoutModel {
 
 // This class is used to interact with the database wherever needed
 class ScoutDatabase {
-  static const tableName = 'scout_data_2025'; // Constant table name
+  static const tableName = 'scout_data_2026'; // Constant table name
 
   // This is the method that gives the database
   static Future<Database> scoutDatabase() async {
@@ -97,14 +114,19 @@ class ScoutDatabase {
         drive_rating INTEGER NOT NULL,
         died INTEGER NOT NULL,
         fouls INTEGER NOT NULL,
-        climb_level INTEGER NOT NULL,
-        climb_position INTEGER NOT NULL,
-        placeholder TEXT,
+        start_position INTEGER NOT NULL,
+        auto_moved INTEGER NOT NULL,
+        auto_climb_level INTEGER NOT NULL,
+        auto_climb_position INTEGER NOT NULL,
+        teleop_climb_level INTEGER NOT NULL,
+        teleop_climb_position INTEGER NOT NULL,
+        auto_volleys TEXT,
+        teleop_volleys TEXT,
         notes TEXT
         )
         ''');
       },
-      version: 1,
+      version: 2,
     );
   } // scoutDatabase
 

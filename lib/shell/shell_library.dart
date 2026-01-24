@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -2005,3 +2006,475 @@ class _LabelledCheckBoxState extends State<LabelledCheckBox> {
     );
   } // build
 } // _LabelledCheckBoxState
+
+// This widget is a reusable climbing tracker with two sliders:
+// - Climb level (0-3, where 0 = no climb)
+// - Climb position (Left, Center, Right)
+class ClimbWidget extends StatefulWidget {
+  final String levelColumn;
+  final String positionColumn;
+  final String? title;
+
+  const ClimbWidget({
+    super.key,
+    required this.levelColumn,
+    required this.positionColumn,
+    this.title,
+  });
+
+  @override
+  State<ClimbWidget> createState() => _ClimbWidgetState();
+}
+
+class _ClimbWidgetState extends State<ClimbWidget> {
+  double _climbLevel = 0;
+  double _climbPosition = 1; // 0=Left, 1=Center, 2=Right
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      int level = await provider.getIntData(widget.levelColumn);
+      int position = await provider.getIntData(widget.positionColumn);
+
+      if (mounted) {
+        setState(() {
+          _climbLevel = level.toDouble();
+          // Position is stored as 1=Left, 2=Center, 3=Right, convert to 0-indexed
+          _climbPosition = position > 0 ? (position - 1).toDouble() : 1;
+        });
+      }
+    }
+  }
+
+  void _updateLevel(double value) {
+    setState(() {
+      _climbLevel = value;
+    });
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      provider.updateData(widget.levelColumn, value.toInt());
+    }
+  }
+
+  void _updatePosition(double value) {
+    setState(() {
+      _climbPosition = value;
+    });
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      // Store as 1=Left, 2=Center, 3=Right (1-indexed)
+      provider.updateData(widget.positionColumn, value.toInt() + 1);
+    }
+  }
+
+  String _getLevelLabel(double value) {
+    if (value == 0) return 'None';
+    return 'Level ${value.toInt()}';
+  }
+
+  String _getPositionLabel(double value) {
+    switch (value.toInt()) {
+      case 0:
+        return 'Left';
+      case 1:
+        return 'Center';
+      case 2:
+        return 'Right';
+      default:
+        return 'Center';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.title != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: BoldText(
+                text: widget.title!,
+                fontSize: 24,
+                color: Colors.white,
+              ),
+            ),
+
+          // Climb Level Slider
+          Column(
+            children: [
+              BoldText(
+                text: 'Climb Level: ${_getLevelLabel(_climbLevel)}',
+                fontSize: 18,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const BoldText(text: 'None', fontSize: 14, color: Colors.white70),
+                  Expanded(
+                    child: Slider(
+                      value: _climbLevel,
+                      min: 0,
+                      max: 3,
+                      divisions: 3,
+                      label: _getLevelLabel(_climbLevel),
+                      activeColor: Colors.white,
+                      inactiveColor: Colors.white38,
+                      onChanged: _updateLevel,
+                    ),
+                  ),
+                  const BoldText(text: '3', fontSize: 14, color: Colors.white70),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Climb Position Slider (only show if climb level > 0)
+          AnimatedOpacity(
+            opacity: _climbLevel > 0 ? 1.0 : 0.3,
+            duration: const Duration(milliseconds: 200),
+            child: Column(
+              children: [
+                BoldText(
+                  text: 'Position: ${_getPositionLabel(_climbPosition)}',
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const BoldText(text: 'L', fontSize: 14, color: Colors.white70),
+                    Expanded(
+                      child: Slider(
+                        value: _climbPosition,
+                        min: 0,
+                        max: 2,
+                        divisions: 2,
+                        label: _getPositionLabel(_climbPosition),
+                        activeColor: Colors.white,
+                        inactiveColor: Colors.white38,
+                        onChanged: _climbLevel > 0 ? _updatePosition : null,
+                      ),
+                    ),
+                    const BoldText(text: 'R', fontSize: 14, color: Colors.white70),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Data class representing a single volley
+class Volley {
+  int hopperFullness; // 0, 25, 50, 75, 100
+  int shotSuccess;    // 0, 25, 50, 75, 100
+
+  Volley({this.hopperFullness = 50, this.shotSuccess = 50});
+
+  Map<String, dynamic> toJson() => {
+    'hopperFullness': hopperFullness,
+    'shotSuccess': shotSuccess,
+  };
+
+  factory Volley.fromJson(Map<String, dynamic> json) => Volley(
+    hopperFullness: json['hopperFullness'] ?? 50,
+    shotSuccess: json['shotSuccess'] ?? 50,
+  );
+}
+
+// A single volley card with fullness and success selectors
+class VolleyCard extends StatelessWidget {
+  final Volley volley;
+  final int index;
+  final ValueChanged<int> onFullnessChanged;
+  final ValueChanged<int> onSuccessChanged;
+  final VoidCallback onDelete;
+
+  const VolleyCard({
+    super.key,
+    required this.volley,
+    required this.index,
+    required this.onFullnessChanged,
+    required this.onSuccessChanged,
+    required this.onDelete,
+  });
+
+  Widget _buildPercentageSelector({
+    required String label,
+    required int value,
+    required ValueChanged<int> onChanged,
+  }) {
+    final percentages = [0, 25, 50, 75, 100];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BoldText(text: label, fontSize: 12, color: Colors.black87),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: percentages.map((p) {
+            final isSelected = value == p;
+            return GestureDetector(
+              onTap: () => onChanged(p),
+              child: Container(
+                width: 36,
+                height: 28,
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.blue[700] : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$p%',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: Key('volley_$index'),
+      direction: DismissDirection.horizontal,
+      onDismissed: (_) => onDelete(),
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      secondaryBackground: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Drag handle
+              const Icon(Icons.drag_handle, color: Colors.grey),
+              const SizedBox(width: 12),
+
+              // Volley number
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.blue[100],
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '${index + 1}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Selectors
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPercentageSelector(
+                      label: 'Hopper Fullness',
+                      value: volley.hopperFullness,
+                      onChanged: onFullnessChanged,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildPercentageSelector(
+                      label: 'Shot Success',
+                      value: volley.shotSuccess,
+                      onChanged: onSuccessChanged,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Widget that manages a list of volleys with add, reorder, and delete
+class VolleyListWidget extends StatefulWidget {
+  final String column; // Database column to store volleys JSON
+  final String? title;
+
+  const VolleyListWidget({
+    super.key,
+    required this.column,
+    this.title,
+  });
+
+  @override
+  State<VolleyListWidget> createState() => _VolleyListWidgetState();
+}
+
+class _VolleyListWidgetState extends State<VolleyListWidget> {
+  List<Volley> _volleys = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      String jsonStr = await provider.getStringData(widget.column);
+      if (mounted && jsonStr.isNotEmpty && jsonStr != '[]') {
+        try {
+          List<dynamic> jsonList = jsonDecode(jsonStr);
+          setState(() {
+            _volleys = jsonList.map((e) => Volley.fromJson(e)).toList();
+          });
+        } catch (e) {
+          // Invalid JSON, start with empty list
+          _volleys = [];
+        }
+      }
+    }
+  }
+
+  void _saveData() {
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      String jsonStr = jsonEncode(_volleys.map((v) => v.toJson()).toList());
+      provider.updateData(widget.column, jsonStr);
+    }
+  }
+
+  void _addVolley() {
+    setState(() {
+      _volleys.add(Volley());
+    });
+    _saveData();
+  }
+
+  void _removeVolley(int index) {
+    setState(() {
+      _volleys.removeAt(index);
+    });
+    _saveData();
+  }
+
+  void _updateFullness(int index, int value) {
+    setState(() {
+      _volleys[index].hopperFullness = value;
+    });
+    _saveData();
+  }
+
+  void _updateSuccess(int index, int value) {
+    setState(() {
+      _volleys[index].shotSuccess = value;
+    });
+    _saveData();
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final volley = _volleys.removeAt(oldIndex);
+      _volleys.insert(newIndex, volley);
+    });
+    _saveData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.title != null)
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: BoldText(
+              text: widget.title!,
+              fontSize: 20,
+              color: Colors.white,
+            ),
+          ),
+
+        // Add volley button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: ElevatedButton.icon(
+            onPressed: _addVolley,
+            icon: const Icon(Icons.add),
+            label: const Text('Add Volley'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black87,
+            ),
+          ),
+        ),
+
+        // Volley list
+        Expanded(
+          child: _volleys.isEmpty
+              ? Center(
+                  child: BoldText(
+                    text: 'No volleys recorded',
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                )
+              : ReorderableListView.builder(
+                  itemCount: _volleys.length,
+                  onReorder: _onReorder,
+                  itemBuilder: (context, index) {
+                    return VolleyCard(
+                      key: ValueKey('volley_card_$index'),
+                      volley: _volleys[index],
+                      index: index,
+                      onFullnessChanged: (v) => _updateFullness(index, v),
+                      onSuccessChanged: (v) => _updateSuccess(index, v),
+                      onDelete: () => _removeVolley(index),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+}

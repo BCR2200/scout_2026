@@ -1,10 +1,6 @@
-import 'dart:math';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-//import 'package:aura_flutter/aura_flutter.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
@@ -17,85 +13,174 @@ class AuraTab extends StatelessWidget {
   }
 }
 
-// AuraPage is a stateless widget called when creating the Aura code page.
+
+// AuraPage is a stateful widget for the auto period data collection
 class AuraPage extends StatefulWidget {
   final VoidCallback? callback;
 
-  const AuraPage({super.key, this.callback}); // Constructor
+  const AuraPage({super.key, this.callback});
   @override
   State<AuraPage> createState() => _AuraPageState();
 }
 
 class _AuraPageState extends State<AuraPage> {
-  // Building the widget tree
+  int _startPosition = 0; // 0 = not set, 1-6 for positions
+  bool _autoMoved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      int startPos = await provider.getIntData('start_position');
+      int moved = await provider.getIntData('auto_moved');
+
+      if (mounted) {
+        setState(() {
+          _startPosition = startPos;
+          _autoMoved = moved == 1;
+        });
+      }
+    }
+  }
+
+  void _updateStartPosition(int value) {
+    setState(() {
+      _startPosition = value;
+    });
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      provider.updateData('start_position', value);
+    }
+  }
+
+  void _updateAutoMoved(bool value) {
+    setState(() {
+      _autoMoved = value;
+    });
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    if (provider.currentMatch.isNotEmpty) {
+      provider.updateData('auto_moved', value ? 1 : 0);
+    }
+  }
+
+  Widget _buildStartPositionButton(int position, String label) {
+    final isSelected = _startPosition == position;
+    return GestureDetector(
+      onTap: () => _updateStartPosition(position),
+      child: Container(
+        width: 80,
+        height: 50,
+        margin: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.white38,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.transparent,
+            width: 3,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.blue[800] : Colors.black54,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: randPrimary(), // Setting the background colour
+      color: randPrimary(),
       child: Column(
         children: [
-          Expanded(
-            flex: 1,
-            child: CustomContainer(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(50, 25, 25, 25),
-              margin: EdgeInsets.all(50),
-              child: Row(
-                children: [
-                  BoldText(text: "Climb\nStatus", fontSize: 30,),
-
-                  //flex: 1,
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: TestSlider(
-                            activeColor: randPrimary(),
-                            useNumbers: false,
-                            divisions: 3,
-                            minVal: 0.0,
-                            maxVal: 3.0,
-                            title: 'Climb Level',
-                            labels: ['No Climb', 'L1', 'L2', 'L3'],
-                          ),
-                        ),
-                        Container(height: 10,),
-                        Text("Climb Side"),
-                        Expanded(
-                          //flex: 1,
-                          child: ClimbPosSelect(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          // Starting position section
+          Container(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                const BoldText(
+                  text: 'Starting Position',
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildStartPositionButton(1, 'Pos 1'),
+                    _buildStartPositionButton(2, 'Pos 2'),
+                    _buildStartPositionButton(3, 'Pos 3'),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildStartPositionButton(4, 'Pos 4'),
+                    _buildStartPositionButton(5, 'Pos 5'),
+                    _buildStartPositionButton(6, 'Pos 6'),
+                  ],
+                ),
+              ],
             ),
           ),
-          Expanded(
-            flex: 3,
-            child: CustomContainer(
-              color: Colors.white,
-              margin: EdgeInsets.fromLTRB(50, 0, 50, 50),
-              padding: EdgeInsets.all(50),
-              /*child: Column(
-                children:[
-                  Expanded(
-                    child: ReorderableListView(children: children, onReorder: onReorder)
-                  ),
-                  Row(
-                    children: [
-                      BoldText(text: "Shift Change"),
 
-                      BoldText(text: "Volleys")
-                    ]
-                  )
-                ]
-              )*/
+          // Robot moved checkbox
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const BoldText(
+                  text: 'Robot Moved in Auto:',
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 12),
+                Transform.scale(
+                  scale: 1.5,
+                  child: Checkbox(
+                    value: _autoMoved,
+                    onChanged: (value) => _updateAutoMoved(value ?? false),
+                    activeColor: Colors.white,
+                    checkColor: Colors.blue[800],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(color: Colors.white38, thickness: 1),
+
+          // Climb widget
+          ClimbWidget(
+            title: 'Auto Climb',
+            levelColumn: 'auto_climb_level',
+            positionColumn: 'auto_climb_position',
+          ),
+
+          const Divider(color: Colors.white38, thickness: 1),
+
+          // Volleys section
+          Expanded(
+            child: VolleyListWidget(
+              column: 'auto_volleys',
+              title: 'Auto Volleys',
             ),
           ),
         ],
       ),
     );
-  } // Widget build
-} // _AuraPageState
+  }
+}
