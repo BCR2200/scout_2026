@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
-
 
 class AuraTab extends StatelessWidget {
   const AuraTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: randHighlight(), text: 'Aura',),);
+    return Tab(child: ColouredTab(color: randPrimary(), text: 'Aura'));
   }
 }
 
