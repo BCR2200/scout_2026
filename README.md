@@ -1,8 +1,8 @@
 This is the shell designed for the scouting app to make it "easy" to create a new app for beginners.
 It contains a solid foundation and a couple of examples to make it a smooth transition into coding in flutter.
 
-The contents of the "shell" are primarily found in the lib folder/directory, where there is: 
-A databasing folder (containing the necessary classes for the SQLite database and state management with provider) 
+The contents of the "shell" are primarily found in the lib folder/directory, where there is:
+A databasing folder (containing the necessary classes for the SQLite database and state management with provider)
 A shell folder (containing the general base of the app + custom widgets as well as an example tab that can be used) and
 A main.dart file which is designed to easily integrate new pages into the app
 
@@ -21,22 +21,25 @@ Once you have flutter fully installed (including the SDK), you can now clone thi
 
 If you do run into any errors, try running flutter doctor -v in a bash terminal to get status info
 
+If there is a kotlin error, under android/setting.gradle.kts try changing the version number in the line
+"id("org.jetbrains.kotlin.android") version "2.1.0" apply false" to be your current version
+
+
 ## Part 2: Installing an emulator
 
 If you haven't already, install android studio https://developer.android.com/studio/install
-From there, you'll have to create an emulator to run the app. 
+From there, you'll have to create an emulator to run the app.
 Go to the right sidebar and open Device Manager
 Add a new virtual device
 Select tablet then click "New hardware profile"
 Make the screen size 7 inches and the screen resolution 600x1024
-    If you go under tablet the one listed as "Medium Tablet" is the perfect size (at least on mac unsure about others).
 After creating the hardware profile, select it and click next
 Choose an API, select the corresponding system image (most recent one should work), and click finish
 
 ## Part 3: Installing the dependencies
 
 After you have the cloned repository, run the command "flutter pub get" in a terminal
-From there you should have all the required dependencies. 
+From there you should have all the required dependencies.
 Try running "flutter pub outdated" to see if any need to be updated with "flutter pub upgrade"
 
 # PROGRAMMING GUIDE
@@ -48,7 +51,7 @@ To do so, you simply navigate to the top bar beside "main.dart" and click the de
 From there, open your emulator, then select it. You can now click the big play button to run it
 (If it doesn't show up, try "Restart Flutter Daemon" or manually open the emulator from the right)
 
-While running, there should be a lightning bolt for a "hot reload" and a green circle for a "hot restart" 
+While running, there should be a lightning bolt for a "hot reload" and a green circle for a "hot restart"
 
 ## Where to look
 
@@ -65,17 +68,41 @@ inside the main.dart file, and put them into the "tabs" and "pages" lists in the
 
 In the databasing folder, there are two files you have to modify.
 The first is the scout_data.dart file, which holds the SQL database interactions
-The areas to modify are the ScoutModel class (add the names for the game specific database columns) 
+The areas to modify are the ScoutModel class (add the names for the game specific database columns)
 and the onCreate underneath ATTENTION (once more add the names for the game specific database columns)
 
 The second is the provider_service.dart, which handles the database interaction with the UI
 The area to update is the dataList for scoutItem (add the ScoutModel additions)
 
+If the database doesn't seem to work, it may be because it is using a previous database.
+To reconfigure the database, clear the cache/storage of the app.
+
+#### How to database in the app
+
+Once you have a functional input widget, there are a couple of steps to make it work in the database:
+
+1. Add the necessary column in the correct locations:
+   a. scout_data.dart's ScoutModel (in all the same places as the pre-made columns)  
+   b. scout_data.dart's db.execute (as valid SQL syntax)
+   c. provider_service.dart's scoutItem from ScoutModel
+
+2. Send data by:
+   a. Wrapping your widget in a Consumer<ScoutProvider> widget
+   b. In your widget's onChanged, use the builder to interact with the database,
+   using the .updateData(\[col], \[val]) method which takes the input of column name and data
+
+3. Load data by:
+   a. Using "await Provider.of<ScoutProvider>(context, listen: false).get___Data(\[columnName])
+   where ___ is the data type you're getting (either an int or a string)
+   b. IF NEEDED updating the state of the widget to reflect loaded data using setState((){})
+    - make sure to check if(mounted) otherwise you'll get an error
+    - I recommend making this a method to call in initState and in your Consumer<ScoutProvider>
+
 ## Flutter coding/syntax
 
 Since Flutter is likely a new programming language for you, I recommend exploring its online documentation
 before you start programming. The shell itself has decent programming notes for you to explore as well.
-Luckily, flutter is based on object oriented programming in dart, which is very similar to that of java 
+Luckily, flutter is based on object oriented programming in dart, which is very similar to that of java
 so if you already know object oriented java, you'll have a leg up for flutter
 
 Here are some decent resources to get you started:
@@ -142,7 +169,7 @@ fillColor
 minValue
 maxValue
 showButtons
-padding 
+padding
 fontSize
 scale
 buttonScale
