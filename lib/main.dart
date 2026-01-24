@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scout_shell/shell/TheEnd(game).dart';
 import 'package:scout_shell/shell/aura_tab.dart';
 import 'package:scout_shell/shell/tele.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,12 +32,14 @@ void main() async {
     tabs: [
       AuraTab(),
       TeleTab(),
+      TheEndTab(),
       QrTab(),
     ],
     pages: [
       AuraPage(),
       TelePage(),
-      // QRPage is part of app_layout to enable "next match" to go to the first tab
+      TheEndPage(),
+      // QRPage(),  - now is part of app_layout in order to make "next match" go to the first tab
     ],  
   )); // Runs the app
 }
