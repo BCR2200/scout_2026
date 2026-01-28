@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
@@ -1757,8 +1758,6 @@ class LabelledCheckBox extends StatefulWidget {
   State<LabelledCheckBox> createState() => _LabelledCheckBoxState();
 }
 
-enum ClimbPos { left, middle, right }
-
 class _LabelledCheckBoxState extends State<LabelledCheckBox> {
   late bool isChecked;
   late bool isDefault;
@@ -1871,15 +1870,20 @@ class _LabelledCheckBoxState extends State<LabelledCheckBox> {
   } // build
 } // _LabelledCheckBoxState
 
-class AutoClimbWidget extends StatefulWidget {
-  const AutoClimbWidget({super.key});
+class ClimbWidget extends StatefulWidget {
+  final bool isAuto;
+
+  const ClimbWidget({required this.isAuto, super.key});
+
   @override
-  State<AutoClimbWidget> createState() => _AutoClimbWidgetState();
+  State<ClimbWidget> createState() => _ClimbWidgetState();
 }
 
-class _AutoClimbWidgetState extends State<AutoClimbWidget> {
+class _ClimbWidgetState extends State<ClimbWidget> {
   late double _climbLevel;
-  late ClimbPos _climbSide;
+  late int _climbSide;
+  late String _posColumn;
+  late String _levelColumn;
   Color randomCol = randPrimary();
 
   @override
@@ -1887,7 +1891,42 @@ class _AutoClimbWidgetState extends State<AutoClimbWidget> {
     super.initState();
 
     _climbLevel = 0.0;
-    _climbSide = ClimbPos.middle;
+    _climbSide = 1;
+    _posColumn = widget.isAuto ? 'auto_climb_position' : 'climb_position';
+    _levelColumn = widget.isAuto ? 'auto_climb_level' : 'climb_level';
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadLevel();
+      _loadPos();
+    });
+  }
+
+  Future<void> _loadLevel() async {
+    int initLevel = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData(_levelColumn);
+
+    // If the widget is still active and the data isn't the default value (a space)
+    if (mounted && initLevel != 0) {
+      setState(() {
+        _climbLevel = initLevel.toDouble();
+      });
+    }
+  }
+
+  Future<void> _loadPos() async {
+    int initPos = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData(_posColumn);
+
+    // If the widget is still active and the data isn't the default value (a space)
+    if (mounted && initPos != 0) {
+      setState(() {
+        _climbSide = initPos;
+      });
+    }
   }
 
   @override
@@ -1933,7 +1972,10 @@ class _AutoClimbWidgetState extends State<AutoClimbWidget> {
                       onChanged: (double value) {
                         setState(() {
                           _climbLevel = value;
-                          //Provider.of<ScoutProvider>(context, listen: false).updateData(column, _currentSliderValue.toInt());
+                          Provider.of<ScoutProvider>(
+                            context,
+                            listen: false,
+                          ).updateData(_levelColumn, _climbLevel.toInt());
                         });
                       },
                     ),
@@ -1945,28 +1987,19 @@ class _AutoClimbWidgetState extends State<AutoClimbWidget> {
                   //flex: 1,
                   child: Opacity(
                     opacity: _climbLevel == 0 ? 0.3 : 1,
-                    child: SegmentedButton<ClimbPos>(
+                    child: SegmentedButton<int>(
                       showSelectedIcon: false,
                       style: SegmentedButton.styleFrom(
                         selectedBackgroundColor: randomCol,
                         fixedSize: Size.fromHeight(30),
                       ),
-                      segments: const <ButtonSegment<ClimbPos>>[
-                        ButtonSegment<ClimbPos>(
-                          value: ClimbPos.left,
-                          label: Text('Left'),
-                        ),
-                        ButtonSegment<ClimbPos>(
-                          value: ClimbPos.middle,
-                          label: Text('Middle'),
-                        ),
-                        ButtonSegment<ClimbPos>(
-                          value: ClimbPos.right,
-                          label: Text('Right'),
-                        ),
+                      segments: const <ButtonSegment<int>>[
+                        ButtonSegment<int>(value: 0, label: Text('Left')),
+                        ButtonSegment<int>(value: 1, label: Text('Middle')),
+                        ButtonSegment<int>(value: 2, label: Text('Right')),
                       ],
-                      selected: <ClimbPos>{_climbSide},
-                      onSelectionChanged: (Set<ClimbPos> newSelection) {
+                      selected: <int>{_climbSide},
+                      onSelectionChanged: (Set<int> newSelection) {
                         setState(() {
                           // By default there is only a single segment that can be
                           // selected at one time, so its value is always the first
@@ -1975,6 +2008,10 @@ class _AutoClimbWidgetState extends State<AutoClimbWidget> {
                               _climbLevel == 0
                                   ? _climbSide
                                   : newSelection.first;
+                          Provider.of<ScoutProvider>(
+                            context,
+                            listen: false,
+                          ).updateData(_posColumn, _climbSide);
                         });
                       },
                     ),
@@ -1990,12 +2027,24 @@ class _AutoClimbWidgetState extends State<AutoClimbWidget> {
 }
 
 class VolleyListItem extends StatefulWidget {
-  final Color col;
+  final Color color;
+  final Color? UIcol;
   final bool isVolley;
+  final int? initAcc;
+  final int? initHop;
+  final ValueChanged<int> onHopChange;
+  final ValueChanged<int> onAccChange;
 
-  const VolleyListItem({this.col = Colors.white,
+  const VolleyListItem({
+    this.color = Colors.white,
     required this.isVolley,
-      super.key});
+    this.initAcc,
+    this.initHop,
+    this.UIcol,
+    required this.onAccChange,
+    required this.onHopChange,
+    super.key,
+  });
 
   @override
   State<VolleyListItem> createState() => _VolleyListItem();
@@ -2004,58 +2053,108 @@ class VolleyListItem extends StatefulWidget {
 class _VolleyListItem extends State<VolleyListItem> {
   late double _percentHopper;
   late double _percentAcc;
+  late Color _UIcol;
 
   @override
   void initState() {
     super.initState();
 
-    _percentHopper = 0.0;
-    _percentAcc = 0.0;
+    _percentAcc = widget.initAcc?.toDouble() ?? 0.0;
+    _percentHopper = widget.initHop?.toDouble() ?? 0.0;
+    _UIcol = widget.UIcol ?? randPrimary();
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.isVolley) {
-    return Card(
-      color: widget.col,
-      child: Row(
-        children: [
-          BoldText(text: "Volley"),
-          Expanded(
-            child: Column(
-              children: [
-                Slider(
-                  label: "${_percentHopper.toInt()}%",
-                  value: _percentHopper,
-                  min: 0.0,
-                  max: 100.0,
-                  onChanged: (value) {
-                    setState(() {
-                      _percentHopper = value;
-                    });
-                  },
-                ),
-                Slider(
-                  label: "${_percentHopper.toInt()}%",
-                  value: _percentAcc,
-                  min: 0.0,
-                  max: 100.0,
-                  onChanged: (value) {
-                    setState(() {
-                      _percentAcc = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      )
-    ); }
-    else {
       return Card(
-        color: widget.col,
-        child: SizedBox(height: 50, child: BoldText(text: "Shift Change"))
+        color: widget.color,
+        child: Container(
+          padding: EdgeInsets.all(10),
+          child: Row(
+            children: [
+              SizedBox(width: 10),
+              BoldText(text: "Volley", fontSize: 20),
+              Expanded(
+                child: Column(
+                  spacing: 2,
+                  children: [
+                    Text('% of Hopper Unloaded'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderThemeData(
+                              overlayShape: SliderComponentShape.noThumb,
+                            ),
+                            child: Slider(
+                              activeColor: _UIcol,
+                              label: "${_percentHopper.toInt()}%",
+                              value: _percentHopper,
+                              min: 0.0,
+                              max: 100.0,
+                              onChanged: (value) {
+                                setState(() {
+                                  _percentHopper = value;
+                                  widget.onHopChange(value.toInt());
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        Text("${_percentHopper.toInt()}%"),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Text('% of Shots Scored'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderThemeData(
+                              overlayShape: SliderComponentShape.noThumb,
+                            ),
+                            child: Slider(
+                              activeColor: _UIcol,
+                              label: "${_percentHopper.toInt()}%",
+                              value: _percentAcc,
+                              min: 0.0,
+                              max: 100.0,
+                              onChanged: (value) {
+                                setState(() {
+                                  _percentAcc = value;
+                                  widget.onAccChange(value.toInt());
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        Text('${_percentAcc.toInt()}%'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              //SizedBox(width: 20),
+              IconButton(
+                icon: Icon(Icons.delete_forever_sharp),
+                onPressed: () {
+                  setState(() {});
+                },
+                iconSize: 30.0,
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Card(
+        color: widget.color,
+        child: Container(
+          height: 50,
+          alignment: AlignmentGeometry.center,
+          child: BoldText(text: "Shift Change"),
+        ),
       );
     }
   }
@@ -2068,21 +2167,59 @@ class AutoVolleyWidget extends StatefulWidget {
 }
 
 class _AutoVolleyWidget extends State<AutoVolleyWidget> {
+  final column = 'auto_volleys';
   final buttonCol = randPrimary();
   final cardCol = randPrimary().withAlpha(150);
-  final List<VolleyListItem> _items = List.empty(growable: true);
+  late List<dynamic> _items = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    String data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getStringData(column);
+
+    // If the widget is still active and the data isn't the default value (a space)
+    if (mounted && data != '') {
+      setState(() {
+        _items = jsonDecode(data);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Card> cards = <Card>[
-      for (int index = 0; index < _items.length; index += 1)
-        Card(
-          key: Key('$index'),
-          color: randPrimary(),
-          child: SizedBox(
-            height: 80,
-            child: Center(child: Text('Card ${_items[index]}')),
-          ),
+    final List<VolleyListItem> volleys = <VolleyListItem>[
+      for (int i = 0; i < _items.length; i += 1)
+        VolleyListItem(
+          isVolley: intToBool(_items[i][0]),
+          color: intToBool(_items[i][0]) ? cardCol : cardCol.withAlpha(50),
+          UIcol: buttonCol,
+          initAcc: _items[i][2],
+          initHop: _items[i][1],
+          onHopChange: (int value) {
+            _items[i][1] = value;
+            Provider.of<ScoutProvider>(
+              context,
+              listen: false,
+            ).updateData(column, jsonEncode(_items));
+          },
+          onAccChange: (int value) {
+            _items[i][2] = value;
+            Provider.of<ScoutProvider>(
+              context,
+              listen: false,
+            ).updateData(column, jsonEncode(_items));
+          },
+          key: Key('$i'),
         ),
     ];
 
@@ -2103,8 +2240,8 @@ class _AutoVolleyWidget extends State<AutoVolleyWidget> {
             // and set its elevation to the animated value.
             child: Card(
               elevation: elevation,
-              color: cards[index].color,
-              child: cards[index].child,
+              color: volleys[index].color,
+              child: volleys[index],
             ),
           );
         },
@@ -2120,18 +2257,22 @@ class _AutoVolleyWidget extends State<AutoVolleyWidget> {
         Expanded(
           flex: 7,
           child: ReorderableListView(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             proxyDecorator: proxyDecorator,
             onReorder: (int oldIndex, int newIndex) {
               setState(() {
                 if (oldIndex < newIndex) {
                   newIndex -= 1;
                 }
-                final int item = _items.removeAt(oldIndex);
+                final List<dynamic> item = _items.removeAt(oldIndex);
                 _items.insert(newIndex, item);
+                Provider.of<ScoutProvider>(
+                  context,
+                  listen: false,
+                ).updateData(column, jsonEncode(_items));
               });
             },
-            children: cards,
+            children: volleys,
           ),
         ),
         SizedBox(height: 10),
@@ -2149,7 +2290,11 @@ class _AutoVolleyWidget extends State<AutoVolleyWidget> {
                 IconButton.filled(
                   onPressed: () {
                     setState(() {
-                      _items.add(_items.length);
+                      _items.add([0, 0, 0]);
+                      Provider.of<ScoutProvider>(
+                        context,
+                        listen: false,
+                      ).updateData(column, jsonEncode(_items));
                     });
                   },
                   icon: const Icon(Icons.add),
@@ -2161,7 +2306,11 @@ class _AutoVolleyWidget extends State<AutoVolleyWidget> {
                 IconButton.filled(
                   onPressed: () {
                     setState(() {
-                      _items.add(_items.length);
+                      _items.add([1, 0, 0]);
+                      Provider.of<ScoutProvider>(
+                        context,
+                        listen: false,
+                      ).updateData(column, jsonEncode(_items));
                     });
                   },
                   icon: const Icon(Icons.add),

@@ -25,10 +25,12 @@ class ScoutModel {
       drive_rating,
       died,
       fouls,
+      auto_climb_level,
+      auto_climb_position,
       climb_level,
       climb_position;
 
-   String match_name, notes, placeholder;
+   String match_name, notes, placeholder, auto_volleys, volleys;
 
   ScoutModel({
     this.team = 0,
@@ -37,8 +39,12 @@ class ScoutModel {
     this.drive_rating = -1,
     this.died = 0,
     this.fouls = 0,
+    this.auto_climb_level = 0,
+    this.auto_climb_position = 1,
     this.climb_level = 0,
-    this.climb_position = 0,
+    this.climb_position = 1,
+    this.auto_volleys = '',
+    this.volleys = '',
     this.placeholder = '',
     this.notes = ' ',
   });
@@ -51,10 +57,14 @@ class ScoutModel {
       'drive_rating': drive_rating,
       'died': died,
       'fouls': fouls,
+      'auto_climb_level': auto_climb_level,
+      'auto_climb_position': auto_climb_position,
       'climb_level': climb_level,
       'climb_position': climb_position,
       'placeholder': placeholder,
       'notes': notes,
+      'auto_volleys': auto_volleys,
+      'volleys': volleys,
     };
   }
 }
@@ -97,10 +107,14 @@ class ScoutDatabase {
         drive_rating INTEGER NOT NULL,
         died INTEGER NOT NULL,
         fouls INTEGER NOT NULL,
+        auto_climb_level INTEGER NOT NULL,
+        auto_climb_position INTEGER NOT NULL,
         climb_level INTEGER NOT NULL,
         climb_position INTEGER NOT NULL,
         placeholder TEXT,
-        notes TEXT
+        notes TEXT,
+        auto_volleys TEXT,
+        volleys TEXT
         )
         ''');
       },

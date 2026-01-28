@@ -36,7 +36,7 @@ class _AuraPageState extends State<AuraPage> {
         children: [
           Expanded(
             flex: 1,
-            child: AutoClimbWidget(),
+            child: ClimbWidget(isAuto: true,),
           ),
           Expanded(
             flex: 3,
