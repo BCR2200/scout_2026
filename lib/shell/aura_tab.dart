@@ -44,7 +44,7 @@ class _AuraPageState extends State<AuraPage> {
               color: Colors.white,
               margin: EdgeInsets.fromLTRB(50, 0, 50, 50),
               padding: EdgeInsets.all(25),
-              child: AutoVolleyWidget(),
+              child: VolleyWidget(isAuto: true,),
               /*child: Column(
                 children:[
                   Expanded(

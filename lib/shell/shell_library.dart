@@ -2034,6 +2034,7 @@ class VolleyListItem extends StatefulWidget {
   final int? initHop;
   final ValueChanged<int> onHopChange;
   final ValueChanged<int> onAccChange;
+  final VoidCallback onDelete;
 
   const VolleyListItem({
     this.color = Colors.white,
@@ -2043,6 +2044,7 @@ class VolleyListItem extends StatefulWidget {
     this.UIcol,
     required this.onAccChange,
     required this.onHopChange,
+    required this.onDelete,
     super.key,
   });
 
@@ -2050,10 +2052,13 @@ class VolleyListItem extends StatefulWidget {
   State<VolleyListItem> createState() => _VolleyListItem();
 }
 
-class _VolleyListItem extends State<VolleyListItem> {
+class _VolleyListItem extends State<VolleyListItem>
+    with SingleTickerProviderStateMixin {
   late double _percentHopper;
   late double _percentAcc;
   late Color _UIcol;
+  late AnimationController _controller;
+  late Animation<Offset> _offsetAnimation;
 
   @override
   void initState() {
@@ -2062,112 +2067,190 @@ class _VolleyListItem extends State<VolleyListItem> {
     _percentAcc = widget.initAcc?.toDouble() ?? 0.0;
     _percentHopper = widget.initHop?.toDouble() ?? 0.0;
     _UIcol = widget.UIcol ?? randPrimary();
+
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _offsetAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(1.5, 0.0), // Slides completely off-screen to the right
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _triggerDismiss() async {
+    await _controller.forward();
+    setState(() {
+      widget.onDelete();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.isVolley) {
-      return Card(
-        color: widget.color,
-        child: Container(
-          padding: EdgeInsets.all(10),
-          child: Row(
-            children: [
-              SizedBox(width: 10),
-              BoldText(text: "Volley", fontSize: 20),
-              Expanded(
-                child: Column(
-                  spacing: 2,
-                  children: [
-                    Text('% of Hopper Unloaded'),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderThemeData(
-                              overlayShape: SliderComponentShape.noThumb,
-                            ),
-                            child: Slider(
-                              activeColor: _UIcol,
-                              label: "${_percentHopper.toInt()}%",
-                              value: _percentHopper,
-                              min: 0.0,
-                              max: 100.0,
-                              onChanged: (value) {
-                                setState(() {
-                                  _percentHopper = value;
-                                  widget.onHopChange(value.toInt());
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        Text("${_percentHopper.toInt()}%"),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Text('% of Shots Scored'),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderThemeData(
-                              overlayShape: SliderComponentShape.noThumb,
-                            ),
-                            child: Slider(
-                              activeColor: _UIcol,
-                              label: "${_percentHopper.toInt()}%",
-                              value: _percentAcc,
-                              min: 0.0,
-                              max: 100.0,
-                              onChanged: (value) {
-                                setState(() {
-                                  _percentAcc = value;
-                                  widget.onAccChange(value.toInt());
-                                });
-                              },
+      return SlideTransition(
+        position: _offsetAnimation,
+        child: Card(
+          color: widget.color,
+          child: Container(
+            padding: EdgeInsets.all(10),
+            child: Row(
+              children: [
+                SizedBox(width: 10),
+                BoldText(text: "Volley", fontSize: 20),
+                Expanded(
+                  child: Column(
+                    spacing: 2,
+                    children: [
+                      Text('% of Hopper Unloaded'),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderThemeData(
+                                overlayShape: SliderComponentShape.noThumb,
+                              ),
+                              child: Slider(
+                                activeColor: _UIcol,
+                                label: "${_percentHopper.toInt()}%",
+                                value: _percentHopper,
+                                min: 0.0,
+                                max: 100.0,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _percentHopper = value;
+                                    widget.onHopChange(value.toInt());
+                                  });
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                        Text('${_percentAcc.toInt()}%'),
-                      ],
-                    ),
-                  ],
+                          Text("${_percentHopper.toInt()}%"),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      Text('% of Shots Scored'),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderThemeData(
+                                overlayShape: SliderComponentShape.noThumb,
+                              ),
+                              child: Slider(
+                                activeColor: _UIcol,
+                                label: "${_percentHopper.toInt()}%",
+                                value: _percentAcc,
+                                min: 0.0,
+                                max: 100.0,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _percentAcc = value;
+                                    widget.onAccChange(value.toInt());
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          Text('${_percentAcc.toInt()}%'),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              //SizedBox(width: 20),
-              IconButton(
-                icon: Icon(Icons.delete_forever_sharp),
-                onPressed: () {
-                  setState(() {});
-                },
-                iconSize: 30.0,
-              ),
-            ],
+                //SizedBox(width: 20),
+                IconButton(
+                  icon: Icon(Icons.delete_forever_sharp),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder:
+                          ((context) => AlertDialog(
+                            actionsAlignment: MainAxisAlignment.center,
+                            title: Text('Remove this volley?'),
+                            actions: [
+                              TextButton(onPressed: () {Navigator.of(context).pop();}, child: Text('No')),
+                              TextButton(
+                                onPressed: () {
+                                  _triggerDismiss();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('Yes'),
+                              ),
+                            ],
+                          )),
+                    );
+                  },
+                  iconSize: 30.0,
+                ),
+              ],
+            ),
           ),
         ),
       );
     } else {
-      return Card(
-        color: widget.color,
-        child: Container(
-          height: 50,
-          alignment: AlignmentGeometry.center,
-          child: BoldText(text: "Shift Change"),
+      return SlideTransition(
+        position: _offsetAnimation,
+        child: Card(
+          color: widget.color,
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 50,
+                  alignment: AlignmentGeometry.center,
+                  child: BoldText(text: "Shift Change"),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete_forever_sharp),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder:
+                        ((context) => AlertDialog(
+                          actionsAlignment: MainAxisAlignment.center,
+                          title: Text('Remove this shift change?'),
+                          actions: [
+                            TextButton(onPressed: () {Navigator.of(context).pop();}, child: Text('No')),
+                            TextButton(
+                              onPressed: () {
+                                _triggerDismiss();
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Yes'),
+                            ),
+                          ],
+                        )),
+                  );
+                },
+                iconSize: 30.0,
+              ),
+              SizedBox(width: 10),
+            ],
+          ),
         ),
       );
     }
   }
 }
 
-class AutoVolleyWidget extends StatefulWidget {
-  const AutoVolleyWidget({super.key});
+class VolleyWidget extends StatefulWidget {
+  final bool isAuto;
+
+  const VolleyWidget({required this.isAuto, super.key});
   @override
-  State<AutoVolleyWidget> createState() => _AutoVolleyWidget();
+  State<VolleyWidget> createState() => _VolleyWidget();
 }
 
-class _AutoVolleyWidget extends State<AutoVolleyWidget> {
-  final column = 'auto_volleys';
+class _VolleyWidget extends State<VolleyWidget> {
+  late String column;
   final buttonCol = randPrimary();
   final cardCol = randPrimary().withAlpha(150);
   late List<dynamic> _items = [];
@@ -2175,6 +2258,8 @@ class _AutoVolleyWidget extends State<AutoVolleyWidget> {
   @override
   void initState() {
     super.initState();
+
+    column = widget.isAuto ? 'auto_volleys' : 'volleys';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -2219,7 +2304,16 @@ class _AutoVolleyWidget extends State<AutoVolleyWidget> {
               listen: false,
             ).updateData(column, jsonEncode(_items));
           },
-          key: Key('$i'),
+          onDelete: () {
+            setState(() {
+              _items.removeAt(i);
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData(column, jsonEncode(_items));
+            });
+          },
+          key: UniqueKey(),
         ),
     ];
 
