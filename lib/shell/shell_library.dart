@@ -2204,7 +2204,7 @@ class _VolleyListItem extends State<VolleyListItem>
               Expanded(
                 child: Container(
                   height: 50,
-                  alignment: AlignmentGeometry.center,
+                  alignment: Alignment.center,
                   child: BoldText(text: "Shift Change"),
                 ),
               ),
