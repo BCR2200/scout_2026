@@ -25,12 +25,18 @@ class QRPage extends StatefulWidget {
   State<QRPage> createState() => _QRPageState();
 }
 class _QRPageState extends State<QRPage> {
+  late Color primaryColor;
 
+  @override
+  void initState() {
+    super.initState();
+    primaryColor = randPrimary();
+  }
   // Building the widget tree
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: randPrimary(), // Setting the background colour
+      color: primaryColor, // Setting the background colour
       child: Center(
         child: FutureBuilder<List<String>>(
 
@@ -57,7 +63,7 @@ class _QRPageState extends State<QRPage> {
                       size: 500, // QR code size
                       backgroundColor: Colors.white,
                     ),
-                    NextMatchWidget(callback: widget.callback) // Button to move on to the next match
+                    NextMatchWidget(callback: widget.callback, color: primaryColor,) // Button to move on to the next match
                   ], // children:
                 ),
               );
