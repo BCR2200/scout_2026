@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../databasing/provider_service.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 /*
  * =================================
  * +++          READ ME          +++
@@ -166,8 +167,9 @@ class BoldText extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontWeight: FontWeight.bold, // Setting the text to bold
+        fontWeight: FontWeight.w900, // Setting the text to bold
         fontSize: fontSize,
+        fontFamily: GoogleFonts.redHatDisplay().fontFamily,
         color: color,
       ),
     );
@@ -1872,8 +1874,9 @@ class _LabelledCheckBoxState extends State<LabelledCheckBox> {
 
 class ClimbWidget extends StatefulWidget {
   final bool isAuto;
+  final Color pageColor;
 
-  const ClimbWidget({required this.isAuto, super.key});
+  const ClimbWidget({required this.isAuto, required this.pageColor, super.key});
 
   @override
   State<ClimbWidget> createState() => _ClimbWidgetState();
@@ -1884,7 +1887,6 @@ class _ClimbWidgetState extends State<ClimbWidget> {
   late int _climbSide;
   late String _posColumn;
   late String _levelColumn;
-  Color randomCol = randPrimary();
 
   @override
   void initState() {
@@ -1943,7 +1945,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
           Expanded(
             child: Column(
               children: [
-                Text('Climb Level'),
+                BoldText(text: 'Climb Level'),
                 Expanded(
                   child: Container(
                     height: 100,
@@ -1951,38 +1953,44 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                       left: 25,
                       right: 15,
                     ), // Ensure spacing between labels
-                    child: Slider(
-                      // Displaying the current value to user in a friendly fashion
-                      year2023: false,
-                      label:
-                          _climbLevel == 0
-                              ? "No Climb"
-                              : _climbLevel.toInt().toString(),
-                      inactiveColor: randomCol,
-                      activeColor: randomCol,
+                    child: SliderTheme(
+                      data: SliderThemeData(
+                        tickMarkShape: RoundSliderTickMarkShape(),
+                        inactiveTickMarkColor: Colors.white,
+                      ),
+                      child: Slider(
+                        // Displaying the current value to user in a friendly fashion
+                        year2023: false,
+                        label:
+                            _climbLevel == 0
+                                ? "No Climb"
+                                : _climbLevel.toInt().toString(),
+                        inactiveColor: widget.pageColor,
+                        activeColor: widget.pageColor,
 
-                      // Making it on a scale from 1–10, and an option of no defence
-                      divisions: 3,
-                      min: 0.0,
-                      max: 3.0,
-                      value: _climbLevel,
+                        // Making it on a scale from 1–10, and an option of no defence
+                        divisions: 3,
+                        min: 0.0,
+                        max: 3.0,
+                        value: _climbLevel,
 
-                      // Sending the current value to the database when changed,
-                      // and updating whether or not to show "no defence"
-                      onChanged: (double value) {
-                        setState(() {
-                          _climbLevel = value;
-                          Provider.of<ScoutProvider>(
-                            context,
-                            listen: false,
-                          ).updateData(_levelColumn, _climbLevel.toInt());
-                        });
-                      },
+                        // Sending the current value to the database when changed,
+                        // and updating whether or not to show "no defence"
+                        onChanged: (double value) {
+                          setState(() {
+                            _climbLevel = value;
+                            Provider.of<ScoutProvider>(
+                              context,
+                              listen: false,
+                            ).updateData(_levelColumn, _climbLevel.toInt());
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ),
                 Container(height: 10),
-                Text("Climb Side"),
+                BoldText(text: "Climb Side"),
                 Expanded(
                   //flex: 1,
                   child: Opacity(
@@ -1990,8 +1998,11 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                     child: SegmentedButton<int>(
                       showSelectedIcon: false,
                       style: SegmentedButton.styleFrom(
-                        selectedBackgroundColor: randomCol,
+                        selectedBackgroundColor: widget.pageColor,
                         fixedSize: Size.fromHeight(30),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       segments: const <ButtonSegment<int>>[
                         ButtonSegment<int>(value: 0, label: Text('Left')),
@@ -2243,15 +2254,16 @@ class _VolleyListItem extends State<VolleyListItem>
 
 class VolleyWidget extends StatefulWidget {
   final bool isAuto;
+  final Color pageColor;
 
-  const VolleyWidget({required this.isAuto, super.key});
+  const VolleyWidget({required this.isAuto, required this.pageColor, super.key});
   @override
   State<VolleyWidget> createState() => _VolleyWidget();
 }
 
 class _VolleyWidget extends State<VolleyWidget> {
   late String column;
-  final buttonCol = randPrimary();
+  Color buttonCol = randPrimary();
   final cardCol = randPrimary().withAlpha(150);
   late List<dynamic> _items = [];
 
@@ -2260,6 +2272,7 @@ class _VolleyWidget extends State<VolleyWidget> {
     super.initState();
 
     column = widget.isAuto ? 'auto_volleys' : 'volleys';
+    buttonCol = buttonCol == widget.pageColor ? randPrimary() : buttonCol;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -2375,11 +2388,11 @@ class _VolleyWidget extends State<VolleyWidget> {
           flex: 1,
           child: CustomContainer(
             margin: EdgeInsets.all(0),
-            color: randPrimary(),
+            color: widget.pageColor,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Shift Change", textAlign: TextAlign.center),
+                Text("Shift Change", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 20),
                 IconButton.filled(
                   onPressed: () {
@@ -2395,7 +2408,7 @@ class _VolleyWidget extends State<VolleyWidget> {
                   style: IconButton.styleFrom(backgroundColor: buttonCol),
                 ),
                 SizedBox(width: 100),
-                Text("Volleys", textAlign: TextAlign.center),
+                Text("Volleys", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 20),
                 IconButton.filled(
                   onPressed: () {

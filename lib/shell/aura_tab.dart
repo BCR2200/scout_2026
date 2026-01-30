@@ -9,34 +9,47 @@ import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
 class AuraTab extends StatelessWidget {
-  const AuraTab({super.key});
+  final Color pageColor;
+
+  const AuraTab({required this.pageColor, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: randPrimary(), text: 'Aura'));
+    return Tab(child: ColouredTab(color: pageColor, text: 'Aura'));
   }
 }
 
 // AuraPage is a stateless widget called when creating the Aura code page.
 class AuraPage extends StatefulWidget {
   final VoidCallback? callback;
+  final ValueChanged<Color> onColorChange;
 
-  const AuraPage({super.key, this.callback}); // Constructor
+  const AuraPage({super.key, required this.onColorChange, this.callback}); // Constructor
   @override
   State<AuraPage> createState() => _AuraPageState();
 }
 
 class _AuraPageState extends State<AuraPage> {
+  late Color pageColor;
   // Building the widget tree
+
+  @override
+  void initState() {
+    super.initState();
+    pageColor = randPrimary();
+
+    widget.onColorChange(pageColor);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: randPrimary(), // Setting the background colour
+      color: pageColor, // Setting the background colour
       child: Column(
         children: [
           Expanded(
             flex: 1,
-            child: ClimbWidget(isAuto: true,),
+            child: ClimbWidget(isAuto: true, pageColor: pageColor,),
           ),
           Expanded(
             flex: 3,
@@ -44,7 +57,7 @@ class _AuraPageState extends State<AuraPage> {
               color: Colors.white,
               margin: EdgeInsets.fromLTRB(50, 0, 50, 50),
               padding: EdgeInsets.all(25),
-              child: VolleyWidget(isAuto: true,),
+              child: VolleyWidget(isAuto: true, pageColor: pageColor,),
               /*child: Column(
                 children:[
                   Expanded(

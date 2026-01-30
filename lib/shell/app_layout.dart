@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../databasing/provider_service.dart';
 import '../../databasing/scout_data.dart';
 import 'shell_library.dart';
+import 'package:scout_shell/shell/TheEnd(game).dart';
+import 'package:scout_shell/shell/aura_tab.dart';
+import 'package:scout_shell/shell/tele.dart';
 
 
 
@@ -68,7 +71,7 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: widget.tabs.length, vsync: this); // Setting up the tab controller    
+    _tabController = TabController(length: widget.tabs.length, vsync: this); // Setting up the tab controller
     _loadScoutIndex(); // Load in which tablet it is
   }
 
@@ -266,7 +269,7 @@ class _SetupPageState extends State<SetupPage> {
   @override
   void initState() {
     super.initState();
-    _addEmptyMatch(); // method outlined earlier 
+    _addEmptyMatch(); // method outlined earlier
   }
 
   // Building the widget tree
