@@ -9,22 +9,20 @@ import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
 class TeleTab extends StatelessWidget {
-  final Color pageColor;
 
-  const TeleTab({required this.pageColor, super.key});
+  const TeleTab({ super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: pageColor, text: 'Tele'));
+    return Tab(child: ColouredTab(color: randPrimary(), text: 'Tele'));
   }
 }
 
 // TelePage is a stateless widget called when creating the Tele code page.
 class TelePage extends StatefulWidget {
   final VoidCallback? callback;
-  final ValueChanged<Color> onColorChange;
 
-  const TelePage({super.key, required this.onColorChange, this.callback}); // Constructor
+  const TelePage({super.key, this.callback}); // Constructor
   @override
   State<TelePage> createState() => _TelePageState();
 }
@@ -37,8 +35,6 @@ class _TelePageState extends State<TelePage> {
   void initState() {
     super.initState();
     pageColor = randPrimary();
-
-    widget.onColorChange(pageColor);
   }
 
   @override
