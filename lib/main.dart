@@ -37,14 +37,18 @@ void main() async {
      *
      * Once you finish a tab/page just put it in its respective list
     **/
-      tabs: [AuraTab(pageColor: auraColor), TeleTab(), TheEndTab(), QrTab()],
+      tabs: [AuraTab(pageColor: auraColor), TeleTab(pageColor: teleColor,), TheEndTab(), QrTab()],
       pages: [
         AuraPage(
           onColorChange: (color) {
             auraColor = color;
           },
         ),
-        TelePage(),
+        TelePage(
+          onColorChange: (Color) {
+            teleColor = Color;
+          },
+        ),
         TheEndPage(),
         // QRPage(),  - now is part of app_layout in order to make "next match" go to the first tab
       ],
