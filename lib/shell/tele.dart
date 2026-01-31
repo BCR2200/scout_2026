@@ -49,7 +49,7 @@ class _TelePageState extends State<TelePage> {
               color: Colors.white,
               margin: EdgeInsets.fromLTRB(50, 0, 50, 50),
               padding: EdgeInsets.all(25),
-              child: VolleyWidget(isAuto: false, pageColor: pageColor,),
+              child: VolleyWidget(isAuto: false, pageColor: pageColor, UIcol: randHighlight(),),
               /*child: Column(
                 children:[
                   Expanded(

@@ -2106,18 +2106,27 @@ class VolleyListItem extends StatefulWidget {
 
 class _VolleyListItem extends State<VolleyListItem>
     with SingleTickerProviderStateMixin {
-  late double _percentHopper;
-  late double _percentAcc;
+  late int _percentHopper;
+  late int _percentAcc;
   late Color _UIcol;
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
+  final List<ButtonSegment<int>> _percents = List<ButtonSegment<int>>.generate(
+    11,
+    (index) {
+      return ButtonSegment<int>(
+        value: index * 10,
+        label: Text('${index * 10}'),
+      );
+    },
+  );
 
   @override
   void initState() {
     super.initState();
 
-    _percentAcc = widget.initAcc?.toDouble() ?? 0.0;
-    _percentHopper = widget.initHop?.toDouble() ?? 0.0;
+    _percentAcc = widget.initAcc ?? 0;
+    _percentHopper = widget.initHop ?? 0;
     _UIcol = widget.UIcol ?? randPrimary();
 
     _controller = AnimationController(
@@ -2128,6 +2137,8 @@ class _VolleyListItem extends State<VolleyListItem>
       begin: Offset.zero,
       end: const Offset(1.5, 0.0), // Slides completely off-screen to the right
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+
+    //_percents.add(ButtonSegment<int>(value: 100, label: Text('100')));
   }
 
   @override
@@ -2146,16 +2157,45 @@ class _VolleyListItem extends State<VolleyListItem>
   @override
   Widget build(BuildContext context) {
     if (widget.isVolley) {
-      return SlideTransition(
-        position: _offsetAnimation,
+      return Dismissible(
+        key: UniqueKey(),
+        direction: DismissDirection.startToEnd,
+        background: CustomContainer(
+          color: Colors.red,
+          padding: EdgeInsets.only(left: 20, right: 550),
+          child: const Icon(Icons.delete_forever_sharp),
+        ),
+        confirmDismiss:
+            (direction) => showDialog(
+              context: context,
+              builder:
+                  ((context) => AlertDialog(
+                    actionsAlignment: MainAxisAlignment.center,
+                    title: Text('Did you want to remove this volley?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text('Yes'),
+                      ),
+                    ],
+                  )),
+            ),
+
+        onDismissed: (direction) {
+          _triggerDismiss();
+        },
         child: Card(
           color: widget.color,
           child: Container(
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.fromLTRB(10, 10, 20, 10),
             child: Row(
               children: [
+                Icon(Icons.drag_indicator),
                 SizedBox(width: 10),
-                BoldText(text: "Volley", fontSize: 20),
                 Expanded(
                   child: Column(
                     spacing: 2,
@@ -2164,26 +2204,29 @@ class _VolleyListItem extends State<VolleyListItem>
                       Row(
                         children: [
                           Expanded(
-                            child: SliderTheme(
-                              data: SliderThemeData(
-                                overlayShape: SliderComponentShape.noThumb,
+                            child: SegmentedButton<int>(
+                              showSelectedIcon: false,
+                              style: SegmentedButton.styleFrom(
+                                selectedBackgroundColor: _UIcol,
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                visualDensity: VisualDensity(
+                                  horizontal: -3,
+                                  vertical: -3,
+                                ),
                               ),
-                              child: Slider(
-                                activeColor: _UIcol,
-                                label: "${_percentHopper.toInt()}%",
-                                value: _percentHopper,
-                                min: 0.0,
-                                max: 100.0,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _percentHopper = value;
-                                    widget.onHopChange(value.toInt());
-                                  });
-                                },
-                              ),
+                              segments: _percents,
+                              selected: <int>{_percentHopper.toInt()},
+                              onSelectionChanged: (Set<int> newSelection) {
+                                setState(() {
+                                  _percentHopper = newSelection.first;
+                                  widget.onHopChange(_percentHopper);
+                                });
+                              },
                             ),
                           ),
-                          Text("${_percentHopper.toInt()}%"),
                         ],
                       ),
                       SizedBox(height: 10),
@@ -2191,104 +2234,51 @@ class _VolleyListItem extends State<VolleyListItem>
                       Row(
                         children: [
                           Expanded(
-                            child: SliderTheme(
-                              data: SliderThemeData(
-                                overlayShape: SliderComponentShape.noThumb,
+                            child: SegmentedButton<int>(
+                              showSelectedIcon: false,
+                              style: SegmentedButton.styleFrom(
+                                side: BorderSide.none,
+                                selectedBackgroundColor: _UIcol,
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                visualDensity: VisualDensity(
+                                  horizontal: -3,
+                                  vertical: -3,
+                                ),
+
                               ),
-                              child: Slider(
-                                activeColor: _UIcol,
-                                label: "${_percentHopper.toInt()}%",
-                                value: _percentAcc,
-                                min: 0.0,
-                                max: 100.0,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _percentAcc = value;
-                                    widget.onAccChange(value.toInt());
-                                  });
-                                },
-                              ),
+                              segments: _percents,
+                              selected: <int>{_percentAcc.toInt()},
+                              onSelectionChanged: (Set<int> newSelection) {
+                                setState(() {
+                                  _percentAcc = newSelection.first;
+                                  widget.onHopChange(_percentAcc);
+                                });
+                              },
                             ),
                           ),
-                          Text('${_percentAcc.toInt()}%'),
                         ],
                       ),
-                    ],
+                      SizedBox(height: 10),
+                      /*Expanded(
+                        child: Row(
+                          children: [
+                            ],
+                        ),
+                      )*/],
+
                   ),
                 ),
                 //SizedBox(width: 20),
-                IconButton(
-                  icon: Icon(Icons.delete_forever_sharp),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder:
-                          ((context) => AlertDialog(
-                            actionsAlignment: MainAxisAlignment.center,
-                            title: Text('Remove this volley?'),
-                            actions: [
-                              TextButton(onPressed: () {Navigator.of(context).pop();}, child: Text('No')),
-                              TextButton(
-                                onPressed: () {
-                                  _triggerDismiss();
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text('Yes'),
-                              ),
-                            ],
-                          )),
-                    );
-                  },
-                  iconSize: 30.0,
-                ),
               ],
             ),
           ),
         ),
       );
     } else {
-      return SlideTransition(
-        position: _offsetAnimation,
-        child: Card(
-          color: widget.color,
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 50,
-                  alignment: Alignment.center,
-                  child: BoldText(text: "Shift Change"),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.delete_forever_sharp),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder:
-                        ((context) => AlertDialog(
-                          actionsAlignment: MainAxisAlignment.center,
-                          title: Text('Remove this shift change?'),
-                          actions: [
-                            TextButton(onPressed: () {Navigator.of(context).pop();}, child: Text('No')),
-                            TextButton(
-                              onPressed: () {
-                                _triggerDismiss();
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('Yes'),
-                            ),
-                          ],
-                        )),
-                  );
-                },
-                iconSize: 30.0,
-              ),
-              SizedBox(width: 10),
-            ],
-          ),
-        ),
-      );
+      return Card();
     }
   }
 }
@@ -2296,15 +2286,21 @@ class _VolleyListItem extends State<VolleyListItem>
 class VolleyWidget extends StatefulWidget {
   final bool isAuto;
   final Color pageColor;
+  final Color UIcol;
 
-  const VolleyWidget({required this.isAuto, required this.pageColor, super.key});
+  const VolleyWidget({
+    required this.isAuto,
+    required this.pageColor,
+    required this.UIcol,
+    super.key,
+  });
   @override
   State<VolleyWidget> createState() => _VolleyWidget();
 }
 
 class _VolleyWidget extends State<VolleyWidget> {
   late String column;
-  Color buttonCol = randPrimary();
+  late Color buttonCol;
   final cardCol = randPrimary().withAlpha(150);
   late List<dynamic> _items = [];
 
@@ -2313,11 +2309,19 @@ class _VolleyWidget extends State<VolleyWidget> {
     super.initState();
 
     column = widget.isAuto ? 'auto_volleys' : 'volleys';
-    buttonCol = buttonCol == widget.pageColor ? randPrimary() : buttonCol;
+    buttonCol = widget.UIcol;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
+
+    if (widget.isAuto && _items.isEmpty) {
+      _items.add([1, 0, 0]);
+      Provider.of<ScoutProvider>(
+        context,
+        listen: false,
+      ).updateData(column, jsonEncode(_items));
+    }
   }
 
   Future<void> _loadData() async {
@@ -2427,44 +2431,27 @@ class _VolleyWidget extends State<VolleyWidget> {
 
         Expanded(
           flex: 1,
-          child: CustomContainer(
-            margin: EdgeInsets.all(0),
-            color: widget.pageColor,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Shift Change", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(width: 20),
-                IconButton.filled(
-                  onPressed: () {
-                    setState(() {
-                      _items.add([0, 0, 0]);
-                      Provider.of<ScoutProvider>(
-                        context,
-                        listen: false,
-                      ).updateData(column, jsonEncode(_items));
-                    });
-                  },
-                  icon: const Icon(Icons.add),
-                  style: IconButton.styleFrom(backgroundColor: buttonCol),
-                ),
-                SizedBox(width: 100),
-                Text("Volleys", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(width: 20),
-                IconButton.filled(
-                  onPressed: () {
-                    setState(() {
-                      _items.add([1, 0, 0]);
-                      Provider.of<ScoutProvider>(
-                        context,
-                        listen: false,
-                      ).updateData(column, jsonEncode(_items));
-                    });
-                  },
-                  icon: const Icon(Icons.add),
-                  style: IconButton.styleFrom(backgroundColor: buttonCol),
-                ),
-              ],
+          child: Container(
+            padding: EdgeInsets.all(10),
+            child: FilledButton(
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 50),
+                  SizedBox(width: 10),
+                  BoldText(text: "Add Volley", fontSize: 25),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                  _items.add([1, 0, 0]);
+                  Provider.of<ScoutProvider>(
+                    context,
+                    listen: false,
+                  ).updateData(column, jsonEncode(_items));
+                });
+              },
             ),
           ),
         ),
