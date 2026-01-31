@@ -1,22 +1,31 @@
+import 'dart:math';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-//import 'package:aura_flutter/aura_flutter.dart';
+//import 'package:theEnd_flutter/theEnd_flutter.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
+class TheEndTab extends StatefulWidget {
 
-class TheEndTab extends StatelessWidget {
-  const TheEndTab({super.key});
+  const TheEndTab({ super.key});
+  @override
+  State<TheEndTab> createState() => _TheEndTabState();
 
+}
+
+class _TheEndTabState extends State<TheEndTab> {
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: randHighlight(), text: 'THE END',),);
+    return ListenableBuilder(
+        listenable: ColorProvider(),
+        builder: (context, child) {return Tab(child: ColouredTab(color: Color(ColorProvider().endCol), text: 'post mortem'));});
   }
 }
 
-
-
-// TheEndPage is a stateless widget called when creating the Tele code page.
+// TheEndPage is a stateless widget called when creating the TheEnd code page.
 class TheEndPage extends StatefulWidget {
   final VoidCallback? callback;
 
@@ -24,16 +33,46 @@ class TheEndPage extends StatefulWidget {
   @override
   State<TheEndPage> createState() => _TheEndPageState();
 }
-class _TheEndPageState extends State<TheEndPage> {
 
+class _TheEndPageState extends State<TheEndPage> {
+  late Color pageColor;
   // Building the widget tree
+
+  @override
+  void initState() {
+    super.initState();
+    pageColor = randPrimary();
+
+    ColorProvider().updateColor('endcol', pageColor);
+    ColorProvider().loadSettings();
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: randPrimary(), // Setting the background colour
-      child: Center(
-
-      ),
+      color: pageColor, // Setting the background colour
+      child: Column(
+        children: [
+          Expanded(
+            flex: 1,
+            child: ClimbWidget(isAuto: false, pageColor: pageColor,),
+          ),
+          Expanded(
+            flex: 1,
+            child: NotesWidget()
+          ),
+          Expanded(
+            flex: 1,
+            child: DriverSlider()
+          ),
+          Expanded(
+            flex: 1,
+            child: DefenceSlider()
+          ),
+      ],
+    ),
     );
   } // Widget build
 } // _TheEndPageState
