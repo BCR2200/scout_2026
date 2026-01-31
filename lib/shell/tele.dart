@@ -1,38 +1,76 @@
+import 'dart:math';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-//import 'package:aura_flutter/aura_flutter.dart';
+//import 'package:tele_flutter/tele_flutter.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
-
 class TeleTab extends StatelessWidget {
-  const TeleTab({super.key});
+  final Color pageColor;
+
+  const TeleTab({required this.pageColor, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: randHighlight(), text: 'Tele',),);
+    return Tab(child: ColouredTab(color: pageColor, text: 'Tele'));
   }
 }
-
-
 
 // TelePage is a stateless widget called when creating the Tele code page.
 class TelePage extends StatefulWidget {
   final VoidCallback? callback;
+  final ValueChanged<Color> onColorChange;
 
-  const TelePage({super.key, this.callback}); // Constructor
+  const TelePage({super.key, required this.onColorChange, this.callback}); // Constructor
   @override
   State<TelePage> createState() => _TelePageState();
 }
-class _TelePageState extends State<TelePage> {
 
+class _TelePageState extends State<TelePage> {
+  late Color pageColor;
   // Building the widget tree
+
+  @override
+  void initState() {
+    super.initState();
+    pageColor = randPrimary();
+
+    widget.onColorChange(pageColor);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: randPrimary(), // Setting the background colour
-      child: Center(
+      color: pageColor, // Setting the background colour
+      child: Column(
+        children: [
+          Expanded(
+            flex: 3,
+            child: CustomContainer(
+              color: Colors.white,
+              margin: EdgeInsets.fromLTRB(50, 0, 50, 50),
+              padding: EdgeInsets.all(25),
+              child: VolleyWidget(isAuto: false, pageColor: pageColor,),
+              /*child: Column(
+                children:[
+                  Expanded(
+                    child: ReorderableListView(children: children, onReorder: onReorder)
+                  ),
+                  Row(
+                    children: [
+                      BoldText(text: "Shift Change"),
 
+                      BoldText(text: "Volleys")
+                    ]
+                  )
+                ]
+              )*/
+            ),
+          ),
+        ],
       ),
     );
   } // Widget build
