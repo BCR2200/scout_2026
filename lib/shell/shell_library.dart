@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../databasing/provider_service.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,6 +23,46 @@ import 'package:google_fonts/google_fonts.dart';
  * - Cameron Derks
  * 
  */
+
+class ColorProvider extends ChangeNotifier {
+  final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
+
+  int _auraCol = randPrimary().toARGB32();
+  int get auraCol => _auraCol;
+
+  int _teleCol = randPrimary().toARGB32();
+  int get teleCol => _teleCol;
+
+  int _endCol = randPrimary().toARGB32();
+  int get endCol => _endCol;
+
+  int _qrCol = randPrimary().toARGB32();
+  int get qrCol => _qrCol;
+
+  // Call this during app initialization
+  Future<void> loadSettings() async {
+    _auraCol = await _asyncPrefs.getInt('auraCol') ?? randPrimary().toARGB32();
+    _teleCol = await _asyncPrefs.getInt('teleCol') ?? randPrimary().toARGB32();
+    _endCol = await _asyncPrefs.getInt('endCol') ?? randPrimary().toARGB32();
+    _qrCol = await _asyncPrefs.getInt('qrCol') ?? randPrimary().toARGB32();
+
+    notifyListeners(); // Updates any listening widgets
+  }
+
+  Future<void> updateColor(String key, Color newCol) async {
+    await _asyncPrefs.setInt(key, newCol.toARGB32());
+    if (key == 'auraCol') {
+      _auraCol = newCol.toARGB32();
+    } else if (key == 'teleCol') {
+      _teleCol = newCol.toARGB32();
+    } else if (key == 'endCol') {
+      _endCol = newCol.toARGB32();
+    } else if (key == 'qrCol') {
+      _qrCol = newCol.toARGB32();
+    }
+    notifyListeners(); // This is what triggers your UI update
+  }
+}
 
 Color randPrimary() {
   var random = Random();
@@ -290,7 +331,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 ),
                 BoldText(
                   text:
-                      '2. Make sure the match name is something like       "McMaster Q40"',
+                      '2. Make sure the match name is something like\n"McMaster Q40"',
                   fontSize: 17.5,
                 ),
                 BoldText(

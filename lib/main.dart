@@ -37,12 +37,9 @@ void main() async {
      *
      * Once you finish a tab/page just put it in its respective list
     **/
-      tabs: [AuraTab(pageColor: auraColor), TeleTab(), TheEndTab(), QrTab()],
+      tabs: [AuraTab(), TeleTab(), TheEndTab(), QrTab()],
       pages: [
         AuraPage(
-          onColorChange: (color) {
-            auraColor = color;
-          },
         ),
         TelePage(),
         TheEndPage(),

@@ -8,23 +8,28 @@ import 'package:provider/provider.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
-class AuraTab extends StatelessWidget {
-  final Color pageColor;
+class AuraTab extends StatefulWidget {
 
-  const AuraTab({required this.pageColor, super.key});
+  const AuraTab({ super.key});
+  @override
+  State<AuraTab> createState() => _AuraTabState();
 
+}
+
+class _AuraTabState extends State<AuraTab> {
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: pageColor, text: 'Aura'));
+    return ListenableBuilder(
+      listenable: ColorProvider(),
+        builder: (context, child) {return Tab(child: ColouredTab(color: Color(ColorProvider().auraCol), text: 'Aura'));});
   }
 }
 
 // AuraPage is a stateless widget called when creating the Aura code page.
 class AuraPage extends StatefulWidget {
   final VoidCallback? callback;
-  final ValueChanged<Color> onColorChange;
 
-  const AuraPage({super.key, required this.onColorChange, this.callback}); // Constructor
+  const AuraPage({super.key, this.callback}); // Constructor
   @override
   State<AuraPage> createState() => _AuraPageState();
 }
@@ -38,8 +43,11 @@ class _AuraPageState extends State<AuraPage> {
     super.initState();
     pageColor = randPrimary();
 
-    widget.onColorChange(pageColor);
+    ColorProvider().updateColor('auraCol', pageColor);
+    ColorProvider().loadSettings();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
