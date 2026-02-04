@@ -10,10 +10,6 @@ import 'package:scout_shell/shell/TheEnd(game).dart';
 import 'package:scout_shell/shell/aura_tab.dart';
 import 'package:scout_shell/shell/tele.dart';
 
-
-
-
-
 // ScoutApp is the root widget of the application.
 class ScoutApp extends StatelessWidget {
   final bool scoutIndexChosen; // inputted from main() async{}
@@ -31,9 +27,12 @@ class ScoutApp extends StatelessWidget {
       DeviceOrientation.portraitUp,
     ]);
 
-    // ChangeNotifierProvider allows ScoutProvider to be used anywhere
-    return ChangeNotifierProvider(
-      create: (context) => ScoutProvider(),
+    // MultiProvider allows multiple providers to be used anywhere
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ScoutProvider()),
+        ChangeNotifierProvider(create: (context) => ColorProvider()..loadSettings()),
+      ],
       builder: (context, child) => MaterialApp(
         debugShowCheckedModeBanner: false, // Get rid of debug banner
 
@@ -91,6 +90,10 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
       setState(() { // Set state rebuilds the widget with the new info given from scout index
         scoutIndex = prefs.getInt('scoutIndex')!;
         scoutIndex % 2 == 0 ? blueAlliance = false : blueAlliance = true; // Determining alliance
+        Provider.of<ScoutProvider>(
+          context,
+          listen: false,
+        ).updateData('is_blue', boolToInt(blueAlliance));
       });
     }
   } // _loadScoutIndex
@@ -334,11 +337,8 @@ class _SetupPageState extends State<SetupPage> {
         },
 
         // Shows loading if it is loading, and submit if it isn't
-        child: _isLoading
-          ? const CircularProgressIndicator()
-          : const BoldText(text: 'Submit', fontSize: 20.0,)
+        child: _isLoading? const CircularProgressIndicator(color: Colors.white,): const BoldText(text: 'Submit', fontSize: 25),
       ),
     );
   } // Widget build
 } // _SetupPageState
-

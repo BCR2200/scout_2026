@@ -28,7 +28,8 @@ class ScoutModel {
       auto_climb_level,
       auto_climb_position,
       climb_level,
-      climb_position;
+      climb_position,
+   is_blue;
 
    String match_name, notes, placeholder, auto_volleys, volleys;
 
@@ -47,6 +48,7 @@ class ScoutModel {
     this.volleys = '',
     this.placeholder = '',
     this.notes = ' ',
+    this.is_blue = 0,
   });
 
   Map<String, Object> toMap() {
@@ -65,6 +67,7 @@ class ScoutModel {
       'notes': notes,
       'auto_volleys': auto_volleys,
       'volleys': volleys,
+      'is_blue': is_blue,
     };
   }
 }
@@ -111,6 +114,7 @@ class ScoutDatabase {
         auto_climb_position INTEGER NOT NULL,
         climb_level INTEGER NOT NULL,
         climb_position INTEGER NOT NULL,
+        is_blue INTEGER NOT NULL,
         placeholder TEXT,
         notes TEXT,
         auto_volleys TEXT,

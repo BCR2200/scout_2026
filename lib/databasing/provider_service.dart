@@ -53,6 +53,7 @@ class ScoutProvider extends ChangeNotifier {
             notes: e['notes'] as String,
             auto_volleys: e['auto_volleys'] as String,
             volleys: e['volleys'] as String,
+            is_blue: e['is_blue'] as int,
           ),
     ).toList();
 
@@ -170,7 +171,7 @@ class ScoutProvider extends ChangeNotifier {
         dataList.add(matchNum?.group(0) ?? '0');
       } else if (value.toString() == '-1') {
         dataList.add('');
-      } else {
+      } else if (key == 'is_blue') {} else {
 
         // Adding whatever value it is to the list<String> for QR
         dataList.add(value.toString());
