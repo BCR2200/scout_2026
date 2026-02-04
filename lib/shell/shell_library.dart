@@ -208,9 +208,9 @@ class BoldText extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontWeight: FontWeight.w900, // Setting the text to bold
+        fontWeight: FontWeight.bold, // Setting the text to bold
         fontSize: fontSize,
-        fontFamily: GoogleFonts.redHatDisplay().fontFamily,
+        fontFamily: 'Red_Hat_Display',
         color: color,
       ),
     );
@@ -336,22 +336,17 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 ),
                 BoldText(
                   text:
-                      "3. If you load a match and its data doesn't show up, swap to another tab, wait a bit, then swap back.",
+                      "3. If you load a match and its data doesn't show up, swap to another tab, wait a bit, then swap back",
                   fontSize: 17.5,
                 ),
                 BoldText(
                   text:
-                      '4. When searching in the match catalog, it is easiest to sort by number.',
+                      '4. When searching in the match catalog, it is easiest to sort by number',
                   fontSize: 17.5,
                 ),
                 BoldText(
                   text:
-                      '5. Put your real name under the "Scouted By:" so we can find you in case we need to ask for clarification of the match. \nunlikely to be needed but just a precaution.',
-                  fontSize: 17.5,
-                ),
-                BoldText(
-                  text:
-                      '6. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. or Liam S. know on discord.',
+                      '5. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. know on discord',
                   fontSize: 17.5,
                 ),
               ],
@@ -459,7 +454,7 @@ class _TeamSelectorState extends State<TeamSelector> {
                   ],
 
                   // Styling the text
-                  style: TextStyle(fontFamily: 'FunnelDisplay', fontSize: 30),
+                  style: TextStyle(fontFamily: 'Red_Hat_Display', fontSize: 30),
                   textAlign: TextAlign.center,
                   decoration:
                       _controller.value.text == '0'
@@ -770,136 +765,6 @@ class _DefenceSliderState extends State<DefenceSlider> {
   } // build
 } // _DefenceSliderState
 
-// This widget is the slider for the Offence rating
-class OffenceSlider extends StatefulWidget {
-  const OffenceSlider({super.key});
-
-  @override
-  State<OffenceSlider> createState() => _OffenceSliderState();
-}
-
-class _OffenceSliderState extends State<OffenceSlider> {
-  final String column = 'Offence';
-  late double _currentSliderValue;
-  late bool OffencePlayed;
-
-  // This runs once when the widget is initialized
-  @override
-  void initState() {
-    super.initState();
-
-    // When this widget is loaded in, the slider value is 0.0 by default,
-    // but it will try to get then set the value with the _loadData() method
-    _currentSliderValue = 0.0;
-    OffencePlayed = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
-  }
-
-  // This method gets then sets the slider value from the database
-  Future<void> _loadData() async {
-    int data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getIntData(column);
-
-    // If the widget is still active and the data isn't the default value (-1)
-    if (mounted && data != -1) {
-      setState(() {
-        _currentSliderValue = data.toDouble(); // Slider needs it to be a double
-      });
-    }
-    // If the widget is still active and the data is the default value (-1)
-    if (mounted && data > 0) {
-      setState(() {
-        OffencePlayed = true; // Set it to display as there being Offence
-      });
-    }
-  }
-
-  // Building the widget tree
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment:
-      MainAxisAlignment.spaceEvenly, // Use up all vertical the space nicely
-      children: <Widget>[
-        // Widget title
-        Container(
-          margin: const EdgeInsets.only(left: 5.0, top: 10.0, right: 5.0),
-          child: const BoldText(text: 'Offence Rating', fontSize: 20.0),
-        ),
-
-        // Slider (and labels)
-        Container(
-          margin: const EdgeInsets.symmetric(
-            vertical: 0,
-            horizontal: 50.0,
-          ), // Spacing at edges
-          padding: EdgeInsets.zero, // Vertically ensuring it is squished
-          child: Row(
-            mainAxisAlignment:
-            MainAxisAlignment
-                .spaceEvenly, // Use up all the horizontal space nicely
-            children: [
-              // Left label
-              const BoldText(text: 'Bad', fontSize: 25.0),
-
-              // Fill up all available space with Expanded slider
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 15.0,
-                  ), // Ensure spacing between labels
-                  child: Slider(
-                    // Displaying the current value to user in a friendly fashion
-                    label:
-                    _currentSliderValue == 0.0
-                        ? "No Offence"
-                        : // If the minimum, display as no Offence
-                    _currentSliderValue
-                        .toInt()
-                        .toString(), // Otherwise show the value
-                    inactiveColor: Colors.white,
-                    activeColor:
-                    OffencePlayed
-                        ? Colors.grey[700]
-                        : Colors.grey[500], // Lighter to show no Offence
-                    // Making it on a scale from 1–10, and an option of no Offence
-                    divisions: 10,
-                    min: 0.0,
-                    max: 10.0,
-                    value: _currentSliderValue,
-
-                    // Sending the current value to the database when changed,
-                    // and updating whether or not to show "no Offence"
-                    onChanged: (double value) {
-                      setState(() {
-                        value == 0.0
-                            ? OffencePlayed = false
-                            : OffencePlayed = true;
-                        _currentSliderValue = value;
-                        Provider.of<ScoutProvider>(
-                          context,
-                          listen: false,
-                        ).updateData(column, _currentSliderValue.toInt());
-                      });
-                    },
-                  ),
-                ),
-              ),
-
-              // Right label
-              const BoldText(text: 'Good', fontSize: 25.0),
-            ], // children:
-          ),
-        ),
-      ],
-    );
-  } // build
-} // _OffenceSliderState
-
 // This widget is for inputting notes on the match
 class NotesWidget extends StatefulWidget {
   const NotesWidget({super.key});
@@ -963,7 +828,7 @@ class _NotesWidgetState extends State<NotesWidget> {
             horizontal: 50.0,
           ), // Adding some horizontal spacing
           child: TextField(
-            style: const TextStyle(fontFamily: 'FunnelDisplay'),
+            style: const TextStyle(fontFamily: 'Red_Hat_Display'),
             controller: _controller,
             textInputAction:
                 TextInputAction
@@ -989,94 +854,7 @@ class _NotesWidgetState extends State<NotesWidget> {
     );
   } // build
 } // _NotesWidgetState
-class WhoScoutedWidget extends StatefulWidget {
-  const WhoScoutedWidget({super.key});
 
-  @override
-  State<WhoScoutedWidget> createState() => _WhoScoutedWidgetState();
-}
-
-class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
-  final String column = 'who scouted';
-  final TextEditingController _controller = TextEditingController();
-  late String whoScoutedText;
-
-  // This runs once when the widget is initialized
-  @override
-  void initState() {
-    super.initState();
-
-    // When the widget is loaded in, set the default text to nothing
-    whoScoutedText = '';
-    _controller.text = whoScoutedText;
-
-    // Try to get then set the whoScout text from the database with the _loadData() method
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
-  }
-
-  // This method gets then sets the whoScout text from the database
-  Future<void> _loadData() async {
-    String data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getStringData(column);
-
-    // If the widget is still active and the data isn't the default value (a space)
-    if (mounted && data != ' ') {
-      setState(() {
-        _controller.text = data;
-      });
-    }
-  }
-
-  // This runs once when the widget is no longer in use
-  @override
-  void dispose() {
-    super.dispose();
-    _controller
-        .dispose(); // Get rid of the controller when it is finished being used
-  }
-
-  // Building the widget tree
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        BoldText(text: 'Scouted By:', fontSize: 20.0),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 50.0,
-          ), // Adding some horizontal spacing
-          child: TextField(
-            style: const TextStyle(fontFamily: 'FunnelDisplay'),
-            controller: _controller,
-            textInputAction:
-            TextInputAction
-                .done, // Replacing the "enter" key with a "done" key
-            // Making the maximum lines displayed 3
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 1,
-
-            // Sending the whoScout to the database when they are typed
-            onChanged: (String value) {
-              // If the whoScout are deleted, set it as a space so it properly tabs in the QR
-              // The trim is there to get rid of any leading or trailing spaces
-              value == '' ? value = ' ' : value = value.trim();
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData(column, value);
-            },
-          ),
-        ),
-      ],
-    );
-  } // build
-} // _WhoScoutedWidgetState
 // This widget is the button that should be underneath the QR to get to the next match easily
 class NextMatchWidget extends StatefulWidget {
   final VoidCallback? callback;
@@ -1265,7 +1043,7 @@ class _MatchSelectorState extends State<MatchSelector> {
 
                   // Stylizing text
                   style: const TextStyle(
-                    fontFamily: 'FunnelDisplay',
+                    fontFamily: 'Red_Hat_Display',
                     fontSize: 30,
                   ),
                   textAlign: TextAlign.left,
@@ -1431,7 +1209,7 @@ class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
 
                     // Text stylizing
                     style: const TextStyle(
-                      fontFamily: 'FunnelDisplay',
+                      fontFamily: 'Red_Hat_Display',
                       fontSize: 20,
                     ),
                     textAlign: TextAlign.left,
@@ -1685,7 +1463,7 @@ class _MatchRenameWidgetState extends State<MatchRenameWidget> {
         controller: _controller,
 
         // Stylizing the text
-        style: const TextStyle(fontFamily: 'FunnelDisplay', fontSize: 30),
+        style: const TextStyle(fontFamily: 'Red_Hat_Display', fontSize: 30),
         textAlign: TextAlign.left,
 
         onChanged: (value) async {
@@ -1946,7 +1724,7 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
                     keyboardType:
                         const TextInputType.numberWithOptions(), // Restricting input to only be numbers
                     // Stylizing text
-                    style: const TextStyle(fontFamily: 'FunnelDisplay'),
+                    style: const TextStyle(fontFamily: 'Red_Hat_Display'),
                     textAlign: TextAlign.center,
 
                     // Select everything when tapped
@@ -2196,105 +1974,107 @@ class _ClimbWidgetState extends State<ClimbWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomContainer(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(50, 20, 25, 20),
-      margin: EdgeInsets.all(50),
-      child: Row(
-        children: [
-          BoldText(text: "Climb\nStatus", fontSize: 30),
+    return IntrinsicHeight(
+      child: CustomContainer(
 
-          //flex: 1,
-          Expanded(
-            child: Column(
-              children: [
-                BoldText(text: 'Climb Level'),
-                Expanded(
-                  child: Container(
-                    height: 100,
-                    padding: EdgeInsets.only(
-                      left: 25,
-                      right: 15,
-                    ), // Ensure spacing between labels
-                    child: SliderTheme(
-                      data: SliderThemeData(
-                        tickMarkShape: RoundSliderTickMarkShape(),
-                        inactiveTickMarkColor: Colors.white,
+        color: Colors.white,
+        padding: const EdgeInsets.fromLTRB(50, 20, 25, 20),
+        margin: EdgeInsets.all(25),
+        child: Row(
+          children: [
+            BoldText(text: "Climb\nStatus", fontSize: 30),
+
+            //flex: 1,
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BoldText(text: 'Climb Level'),
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.only(
+                        left: 25,
+                        right: 15,
+                      ), // Ensure spacing between labels
+                      child: SliderTheme(
+                        data: SliderThemeData(
+                          tickMarkShape: RoundSliderTickMarkShape(),
+                          inactiveTickMarkColor: Colors.white,
+                        ),
+                        child: Slider(
+                          // Displaying the current value to user in a friendly fashion
+                          year2023: false,
+                          label:
+                              _climbLevel == 0
+                                  ? "No Climb"
+                                  : _climbLevel.toInt().toString(),
+                          inactiveColor: widget.pageColor,
+                          activeColor: widget.pageColor,
+
+                          // Making it on a scale from 1–10, and an option of no defence
+                          divisions: 3,
+                          min: 0.0,
+                          max: 3.0,
+                          value: _climbLevel,
+
+                          // Sending the current value to the database when changed,
+                          // and updating whether or not to show "no defence"
+                          onChanged: (double value) {
+                            setState(() {
+                              _climbLevel = value;
+                              Provider.of<ScoutProvider>(
+                                context,
+                                listen: false,
+                              ).updateData(_levelColumn, _climbLevel.toInt());
+                            });
+                          },
+                        ),
                       ),
-                      child: Slider(
-                        // Displaying the current value to user in a friendly fashion
-                        year2023: false,
-                        label:
-                            _climbLevel == 0
-                                ? "No Climb"
-                                : _climbLevel.toInt().toString(),
-                        inactiveColor: widget.pageColor,
-                        activeColor: widget.pageColor,
-
-                        // Making it on a scale from 1–10, and an option of no defence
-                        divisions: 3,
-                        min: 0.0,
-                        max: 3.0,
-                        value: _climbLevel,
-
-                        // Sending the current value to the database when changed,
-                        // and updating whether or not to show "no defence"
-                        onChanged: (double value) {
+                    ),
+                  ),
+                  Container(height: 10),
+                  BoldText(text: "Climb Side"),
+                  Expanded(
+                    //flex: 1,
+                    child: Opacity(
+                      opacity: _climbLevel == 0 ? 0.3 : 1,
+                      child: SegmentedButton<int>(
+                        showSelectedIcon: false,
+                        style: SegmentedButton.styleFrom(
+                          selectedBackgroundColor: widget.pageColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        segments: const <ButtonSegment<int>>[
+                          ButtonSegment<int>(value: 0, label: Text('Left')),
+                          ButtonSegment<int>(value: 1, label: Text('Middle')),
+                          ButtonSegment<int>(value: 2, label: Text('Right')),
+                        ],
+                        selected: <int>{_climbSide},
+                        onSelectionChanged: (Set<int> newSelection) {
                           setState(() {
-                            _climbLevel = value;
+                            // By default there is only a single segment that can be
+                            // selected at one time, so its value is always the first
+                            // item in the selected set.
+                            _climbSide =
+                                _climbLevel == 0
+                                    ? _climbSide
+                                    : newSelection.first;
                             Provider.of<ScoutProvider>(
                               context,
                               listen: false,
-                            ).updateData(_levelColumn, _climbLevel.toInt());
+                            ).updateData(_posColumn, _climbSide);
                           });
                         },
                       ),
                     ),
                   ),
-                ),
-                Container(height: 10),
-                BoldText(text: "Climb Side"),
-                Expanded(
-                  //flex: 1,
-                  child: Opacity(
-                    opacity: _climbLevel == 0 ? 0.3 : 1,
-                    child: SegmentedButton<int>(
-                      showSelectedIcon: false,
-                      style: SegmentedButton.styleFrom(
-                        selectedBackgroundColor: widget.pageColor,
-                        fixedSize: Size.fromHeight(30),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      segments: const <ButtonSegment<int>>[
-                        ButtonSegment<int>(value: 0, label: Text('Left')),
-                        ButtonSegment<int>(value: 1, label: Text('Middle')),
-                        ButtonSegment<int>(value: 2, label: Text('Right')),
-                      ],
-                      selected: <int>{_climbSide},
-                      onSelectionChanged: (Set<int> newSelection) {
-                        setState(() {
-                          // By default there is only a single segment that can be
-                          // selected at one time, so its value is always the first
-                          // item in the selected set.
-                          _climbSide =
-                              _climbLevel == 0
-                                  ? _climbSide
-                                  : newSelection.first;
-                          Provider.of<ScoutProvider>(
-                            context,
-                            listen: false,
-                          ).updateData(_posColumn, _climbSide);
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -2304,20 +2084,26 @@ class VolleyListItem extends StatefulWidget {
   final Color color;
   final Color? UIcol;
   final bool isVolley;
+  final bool isBlue;
   final int? initAcc;
   final int? initHop;
+  final int? initSide;
   final ValueChanged<int> onHopChange;
   final ValueChanged<int> onAccChange;
+  final ValueChanged<int> onSideChange;
   final VoidCallback onDelete;
 
   const VolleyListItem({
     this.color = Colors.white,
     required this.isVolley,
+    required this.isBlue,
     this.initAcc,
     this.initHop,
+    this.initSide,
     this.UIcol,
     required this.onAccChange,
     required this.onHopChange,
+    required this.onSideChange,
     required this.onDelete,
     super.key,
   });
@@ -2330,15 +2116,16 @@ class _VolleyListItem extends State<VolleyListItem>
     with SingleTickerProviderStateMixin {
   late int _percentHopper;
   late int _percentAcc;
+  late int _mainSide;
   late Color _UIcol;
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   final List<ButtonSegment<int>> _percents = List<ButtonSegment<int>>.generate(
-    11,
+    5,
     (index) {
       return ButtonSegment<int>(
-        value: index * 10,
-        label: Text('${index * 10}'),
+        value: (index+5) * 10,
+        label: Text('${(index+5) * 10}', style: TextStyle(fontSize: 10)),
       );
     },
   );
@@ -2347,8 +2134,13 @@ class _VolleyListItem extends State<VolleyListItem>
   void initState() {
     super.initState();
 
+    _percents.insert(0, ButtonSegment<int>(value: 25, label: Text('25', style: TextStyle(fontSize: 10))));
+    _percents.insert(0, ButtonSegment<int>(value: 0, label: Text('0', style: TextStyle(fontSize: 10))));
+    _percents.add(ButtonSegment<int>(value: 100, label: Text('100', style: TextStyle(fontSize: 10))));
+
     _percentAcc = widget.initAcc ?? 0;
     _percentHopper = widget.initHop ?? 0;
+    _mainSide = widget.initSide ?? 1;
     _UIcol = widget.UIcol ?? randPrimary();
 
     _controller = AnimationController(
@@ -2412,92 +2204,115 @@ class _VolleyListItem extends State<VolleyListItem>
         },
         child: Card(
           color: widget.color,
+
           child: Container(
             padding: EdgeInsets.fromLTRB(10, 10, 20, 10),
-            child: Row(
-              children: [
-                Icon(Icons.drag_indicator),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    spacing: 2,
-                    children: [
-                      Text('% of Hopper Unloaded'),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SegmentedButton<int>(
-                              showSelectedIcon: false,
-                              style: SegmentedButton.styleFrom(
-                                selectedBackgroundColor: _UIcol,
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                visualDensity: VisualDensity(
-                                  horizontal: -3,
-                                  vertical: -3,
-                                ),
+            //height: 500,
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  Icon(Icons.drag_indicator),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      spacing: 2,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('% of Hopper Unloaded'),
+                        Expanded(
+                          child: SegmentedButton<int>(
+                            showSelectedIcon: false,
+                            style: SegmentedButton.styleFrom(
+                              selectedBackgroundColor: _UIcol,
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
                               ),
-                              segments: _percents,
-                              selected: <int>{_percentHopper.toInt()},
-                              onSelectionChanged: (Set<int> newSelection) {
-                                setState(() {
-                                  _percentHopper = newSelection.first;
-                                  widget.onHopChange(_percentHopper);
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      Text('% of Shots Scored'),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SegmentedButton<int>(
-                              showSelectedIcon: false,
-                              style: SegmentedButton.styleFrom(
-                                side: BorderSide.none,
-                                selectedBackgroundColor: _UIcol,
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                visualDensity: VisualDensity(
-                                  horizontal: -3,
-                                  vertical: -3,
-                                ),
-
+                              visualDensity: VisualDensity(
+                                horizontal: -3,
+                                vertical: -3,
                               ),
-                              segments: _percents,
-                              selected: <int>{_percentAcc.toInt()},
-                              onSelectionChanged: (Set<int> newSelection) {
-                                setState(() {
-                                  _percentAcc = newSelection.first;
-                                  widget.onHopChange(_percentAcc);
-                                });
-                              },
                             ),
+                            segments: _percents,
+                            selected: <int>{_percentHopper},
+                            onSelectionChanged: (Set<int> newSelection) {
+                              setState(() {
+                                _percentHopper = newSelection.first;
+                                widget.onHopChange(_percentHopper);
+                              });
+                            },
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      /*Expanded(
-                        child: Row(
-                          children: [
-                            ],
                         ),
-                        
-                      )*/
-                    //Expanded(child: child)
-                    ],
+                        const SizedBox(height: 10),
+                        const Text('% of Shots Scored'),
+                        Expanded(
+                          child: SegmentedButton<int>(
+                            showSelectedIcon: false,
+                            style: SegmentedButton.styleFrom(
+                              selectedBackgroundColor: _UIcol,
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              visualDensity: VisualDensity(
+                                horizontal: -3,
+                                vertical: -3,
+                              ),
+                            ),
+                            segments: _percents,
+                            selected: <int>{_percentAcc},
+                            onSelectionChanged: (Set<int> newSelection) {
+                              setState(() {
+                                _percentAcc = newSelection.first;
+                                widget.onAccChange(_percentAcc);
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Robot mainly in this side:'),
+                        Expanded(
+                          child: SegmentedButton<int>(
+                            showSelectedIcon: false,
+                            style: SegmentedButton.styleFrom(
+                              selectedBackgroundColor: _mainSide == 1 ? Colors.grey[300] : (_mainSide == 0 ? (widget.isBlue ? Colors.blue : Colors.red) : (widget.isBlue ? Colors.red : Colors.blue)),
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              visualDensity: VisualDensity(
+                                horizontal: -3,
+                                vertical: -3,
+                              ),
 
+                            ),
+                            segments: [
+                              ButtonSegment(value: 0, label: Text('Home')),
+                              ButtonSegment(value: 1, label: Text('Neutral')),
+                              ButtonSegment(value: 2, label: Text('Opponent')),
+                            ],
+                            selected: <int>{_mainSide},
+                            onSelectionChanged: (Set<int> newSelection) {
+                              setState(() {
+                                _mainSide = newSelection.first;
+                                widget.onSideChange(_mainSide);
+                              });
+                            },
+                          ),
+                        ),
+                        /*Expanded(
+                          child: Row(
+                            children: [
+                              ],
+                          ),
+                        )*/],
+
+                    ),
                   ),
-                ),
-                //SizedBox(width: 20),
-              ],
+                  //SizedBox(width: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -2526,6 +2341,7 @@ class VolleyWidget extends StatefulWidget {
 class _VolleyWidget extends State<VolleyWidget> {
   late String column;
   late Color buttonCol;
+  bool _isBlue = false;
   final cardCol = randPrimary().withAlpha(150);
   late List<dynamic> _items = [];
 
@@ -2541,7 +2357,7 @@ class _VolleyWidget extends State<VolleyWidget> {
     });
 
     if (widget.isAuto && _items.isEmpty) {
-      _items.add([1, 0, 0]);
+      _items.add([1, 0, 0, 1]);
       Provider.of<ScoutProvider>(
         context,
         listen: false,
@@ -2555,13 +2371,25 @@ class _VolleyWidget extends State<VolleyWidget> {
       listen: false,
     ).getStringData(column);
 
+    int data2 = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData('is_blue');
+
     // If the widget is still active and the data isn't the default value (a space)
     if (mounted && data != '') {
       setState(() {
         _items = jsonDecode(data);
+        _isBlue = intToBool(data2);
       });
     }
   }
+
+  void _updateData() {
+    Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).updateData(column, jsonEncode(_items));  }
 
   @override
   Widget build(BuildContext context) {
@@ -2571,29 +2399,26 @@ class _VolleyWidget extends State<VolleyWidget> {
           isVolley: intToBool(_items[i][0]),
           color: intToBool(_items[i][0]) ? cardCol : cardCol.withAlpha(50),
           UIcol: buttonCol,
+          isBlue: _isBlue,
           initAcc: _items[i][2],
           initHop: _items[i][1],
+          initSide: _items[i][3],
           onHopChange: (int value) {
             _items[i][1] = value;
-            Provider.of<ScoutProvider>(
-              context,
-              listen: false,
-            ).updateData(column, jsonEncode(_items));
+            _updateData();
           },
           onAccChange: (int value) {
             _items[i][2] = value;
-            Provider.of<ScoutProvider>(
-              context,
-              listen: false,
-            ).updateData(column, jsonEncode(_items));
+            _updateData();
+          },
+          onSideChange: (int value) {
+            _items[i][3] = value;
+            _updateData();
           },
           onDelete: () {
             setState(() {
               _items.removeAt(i);
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData(column, jsonEncode(_items));
+              _updateData();
             });
           },
           key: UniqueKey(),
@@ -2643,10 +2468,7 @@ class _VolleyWidget extends State<VolleyWidget> {
                 }
                 final List<dynamic> item = _items.removeAt(oldIndex);
                 _items.insert(newIndex, item);
-                Provider.of<ScoutProvider>(
-                  context,
-                  listen: false,
-                ).updateData(column, jsonEncode(_items));
+                _updateData();
               });
             },
             children: volleys,
@@ -2657,6 +2479,7 @@ class _VolleyWidget extends State<VolleyWidget> {
         Expanded(
           flex: 1,
           child: Container(
+            height: 50,
             padding: EdgeInsets.all(10),
             child: FilledButton(
               style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
@@ -2670,11 +2493,8 @@ class _VolleyWidget extends State<VolleyWidget> {
               ),
               onPressed: () {
                 setState(() {
-                  _items.add([1, 0, 0]);
-                  Provider.of<ScoutProvider>(
-                    context,
-                    listen: false,
-                  ).updateData(column, jsonEncode(_items));
+                  _items.add([1, 0, 0, 1]);
+                  _updateData();
                 });
               },
             ),

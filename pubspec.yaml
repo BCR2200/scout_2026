@@ -39,7 +39,6 @@ dependencies:
   provider: ^6.1.5
   path: ^1.9.1
   shared_preferences: ^2.5.3
-  google_fonts: ^8.0.0
 
 dev_dependencies:
   flutter_test:
@@ -128,6 +127,14 @@ flutter:
         - asset: assets/FunnelDisplay/static/FunnelDisplay-Regular.ttf
         - asset: assets/FunnelDisplay/static/FunnelDisplay-Bold.ttf
           weight: 700
+
+    - family: Red_Hat_Display
+      fonts:
+        - asset: assets/Red_Hat_Display/static/RedHatDisplay-Regular.ttf
+        - asset: assets/Red_Hat_Display/static/RedHatDisplay-Bold.ttf
+          weight: 700
+
+
   # note that FunnelDisplay is used as the main font in the shell
   #
   # For details regarding fonts from package dependencies,
