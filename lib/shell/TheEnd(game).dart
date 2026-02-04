@@ -69,6 +69,10 @@ class _TheEndPageState extends State<TheEndPage> {
           ),
           Expanded(
             flex: 1,
+            child: OffenceSlider()
+          ),
+          Expanded(
+            flex: 1,
             child: DefenceSlider()
           ),
       ],
