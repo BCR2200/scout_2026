@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../databasing/provider_service.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 /*
  * =================================
  * +++          READ ME          +++
@@ -772,6 +771,135 @@ class NotesWidget extends StatefulWidget {
   @override
   State<NotesWidget> createState() => _NotesWidgetState();
 }
+// This widget is the slider for the Offence rating
+class OffenceSlider extends StatefulWidget {
+  const OffenceSlider({super.key});
+
+  @override
+  State<OffenceSlider> createState() => _OffenceSliderState();
+}
+
+class _OffenceSliderState extends State<OffenceSlider> {
+  final String column = 'Offence';
+  late double _currentSliderValue;
+  late bool OffencePlayed;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // When this widget is loaded in, the slider value is 0.0 by default,
+    // but it will try to get then set the value with the _loadData() method
+    _currentSliderValue = 0.0;
+    OffencePlayed = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  // This method gets then sets the slider value from the database
+  Future<void> _loadData() async {
+    int data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData(column);
+
+    // If the widget is still active and the data isn't the default value (-1)
+    if (mounted && data != -1) {
+      setState(() {
+        _currentSliderValue = data.toDouble(); // Slider needs it to be a double
+      });
+    }
+    // If the widget is still active and the data is the default value (-1)
+    if (mounted && data > 0) {
+      setState(() {
+        OffencePlayed = true; // Set it to display as there being Offence
+      });
+    }
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment:
+      MainAxisAlignment.spaceEvenly, // Use up all vertical the space nicely
+      children: <Widget>[
+        // Widget title
+        Container(
+          margin: const EdgeInsets.only(left: 5.0, top: 10.0, right: 5.0),
+          child: const BoldText(text: 'Offence Rating', fontSize: 20.0),
+        ),
+
+        // Slider (and labels)
+        Container(
+          margin: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 50.0,
+          ), // Spacing at edges
+          padding: EdgeInsets.zero, // Vertically ensuring it is squished
+          child: Row(
+            mainAxisAlignment:
+            MainAxisAlignment
+                .spaceEvenly, // Use up all the horizontal space nicely
+            children: [
+              // Left label
+              const BoldText(text: 'Bad', fontSize: 25.0),
+
+              // Fill up all available space with Expanded slider
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 15.0,
+                  ), // Ensure spacing between labels
+                  child: Slider(
+                    // Displaying the current value to user in a friendly fashion
+                    label:
+                    _currentSliderValue == 0.0
+                        ? "No Offence"
+                        : // If the minimum, display as no Offence
+                    _currentSliderValue
+                        .toInt()
+                        .toString(), // Otherwise show the value
+                    inactiveColor: Colors.white,
+                    activeColor:
+                    OffencePlayed
+                        ? Colors.grey[700]
+                        : Colors.grey[500], // Lighter to show no Offence
+                    // Making it on a scale from 1–10, and an option of no Offence
+                    divisions: 10,
+                    min: 0.0,
+                    max: 10.0,
+                    value: _currentSliderValue,
+
+                    // Sending the current value to the database when changed,
+                    // and updating whether or not to show "no Offence"
+                    onChanged: (double value) {
+                      setState(() {
+                        value == 0.0
+                            ? OffencePlayed = false
+                            : OffencePlayed = true;
+                        _currentSliderValue = value;
+                        Provider.of<ScoutProvider>(
+                          context,
+                          listen: false,
+                        ).updateData(column, _currentSliderValue.toInt());
+                      });
+                    },
+                  ),
+                ),
+              ),
+
+              // Right label
+              const BoldText(text: 'Good', fontSize: 25.0),
+            ], // children:
+          ),
+        ),
+      ],
+    );
+  } // build
+} // _OffenceSliderState
 
 class _NotesWidgetState extends State<NotesWidget> {
   final String column = 'notes';
@@ -971,6 +1099,95 @@ class _NextMatchWidgetState extends State<NextMatchWidget> {
     );
   } // build
 } // _NextMatchWidgetState
+
+class WhoScoutedWidget extends StatefulWidget {
+  const WhoScoutedWidget({super.key});
+
+  @override
+  State<WhoScoutedWidget> createState() => _WhoScoutedWidgetState();
+}
+
+class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
+  final String column = 'who scouted';
+  final TextEditingController _controller = TextEditingController();
+  late String whoScoutedText;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // When the widget is loaded in, set the default text to nothing
+    whoScoutedText = '';
+    _controller.text = whoScoutedText;
+
+    // Try to get then set the whoScout text from the database with the _loadData() method
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  // This method gets then sets the whoScout text from the database
+  Future<void> _loadData() async {
+    String data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getStringData(column);
+
+    // If the widget is still active and the data isn't the default value (a space)
+    if (mounted && data != ' ') {
+      setState(() {
+        _controller.text = data;
+      });
+    }
+  }
+
+  // This runs once when the widget is no longer in use
+  @override
+  void dispose() {
+    super.dispose();
+    _controller
+        .dispose(); // Get rid of the controller when it is finished being used
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        BoldText(text: 'Scouted By:', fontSize: 20.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 50.0,
+          ), // Adding some horizontal spacing
+          child: TextField(
+            style: const TextStyle(fontFamily: 'FunnelDisplay'),
+            controller: _controller,
+            textInputAction:
+            TextInputAction
+                .done, // Replacing the "enter" key with a "done" key
+            // Making the maximum lines displayed 3
+            keyboardType: TextInputType.multiline,
+            minLines: 1,
+            maxLines: 1,
+
+            // Sending the whoScout to the database when they are typed
+            onChanged: (String value) {
+              // If the whoScout are deleted, set it as a space so it properly tabs in the QR
+              // The trim is there to get rid of any leading or trailing spaces
+              value == '' ? value = ' ' : value = value.trim();
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData(column, value);
+            },
+          ),
+        ),
+      ],
+    );
+  } // build
+} // _WhoScoutedWidgetState
 
 // This widget is what is used to set the current match
 class MatchSelector extends StatefulWidget {
