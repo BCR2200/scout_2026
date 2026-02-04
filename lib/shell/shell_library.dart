@@ -2627,7 +2627,7 @@ class _VolleyWidget extends State<VolleyWidget> {
     }
 
     return Column(
-      children: [
+      children: <Widget>[
         BoldText(text: "Volley History", fontSize: 30),
         SizedBox(height: 10),
 
@@ -2680,7 +2680,27 @@ class _VolleyWidget extends State<VolleyWidget> {
             ),
           ),
         ),
-      ],
+        Expanded(
+          flex: 1,
+          child: Container(
+            padding: EdgeInsets.all(10),
+            child: FilledButton(
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
+              onPressed: () {
+                
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 50),
+                  SizedBox(width: 10),
+                  BoldText(text: "Add Harvest shift", fontSize: 25),
+                ],
+              ),
+            ),
+          )
+        )
+      ]
     );
   }
 }
