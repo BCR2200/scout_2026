@@ -336,12 +336,12 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 ),
                 BoldText(
                   text:
-                      "3. If you load a match and its data doesn't show up, swap to another tab, wait a bit, then swap back",
+                      "3. If you load a match and its data doesn't show up, swap to another tab, wait a bit, then swap back.",
                   fontSize: 17.5,
                 ),
                 BoldText(
                   text:
-                      '4. When searching in the match catalog, it is easiest to sort by number',
+                      '4. When searching in the match catalog, it is easiest to sort by number.',
                   fontSize: 17.5,
                 ),
                 BoldText(
@@ -351,7 +351,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 ),
                 BoldText(
                   text:
-                      '6. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. or Liam S. know on discord',
+                      '6. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. or Liam S. know on discord.',
                   fontSize: 17.5,
                 ),
               ],
