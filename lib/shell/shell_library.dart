@@ -346,7 +346,12 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 ),
                 BoldText(
                   text:
-                      '5. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. know on discord',
+                      '5. Put your real name under the "Scouted By:" so we can find you in case we need to ask for clarification of the match. \nunlikely to be needed but just a precaution.',
+                  fontSize: 17.5,
+                ),
+                BoldText(
+                  text:
+                      '6. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. or Liam S. know on discord',
                   fontSize: 17.5,
                 ),
               ],
@@ -984,7 +989,94 @@ class _NotesWidgetState extends State<NotesWidget> {
     );
   } // build
 } // _NotesWidgetState
+class WhoScoutedWidget extends StatefulWidget {
+  const WhoScoutedWidget({super.key});
 
+  @override
+  State<WhoScoutedWidget> createState() => _WhoScoutedWidgetState();
+}
+
+class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
+  final String column = 'who scouted';
+  final TextEditingController _controller = TextEditingController();
+  late String whoScoutedText;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // When the widget is loaded in, set the default text to nothing
+    whoScoutedText = '';
+    _controller.text = whoScoutedText;
+
+    // Try to get then set the whoScout text from the database with the _loadData() method
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  // This method gets then sets the whoScout text from the database
+  Future<void> _loadData() async {
+    String data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getStringData(column);
+
+    // If the widget is still active and the data isn't the default value (a space)
+    if (mounted && data != ' ') {
+      setState(() {
+        _controller.text = data;
+      });
+    }
+  }
+
+  // This runs once when the widget is no longer in use
+  @override
+  void dispose() {
+    super.dispose();
+    _controller
+        .dispose(); // Get rid of the controller when it is finished being used
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        BoldText(text: 'Scouted By:', fontSize: 20.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 50.0,
+          ), // Adding some horizontal spacing
+          child: TextField(
+            style: const TextStyle(fontFamily: 'FunnelDisplay'),
+            controller: _controller,
+            textInputAction:
+            TextInputAction
+                .done, // Replacing the "enter" key with a "done" key
+            // Making the maximum lines displayed 3
+            keyboardType: TextInputType.multiline,
+            minLines: 1,
+            maxLines: 1,
+
+            // Sending the whoScout to the database when they are typed
+            onChanged: (String value) {
+              // If the whoScout are deleted, set it as a space so it properly tabs in the QR
+              // The trim is there to get rid of any leading or trailing spaces
+              value == '' ? value = ' ' : value = value.trim();
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData(column, value);
+            },
+          ),
+        ),
+      ],
+    );
+  } // build
+} // _WhoScoutedWidgetState
 // This widget is the button that should be underneath the QR to get to the next match easily
 class NextMatchWidget extends StatefulWidget {
   final VoidCallback? callback;

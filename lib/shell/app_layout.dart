@@ -139,6 +139,9 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
             Expanded(
               child: MatchSelector(), // This custom widget is in shell_library
             ),
+            Expanded(
+              child: WhoScoutedWidget(),
+            ),
 
             // Putting a const divider to add some space
             const VerticalDivider(
