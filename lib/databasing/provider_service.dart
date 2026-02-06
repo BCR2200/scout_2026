@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'scout_data.dart';
 
@@ -164,6 +165,10 @@ class ScoutProvider extends ChangeNotifier {
         await ScoutDatabase.matchData(ScoutDatabase.tableName, currentMatch);
     List<String> dataList = [];
 
+    if (data.isEmpty) {
+      return [];
+    }
+
     // Run for the first (and only) row in the query called data
     data.first.forEach((key, value) {
       // Checking if it is the match_name column
@@ -178,6 +183,36 @@ class ScoutProvider extends ChangeNotifier {
 
         // Adding the match number to the list<String> for QR
         dataList.add(matchNum?.group(0) ?? '0');
+      } else if (key == 'volleys' || key == 'auto_volleys') {
+        String volleyString = value.toString();
+        if (volleyString.isNotEmpty && volleyString != '[]') {
+          List<dynamic> volleys = jsonDecode(volleyString);
+          if (volleys.isNotEmpty && volleys[0] is List && volleys[0][0] is String) {
+            List<List<dynamic>> convertedVolleys = volleys.map((v) {
+              int typeAsInt;
+              switch (v[0]) {
+                case 'volley':
+                  typeAsInt = 1;
+                  break;
+                case 'harvest':
+                  typeAsInt = 0;
+                  break;
+                case 'pass':
+                  typeAsInt = 2;
+                  break;
+                default:
+                  typeAsInt = -1; // Or some other default
+              }
+              return [typeAsInt, v[1], v[2], v[3]];
+            }).toList();
+            dataList.add(jsonEncode(convertedVolleys));
+          } else {
+            // It's not the new format, so just add it as is.
+            dataList.add(volleyString);
+          }
+        } else {
+          dataList.add(volleyString);
+        }
       } else if (value.toString() == '-1') {
         dataList.add('');
       } else if (key == 'is_blue') {

@@ -82,7 +82,7 @@ class _TheEndPageState extends State<TheEndPage> {
           ),
           const Expanded(
             flex: 1,
-            child: DefenceSlider()
+            child: MainRoleSlider()
           ),
       ],
     ),

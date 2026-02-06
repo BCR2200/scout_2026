@@ -23,6 +23,56 @@ import 'package:provider/provider.dart';
  * 
  */
 
+class RoundedSquareThumbShape extends SliderComponentShape {
+  final double thumbRadius;
+  final double cornerRadius;
+
+  const RoundedSquareThumbShape({
+    this.thumbRadius = 12.0,
+    this.cornerRadius = 4.0,
+  });
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromRadius(thumbRadius);
+  }
+
+  @override
+  void paint(
+      PaintingContext context,
+      Offset center, {
+        required Animation<double> activationAnimation,
+        required Animation<double> enableAnimation,
+        required bool isDiscrete,
+        required TextPainter labelPainter,
+        required RenderBox parentBox,
+        required SliderThemeData sliderTheme,
+        required TextDirection textDirection,
+        required double value,
+        required double textScaleFactor,
+        required Size sizeWithOverflow,
+      }) {
+    final Canvas canvas = context.canvas;
+
+    final paint = Paint()
+      ..color = sliderTheme.thumbColor ?? Colors.blue
+      ..style = PaintingStyle.fill;
+
+    // Create the square area centered on the slider line
+    final rect = Rect.fromCenter(
+      center: center,
+      width: thumbRadius * 2,
+      height: thumbRadius * 2,
+    );
+
+    // Draw the rounded rectangle
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(cornerRadius)),
+      paint,
+    );
+  }
+}
+
 class ColorProvider extends ChangeNotifier {
   final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
 
@@ -686,14 +736,15 @@ class _DriverSliderState extends State<DriverSlider> {
 } // _DriverSliderState
 
 // This widget is the slider for the defence rating
-class DefenceSlider extends StatefulWidget {
-  const DefenceSlider({super.key});
+class MainRoleSlider extends StatefulWidget {
+  const MainRoleSlider({super.key});
 
   @override
-  State<DefenceSlider> createState() => _DefenceSliderState();
+  State<MainRoleSlider> createState() => _MainRoleSliderState();
 }
 
-class _DefenceSliderState extends State<DefenceSlider> {
+//TODO: implement dropdown for main role
+class _MainRoleSliderState extends State<MainRoleSlider> {
   final String column = 'defence';
   late double _currentSliderValue;
   late bool defencePlayed;
@@ -2180,12 +2231,13 @@ class _ClimbWidgetState extends State<ClimbWidget> {
               children: [
                 const BoldText(text: 'Climb Level'),
                 SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
+                  data: SliderThemeData(
                     trackHeight: 10,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+                    thumbShape: const RoundedSquareThumbShape(),
                     overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
                     activeTickMarkColor: Colors.transparent,
                     inactiveTickMarkColor: Colors.transparent,
+                    valueIndicatorShape: RoundedRectSliderValueIndicatorShape(),
                   ),
                   child: Slider(
                     label: _climbLevel == 0
@@ -2253,9 +2305,9 @@ class _ClimbWidgetState extends State<ClimbWidget> {
 class VolleyListItem extends StatefulWidget {
   final Color color;
   final Color? UIcol;
-  final bool isVolley;
   final bool isBlue;
   final List<dynamic> item;
+  final ValueChanged<String> onTypeChange;
   final ValueChanged<int> onHopChange;
   final ValueChanged<int> onAccChange;
   final ValueChanged<int> onSideChange;
@@ -2263,10 +2315,10 @@ class VolleyListItem extends StatefulWidget {
 
   const VolleyListItem({
     this.color = Colors.white,
-    required this.isVolley,
     required this.isBlue,
     required this.item,
     this.UIcol,
+    required this.onTypeChange,
     required this.onAccChange,
     required this.onHopChange,
     required this.onSideChange,
@@ -2282,7 +2334,9 @@ class _VolleyListItem extends State<VolleyListItem> {
   late int _percentHopper;
   late int _percentAcc;
   late int _mainSide;
+  late String _volleyType;
   late Color _UIcol;
+  final List<String> typeList = <String>['volley', 'harvest', 'pass'];
   final List<ButtonSegment<int>> _percents = List<ButtonSegment<int>>.generate(
     5,
     (index) {
@@ -2303,62 +2357,73 @@ class _VolleyListItem extends State<VolleyListItem> {
         0, ButtonSegment<int>(value: 0, label: Text('0', style: TextStyle(fontSize: 10))));
     _percents.add(
         ButtonSegment<int>(value: 100, label: Text('100', style: TextStyle(fontSize: 10))));
-
-    _percentAcc = widget.item[2] as int;
+    
+    _volleyType = widget.item[0] as String;
     _percentHopper = widget.item[1] as int;
+    _percentAcc = widget.item[2] as int;
     _mainSide = widget.item[3] as int;
     _UIcol = widget.UIcol ?? randPrimary();
+  }
+  
+  @override
+  void didUpdateWidget(covariant VolleyListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if(widget.item[0] != _volleyType) {
+      setState(() {
+        _volleyType = widget.item[0] as String;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isVolley) {
-      return Dismissible(
-        key: ObjectKey(widget.item),
-        direction: DismissDirection.startToEnd,
-        background: CustomContainer(
-          color: Colors.red,
-          padding: EdgeInsets.only(left: 20, right: 550),
-          child: const Icon(Icons.delete_forever_sharp),
-        ),
-        confirmDismiss: (direction) => showDialog(
-          context: context,
-          builder: ((context) => AlertDialog(
-                actionsAlignment: MainAxisAlignment.center,
-                title: Text('Did you want to remove this volley?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text('Yes'),
-                  ),
-                ],
-              )),
-        ),
-        onDismissed: (direction) {
-          widget.onDelete();
-        },
-        child: Card(
-          color: widget.color,
-          child: Container(
-            padding: EdgeInsets.fromLTRB(10, 10, 20, 10),
-            //height: 500,
-            child: IntrinsicHeight(
-              child: Row(
-                children: [
-                  Icon(Icons.drag_indicator),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('% of Hopper Unloaded'),
-                        Expanded(
-                          child: SegmentedButton<int>(
+    return Dismissible(
+      key: ObjectKey(widget.item),
+      direction: DismissDirection.startToEnd,
+      background: CustomContainer(
+        color: Colors.red,
+        padding: EdgeInsets.only(left: 20, right: 550),
+        child: const Icon(Icons.delete_forever_sharp),
+      ),
+      confirmDismiss: (direction) => showDialog(
+        context: context,
+        builder: ((context) => AlertDialog(
+              actionsAlignment: MainAxisAlignment.center,
+              title: Text('Did you want to remove this volley?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('No'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text('Yes'),
+                ),
+              ],
+            )),
+      ),
+      onDismissed: (direction) {
+        widget.onDelete();
+      },
+      child: Card(
+        color: widget.color,
+        child: Container(
+          padding: EdgeInsets.fromLTRB(10, 10, 20, 10),
+          child: Row(
+            children: [
+              Icon(Icons.drag_indicator),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Visibility(
+                      visible: _volleyType != "harvest",
+                      child: Column(
+                        children: [
+                          const Text('% of Hopper Unloaded'),
+                          SegmentedButton<int>(
                             showSelectedIcon: false,
                             style: SegmentedButton.styleFrom(
                               selectedBackgroundColor: _UIcol,
@@ -2380,11 +2445,16 @@ class _VolleyListItem extends State<VolleyListItem> {
                               });
                             },
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Text('% of Shots Scored'),
-                        Expanded(
-                          child: SegmentedButton<int>(
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: _volleyType == "volley",
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 10),
+                          const Text('% of Shots Scored'),
+                          SegmentedButton<int>(
                             showSelectedIcon: false,
                             style: SegmentedButton.styleFrom(
                               selectedBackgroundColor: _UIcol,
@@ -2406,53 +2476,79 @@ class _VolleyListItem extends State<VolleyListItem> {
                               });
                             },
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Text('Robot mainly in this side:'),
-                        Expanded(
-                          child: SegmentedButton<int>(
-                            showSelectedIcon: false,
-                            style: SegmentedButton.styleFrom(
-                              selectedBackgroundColor: _mainSide == 1
-                                  ? Colors.grey[300]
-                                  : (_mainSide == 0
-                                      ? (widget.isBlue ? Colors.blue : Colors.red)
-                                      : (widget.isBlue ? Colors.red : Colors.blue)),
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              visualDensity: VisualDensity(
-                                horizontal: -3,
-                                vertical: -3,
-                              ),
-                            ),
-                            segments: [
-                              ButtonSegment(value: 0, label: Text('Home')),
-                              ButtonSegment(value: 1, label: Text('Neutral')),
-                              ButtonSegment(value: 2, label: Text('Opponent')),
-                            ],
-                            selected: <int>{_mainSide},
-                            onSelectionChanged: (Set<int> newSelection) {
+                          const SizedBox(height: 10),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        const Text('Action:  ', style: TextStyle(height: 0.2, color: Colors.black)),
+                        DropdownButton<String>(
+                          value: _volleyType,
+                          icon: const Icon(Icons.keyboard_arrow_down),
+                          elevation: 16,
+                          style: const TextStyle(color: Colors.black),
+                          underline: Container(height: 2, color: widget.UIcol),
+                          onChanged: (String? value) {
+                            if (value != null) {
                               setState(() {
-                                _mainSide = newSelection.first;
-                                widget.onSideChange(_mainSide);
+                                _volleyType = value;
                               });
-                            },
-                          ),
+                              widget.onTypeChange(value);
+                            }
+                          },
+                          items: typeList.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(value: value, child: Text(value));
+                          }).toList(),
+                        ),
+                        SizedBox(width: 20),
+                        Column(
+                          children: [
+                            const Text('Robot mainly in this side:'),
+                            SegmentedButton<int>(
+                              showSelectedIcon: false,
+                              style: SegmentedButton.styleFrom(
+                                selectedBackgroundColor: _mainSide == 1
+                                    ? Colors.grey[300]
+                                    : (_mainSide == 0
+                                        ? (widget.isBlue ? Colors.blue : Colors.red)
+                                        : (widget.isBlue ? Colors.red : Colors.blue)),
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                visualDensity: VisualDensity(
+                                  horizontal: -3,
+                                  vertical: -3,
+                                ),
+                              ),
+                              segments: [
+                                ButtonSegment(value: 0, label: Text('Home')),
+                                ButtonSegment(value: 1, label: Text('Neutral')),
+                                ButtonSegment(value: 2, label: Text('Opponent')),
+                              ],
+                              selected: <int>{_mainSide},
+                              onSelectionChanged: (Set<int> newSelection) {
+                                setState(() {
+                                  _mainSide = newSelection.first;
+                                  widget.onSideChange(_mainSide);
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
-      );
-    } else {
-      return Card();
-    }
+      ),
+    );
   }
 }
 
@@ -2511,9 +2607,21 @@ class _VolleyWidgetState extends State<VolleyWidget> {
     if (!mounted) return;
 
     // 2. Process loaded data and update local state
-    if (data != '') {
+    if (data.isNotEmpty && data != "[]") {
+      final decoded = jsonDecode(data);
+      // Migration for old data structure
+      if (decoded.isNotEmpty &&
+    decoded[0] is List &&
+    (decoded[0] as List).isNotEmpty &&
+    decoded[0][0] is int) {
+        _items = decoded.map((item) {
+          final type = (item[0] == 1) ? 'volley' : 'harvest';
+          return [type, item[1], item[2], item[3]];
+        }).toList();
+      } else {
+         _items = decoded;
+      }
       setState(() {
-        _items = jsonDecode(data);
         _isBlue = intToBool(data2);
       });
     }
@@ -2521,14 +2629,12 @@ class _VolleyWidgetState extends State<VolleyWidget> {
     // 3. Handle auto-initialization ONLY if in auto mode AND no data was loaded.
     // _items will be empty if data == ''
     if (mounted && widget.isAuto && _items.isEmpty) {
-      _items.add([1, 0, 0, 1]);
+      _items.add(['volley', 0, 0, 1]);
 
       // Update DB. This is safe as it runs after the frame, and the Provider update
       // should trigger the rebuild that draws the new default item.
       scoutProvider.updateData(column, jsonEncode(_items));
-
-      // Explicitly set state locally to update the widget right away after the write.
-      //setState(() {});
+      setState((){});
     }
   }
 
@@ -2555,11 +2661,16 @@ class _VolleyWidgetState extends State<VolleyWidget> {
     final List<VolleyListItem> volleys = <VolleyListItem>[
       for (int i = 0; i < _items.length; i += 1)
         VolleyListItem(
-          isVolley: intToBool(_items[i][0]),
-          color: intToBool(_items[i][0]) ? cardCol : cardCol.withAlpha(50),
+          color: (_items[i][0] as String) == 'volley' ? cardCol : cardCol.withAlpha(50),
           UIcol: buttonCol,
           isBlue: _isBlue,
           item: _items[i],
+          onTypeChange: (String value) {
+             setState(() {
+              _items[i][0] = value;
+             });
+            _updateData();
+          },
           onHopChange: (int value) {
             _items[i][1] = value;
             _updateData();
@@ -2612,10 +2723,10 @@ class _VolleyWidgetState extends State<VolleyWidget> {
     }
 
     return Column(children: <Widget>[
-      BoldText(text: "Volley History", fontSize: 20),
+      BoldText(text: "Action History", fontSize: 20),
       SizedBox(height: 10),
       Expanded(
-        flex: 7,
+        flex: 8,
         child: ReorderableListView(
           scrollController: _scrollController, // Attach ScrollController
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -2651,7 +2762,7 @@ class _VolleyWidgetState extends State<VolleyWidget> {
             ),
             onPressed: () {
               setState(() {
-                _items.add([1, 0, 0, 1]);
+                _items.add(['volley', 0, 0, 1]);
                 _updateData();
               });
               // Scroll to bottom after adding the item and the UI has rebuilt
@@ -2660,23 +2771,33 @@ class _VolleyWidgetState extends State<VolleyWidget> {
           ),
         ),
       ),
-      Expanded(
-          flex: 1,
-          child: Container(
-            padding: EdgeInsets.all(10),
-            child: FilledButton(
-              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
-              onPressed: () {},
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, size: 50),
-                  SizedBox(width: 10),
-                  BoldText(text: "Add Harvest shift", fontSize: 25),
-                ],
+      Visibility(
+        visible: !widget.isAuto,
+        child: Expanded(
+            flex: 1,
+            child: Container(
+              padding: EdgeInsets.all(10),
+              child: FilledButton(
+                style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
+                onPressed: () {
+                  setState(() {
+                    _items.add(['harvest', 0, 0, 1]);
+                    _updateData();
+                  });
+                  // Scroll to bottom after adding the item and the UI has rebuilt
+                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add, size: 50),
+                    SizedBox(width: 10),
+                    BoldText(text: "Add Harvest shift", fontSize: 25),
+                  ],
+                ),
               ),
-            ),
-          ))
+            )),
+      )
     ]);
   }
 }
