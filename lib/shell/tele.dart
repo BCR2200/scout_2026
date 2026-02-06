@@ -42,13 +42,17 @@ class _TelePageState extends State<TelePage> {
   @override
   void initState() {
     super.initState();
-    initialPageColor = randPrimary();
     initialUIcol = randHighlight();
 
     // Defer color update until after build to avoid assertion error
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ColorProvider>(context, listen: false).updateColor('teleCol', initialPageColor);
-      Provider.of<ColorProvider>(context, listen: false).loadSettings();
+      final colorProvider = Provider.of<ColorProvider>(context, listen: false);
+      initialPageColor = randPrimary(exclude: [
+        Color(colorProvider.auraCol),
+        Color(colorProvider.endCol),
+        Color(colorProvider.qrCol),
+      ]);
+      colorProvider.updateColor('teleCol', initialPageColor);
     });
   }
 

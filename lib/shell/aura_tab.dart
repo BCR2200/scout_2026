@@ -43,12 +43,16 @@ class _AuraPageState extends State<AuraPage> {
   @override
   void initState() {
     super.initState();
-    initialPageColor = randPrimary();
     
     // Defer color update until after build to avoid assertion error
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ColorProvider>(context, listen: false).updateColor('auraCol', initialPageColor);
-      Provider.of<ColorProvider>(context, listen: false).loadSettings();
+      final colorProvider = Provider.of<ColorProvider>(context, listen: false);
+      initialPageColor = randPrimary(exclude: [
+        Color(colorProvider.teleCol),
+        Color(colorProvider.endCol),
+        Color(colorProvider.qrCol),
+      ]);
+      colorProvider.updateColor('auraCol', initialPageColor);
     });
   }
 

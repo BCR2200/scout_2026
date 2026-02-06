@@ -26,46 +26,98 @@ import 'package:provider/provider.dart';
 class ColorProvider extends ChangeNotifier {
   final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
 
-  int _auraCol = randPrimary().toARGB32();
+  late int _auraCol;
+  late int _teleCol;
+  late int _endCol;
+  late int _qrCol;
+
   int get auraCol => _auraCol;
-
-  int _teleCol = randPrimary().toARGB32();
   int get teleCol => _teleCol;
-
-  int _endCol = randPrimary().toARGB32();
   int get endCol => _endCol;
-
-  int _qrCol = randPrimary().toARGB32();
   int get qrCol => _qrCol;
+
+  ColorProvider() {
+    List<Color> usedColors = [];
+    _auraCol = randPrimary(exclude: usedColors).value;
+    usedColors.add(Color(_auraCol));
+    _teleCol = randPrimary(exclude: usedColors).value;
+    usedColors.add(Color(_teleCol));
+    _endCol = randPrimary(exclude: usedColors).value;
+    usedColors.add(Color(_endCol));
+    _qrCol = randPrimary(exclude: usedColors).value;
+  }
 
   // Call this during app initialization
   Future<void> loadSettings() async {
-    _auraCol = await _asyncPrefs.getInt('auraCol') ?? randPrimary().toARGB32();
-    _teleCol = await _asyncPrefs.getInt('teleCol') ?? randPrimary().toARGB32();
-    _endCol = await _asyncPrefs.getInt('endCol') ?? randPrimary().toARGB32();
-    _qrCol = await _asyncPrefs.getInt('qrCol') ?? randPrimary().toARGB32();
+    List<Color> usedColors = [];
+
+    int? aura = await _asyncPrefs.getInt('auraCol');
+    if (aura != null) {
+      _auraCol = aura;
+      usedColors.add(Color(aura));
+    }
+
+    int? tele = await _asyncPrefs.getInt('teleCol');
+    if (tele != null) {
+      _teleCol = tele;
+      usedColors.add(Color(tele));
+    }
+
+    int? end = await _asyncPrefs.getInt('endCol');
+    if (end != null) {
+      _endCol = end;
+      usedColors.add(Color(end));
+    }
+
+    int? qr = await _asyncPrefs.getInt('qrCol');
+    if (qr != null) {
+      _qrCol = qr;
+      usedColors.add(Color(qr));
+    }
+
+    if (aura == null) {
+      _auraCol = randPrimary(exclude: usedColors).value;
+      usedColors.add(Color(_auraCol));
+    }
+    if (tele == null) {
+      _teleCol = randPrimary(exclude: usedColors).value;
+      usedColors.add(Color(_teleCol));
+    }
+    if (end == null) {
+      _endCol = randPrimary(exclude: usedColors).value;
+      usedColors.add(Color(_endCol));
+    }
+    if (qr == null) {
+      _qrCol = randPrimary(exclude: usedColors).value;
+    }
 
     notifyListeners(); // Updates any listening widgets
   }
 
   Future<void> updateColor(String key, Color newCol) async {
-    await _asyncPrefs.setInt(key, newCol.toARGB32());
+    await _asyncPrefs.setInt(key, newCol.value);
     if (key == 'auraCol') {
-      _auraCol = newCol.toARGB32();
+      _auraCol = newCol.value;
     } else if (key == 'teleCol') {
-      _teleCol = newCol.toARGB32();
+      _teleCol = newCol.value;
     } else if (key == 'endCol') {
-      _endCol = newCol.toARGB32();
+      _endCol = newCol.value;
     } else if (key == 'qrCol') {
-      _qrCol = newCol.toARGB32();
+      _qrCol = newCol.value;
     }
     notifyListeners(); // This is what triggers your UI update
   }
 }
 
-Color randPrimary() {
+Color randPrimary({List<Color> exclude = const []}) {
   var random = Random();
-  var color = Colors.primaries[random.nextInt(Colors.primaries.length)];
+  Color color;
+  if (Colors.primaries.length <= exclude.length) {
+    return Colors.primaries[random.nextInt(Colors.primaries.length)];
+  }
+  do {
+    color = Colors.primaries[random.nextInt(Colors.primaries.length)];
+  } while (exclude.any((c) => c.value == color.value));
   return color;
 }
 
@@ -322,7 +374,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           ListTile(
             title: const BoldText(text: 'Quick Reminders:', fontSize: 22.5),
             subtitle: Column(
-              spacing: 5.0,
               children: <Widget>[
                 BoldText(
                   text: '1. Always ensure you change any red fields',
@@ -1378,16 +1429,15 @@ class MatchPopUpWidget extends StatefulWidget {
 
 class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
   late TextEditingController _controller;
-  late String searchText;
 
   // This runs once when the widget is initialized
   @override
   void initState() {
     super.initState();
-
-    // Setting the search text to nothing upon initialization
-    searchText = '';
-    _controller = TextEditingController(text: searchText);
+    _controller = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ScoutProvider>(context, listen: false).searchData('');
+    });
   }
 
   // // This runs once when the widget is no longer in use
@@ -1401,235 +1451,159 @@ class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
   // Building the widget tree
   @override
   Widget build(BuildContext context) {
-    // StreamBuilder is used to see the connection state (unless I'm a goofball)
-    // If connected, it will give the pop-up, otherwise it shows loading
-    // It might actually not be needed, but I haven't felt like testing it
-    return StreamBuilder<Object>(
-      stream: null,
-      builder: (context, snapshot) {
-        return SizedBox(
-          // Sizing the alert dialog widget
-          width: 350,
-          height: 600,
-          child: AlertDialog(
-            title: Row(
-              children: [
-                BoldText(text: 'Match Catalog'), // Title
-                VerticalDivider(),
+    return SizedBox(
+      // Sizing the alert dialog widget
+      width: 350,
+      height: 600,
+      child: AlertDialog(
+        title: Row(
+          children: [
+            BoldText(text: 'Match Catalog'), // Title
+            VerticalDivider(),
 
-                // Specific searching input (auto searches when typing)
-                Icon(Icons.search),
-                SizedBox(
-                  width: 100,
-                  child: TextField(
-                    controller: _controller,
+            // Specific searching input (auto searches when typing)
+            Icon(Icons.search),
+            SizedBox(
+              width: 100,
+              child: TextField(
+                controller: _controller,
 
-                    // Text stylizing
-                    style: const TextStyle(
-                      fontFamily: 'Red_Hat_Display',
-                      fontSize: 20,
-                    ),
-                    textAlign: TextAlign.left,
-                    onChanged: (value) {
-                      setState(() {
-                        searchText =
-                            value; // Just reload the widget with the search
-                      });
-                    },
-                  ),
+                // Text stylizing
+                style: const TextStyle(
+                  fontFamily: 'Red_Hat_Display',
+                  fontSize: 20,
                 ),
-              ], // children:
+                textAlign: TextAlign.left,
+                onChanged: (value) {
+                  Provider.of<ScoutProvider>(context, listen: false)
+                      .searchData(value);
+                },
+              ),
             ),
-
-            // This FutureBuilder is used to show a loading widget until datalist is collected
-            content: FutureBuilder(
-              future: Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).searchData(searchText),
-              builder: (context, snapShot) {
-                if (snapShot.connectionState == ConnectionState.done) {
-                  // Once finished collecting data
-                  return Consumer<ScoutProvider>(
-                    builder: (context, scoutProvider, child) {
-                      return scoutProvider.scoutItem.isNotEmpty
-                          ? // Check if there are any matches
-                          // Display matches if there are matches
-                          SizedBox(
-                            height: 500,
-                            width: 300,
-                            child: ListView.builder(
-                              itemCount:
-                                  scoutProvider
-                                      .scoutItem
-                                      .length, // List length is number of matches
-                              itemBuilder: (context, int index) {
-                                // Every match is displayed as a Card to give it a little pop
-                                return Card(
-                                  elevation: 3,
-                                  child: ListTile(
-                                    style: ListTileStyle.drawer,
-                                    textColor: Colors.black,
-
-                                    // Label displays the match name, subtitle of team # for clarification
-                                    title: BoldText(
-                                      text:
-                                          scoutProvider
-                                              .scoutItem[index]
-                                              .match_name,
-                                      fontSize: 20.0,
-                                    ),
-                                    subtitle: Text(
-                                      'TEAM: ${scoutProvider.scoutItem[index].team.toString()}',
-                                    ),
-
-                                    // When it is tapped, it will set the match to the tapped tile and close the pop-up
-                                    onTap: () {
-                                      Provider.of<ScoutProvider>(
-                                        context,
-                                        listen: false,
-                                      ).setMatch(
-                                        scoutProvider
-                                            .scoutItem[index]
-                                            .match_name,
-                                      );
-                                      Navigator.pop(context);
-                                    },
-
-                                    // Delete match button (on each list tile)
-                                    leading: IconButton(
-                                      icon: Icon(Icons.delete),
-
-                                      // When pressed it will give another pop-up to ask if you're sure
-                                      onPressed:
-                                          () => showDialog<void>(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              final String selectedMatchName =
-                                                  scoutProvider
-                                                      .scoutItem[index]
-                                                      .match_name;
-                                              return AlertDialog(
-                                                title: const BoldText(
-                                                  text: 'Delete?',
-                                                  fontSize: 40,
-                                                ),
-
-                                                // Letting the user know what match they selected to delete
-                                                content: BoldText(
-                                                  text:
-                                                      'match name: $selectedMatchName',
-                                                  fontSize: 20,
-                                                ),
-
-                                                actions: [
-                                                  // The back-out button
-                                                  TextButton(
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                        ),
-                                                    child: const BoldText(
-                                                      text: 'No',
-                                                      fontSize: 25,
-                                                    ),
-                                                  ),
-
-                                                  // The confirm button (deletes the match)
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      scoutProvider.deleteData(
-                                                        selectedMatchName,
-                                                      );
-                                                      scoutProvider.scoutItem
-                                                          .remove(
-                                                            scoutProvider
-                                                                .scoutItem[index],
-                                                          );
-                                                      Navigator.pop(context);
-                                                    },
-                                                    child: const BoldText(
-                                                      text: 'Yes',
-                                                      fontSize: 25,
-                                                    ),
-                                                  ),
-                                                ], // actions:
-                                              );
-                                            }, // builder:
-                                          ), // onPressed
-                                    ),
-
-                                    // Edit match button (on each list tile)
-                                    trailing: IconButton(
-                                      icon: Icon(Icons.edit),
-
-                                      // When pressed it will give a pop-up to edit the match name
-                                      onPressed:
-                                          () => showDialog<void>(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              // See the class below for this widget
-                                              return MatchRenameWidget(
-                                                matchName:
-                                                    scoutProvider
-                                                        .scoutItem[index]
-                                                        .match_name,
-
-                                                // Callback function for when you submit the new match name
-                                                onSubmit: (value) {
-                                                  scoutProvider.changeMatch(
-                                                    scoutProvider
-                                                        .scoutItem[index]
-                                                        .match_name,
-                                                    value,
-                                                  );
-                                                  scoutProvider
-                                                      .scoutItem[index]
-                                                      .match_name = value;
-                                                },
-                                              );
-                                            }, // builder:
-                                          ), // onPressed
-                                    ),
-                                  ),
-                                );
-                              }, // itemBuilder:
+          ], // children:
+        ),
+        content: Consumer<ScoutProvider>(
+          builder: (context, scoutProvider, child) {
+            if (scoutProvider.isLoading) {
+              return const SizedBox(
+                // Sized box to dimension the alert dialog
+                width: 300,
+                height: 500,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return scoutProvider.scoutItem.isNotEmpty
+                ? // Check if there are any matches
+                // Display matches if there are matches
+                SizedBox(
+                    height: 500,
+                    width: 300,
+                    child: ListView.builder(
+                      itemCount: scoutProvider.scoutItem.length,
+                      itemBuilder: (context, int index) {
+                        return Card(
+                          elevation: 3,
+                          child: ListTile(
+                            style: ListTileStyle.drawer,
+                            textColor: Colors.black,
+                            title: BoldText(
+                              text: scoutProvider.scoutItem[index].match_name,
+                              fontSize: 20.0,
                             ),
-                          )
-                          :
-                          // If there are no matches, it will display this instead of the list tiles
-                          const SizedBox(
-                            // Sized box to dimension the alert dialog
-                            height: 500,
-                            width: 300,
-                            child: Center(
-                              child: Image(
-                                image: AssetImage(
-                                  'assets/noMatches.png',
-                                ), // Check the path to see the image :)
+                            subtitle: Text(
+                              'TEAM: ${scoutProvider.scoutItem[index].team.toString()}',
+                            ),
+                            onTap: () {
+                              Provider.of<ScoutProvider>(
+                                context,
+                                listen: false,
+                              ).setMatch(
+                                scoutProvider.scoutItem[index].match_name,
+                              );
+                              Navigator.pop(context);
+                            },
+                            leading: IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () => showDialog<void>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  final String selectedMatchName =
+                                      scoutProvider.scoutItem[index].match_name;
+                                  return AlertDialog(
+                                    title: const BoldText(
+                                      text: 'Delete?',
+                                      fontSize: 40,
+                                    ),
+                                    content: BoldText(
+                                      text: 'match name: $selectedMatchName',
+                                      fontSize: 20,
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(
+                                          context,
+                                        ),
+                                        child: const BoldText(
+                                          text: 'No',
+                                          fontSize: 25,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          scoutProvider
+                                              .deleteData(selectedMatchName);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const BoldText(
+                                          text: 'Yes',
+                                          fontSize: 25,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
-                          );
-                    }, // builder:
-                  );
-                } else {
-                  // If it has not yet loaded all the data, it will show it is loading
-                  return const SizedBox(
-                    // Sized box to dimension the alert dialog
-                    width: 300,
+                            trailing: IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () => showDialog<void>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return MatchRenameWidget(
+                                    matchName:
+                                        scoutProvider.scoutItem[index].match_name,
+                                    onSubmit: (value) {
+                                      scoutProvider.changeMatch(
+                                        scoutProvider.scoutItem[index].match_name,
+                                        value,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : const SizedBox(
                     height: 500,
-                    child: Center(child: CircularProgressIndicator()),
+                    width: 300,
+                    child: Center(
+                      child: Image(
+                        image: AssetImage(
+                          'assets/noMatches.png',
+                        ),
+                      ),
+                    ),
                   );
-                }
-              }, // builder:
-            ),
-          ),
-        );
-      }, // builder:
+          },
+        ),
+      ),
     );
-  } // build
-} // _MatchPopUpWidgetState
-
+  }
+}
 // This widget is the pop-up that changes the match name in the MatchPopUpWidget
 class MatchRenameWidget extends StatefulWidget {
   final ValueChanged<String> onSubmit;
@@ -2191,121 +2165,86 @@ class _ClimbWidgetState extends State<ClimbWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: CustomContainer(
-
-        color: Colors.white,
-        padding: const EdgeInsets.fromLTRB(25, 20, 25, 20),
-        margin: EdgeInsets.all(25),
-        child: Row(
-          children: [
-            BoldText(text: "Climb\nStatus", fontSize: 20),
-
-            //flex: 1,
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: 10, child: BoldText(text: 'Climb Level')),
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        left: 5,
-                        right: 15,
-                      ), // Ensure spacing between labels
-                      child: SliderTheme(
-                        data: SliderThemeData(
-                          valueIndicatorShape: RoundedRectSliderValueIndicatorShape(),
-
-                          trackHeight: 10,
-                          trackGap: 5,
-                          thumbShape: RoundSliderThumbShape(),
-                          activeTickMarkColor: Colors.transparent,
-                          inactiveTickMarkColor: Colors.white,
-                            overlayShape: SliderComponentShape.noOverlay,
-
-                        ),
-                        child: Slider(
-
-                          // Displaying the current value to user in a friendly fashion
-                          year2023: false,
-                          label:
-                              _climbLevel == 0
-                                  ? "No Climb"
-                                  : _climbLevel.toInt().toString(),
-                          inactiveColor: widget.pageColor,
-                          activeColor: widget.pageColor,
-                          padding: EdgeInsets.all(0),
-
-                          // Making it on a scale from 1–10, and an option of no defence
-                          divisions: 3,
-                          min: 0.0,
-                          max: 3.0,
-                          value: _climbLevel,
-
-                          // Sending the current value to the database when changed,
-                          // and updating whether or not to show "no defence"
-                          onChanged: (double value) {
-                            setState(() {
-                              _climbLevel = value;
-                              Provider.of<ScoutProvider>(
-                                context,
-                                listen: false,
-                              ).updateData(_levelColumn, _climbLevel.toInt());
-                            });
-                          },
-                        ),
-                      ),
-                    ),
+    return CustomContainer(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.all(25),
+      child: Row(
+        children: [
+          BoldText(text: "Climb\nStatus", fontSize: 20),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BoldText(text: 'Climb Level'),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 10,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+                    activeTickMarkColor: Colors.transparent,
+                    inactiveTickMarkColor: Colors.transparent,
                   ),
-                  BoldText(text: "Climb Side"),
-                  Expanded(
-                    //flex: 1,
-                    child: Opacity(
-                      opacity: _climbLevel == 0 ? 0.3 : 1,
-                      child: SegmentedButton<int>(
-                        showSelectedIcon: false,
-
-                        style: SegmentedButton.styleFrom(
-                          selectedBackgroundColor: widget.pageColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          visualDensity: VisualDensity(
-                            horizontal: 0,
-                            vertical: 0,
-                          ),
-                        ),
-                        segments: const <ButtonSegment<int>>[
-                          ButtonSegment<int>(value: 0, label: Text('Left')),
-                          ButtonSegment<int>(value: 1, label: Text('Middle')),
-                          ButtonSegment<int>(value: 2, label: Text('Right')),
-                        ],
-                        selected: <int>{_climbSide},
-                        onSelectionChanged: (Set<int> newSelection) {
-                          setState(() {
-                            // By default there is only a single segment that can be
-                            // selected at one time, so its value is always the first
-                            // item in the selected set.
-                            _climbSide =
-                                _climbLevel == 0
-                                    ? _climbSide
-                                    : newSelection.first;
-                            Provider.of<ScoutProvider>(
-                              context,
-                              listen: false,
-                            ).updateData(_posColumn, _climbSide);
-                          });
-                        },
-                      ),
-                    ),
+                  child: Slider(
+                    label: _climbLevel == 0
+                        ? "No Climb"
+                        : _climbLevel.toInt().toString(),
+                    inactiveColor: widget.pageColor.withOpacity(0.5),
+                    activeColor: widget.pageColor,
+                    divisions: 3,
+                    min: 0.0,
+                    max: 3.0,
+                    value: _climbLevel,
+                    onChanged: (double value) {
+                      setState(() {
+                        _climbLevel = value;
+                        Provider.of<ScoutProvider>(
+                          context,
+                          listen: false,
+                        ).updateData(_levelColumn, _climbLevel.toInt());
+                      });
+                    },
                   ),
-                ],
-              ),
+                ),
+                const BoldText(text: "Climb Side"),
+                const SizedBox(height: 4),
+                Opacity(
+                  opacity: _climbLevel == 0 ? 0.3 : 1,
+                  child: SegmentedButton<int>(
+                    showSelectedIcon: false,
+                    style: SegmentedButton.styleFrom(
+                      selectedBackgroundColor: widget.pageColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    segments: const <ButtonSegment<int>>[
+                      ButtonSegment<int>(value: 0, label: Text('Left')),
+                      ButtonSegment<int>(value: 1, label: Text('Middle')),
+                      ButtonSegment<int>(value: 2, label: Text('Right')),
+                    ],
+                    selected: <int>{_climbSide},
+                    onSelectionChanged: (Set<int> newSelection) {
+                      if (_climbLevel != 0) {
+                        setState(() {
+                          _climbSide = newSelection.first;
+                          Provider.of<ScoutProvider>(
+                            context,
+                            listen: false,
+                          ).updateData(_posColumn, _climbSide);
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -2316,9 +2255,7 @@ class VolleyListItem extends StatefulWidget {
   final Color? UIcol;
   final bool isVolley;
   final bool isBlue;
-  final int? initAcc;
-  final int? initHop;
-  final int? initSide;
+  final List<dynamic> item;
   final ValueChanged<int> onHopChange;
   final ValueChanged<int> onAccChange;
   final ValueChanged<int> onSideChange;
@@ -2328,9 +2265,7 @@ class VolleyListItem extends StatefulWidget {
     this.color = Colors.white,
     required this.isVolley,
     required this.isBlue,
-    this.initAcc,
-    this.initHop,
-    this.initSide,
+    required this.item,
     this.UIcol,
     required this.onAccChange,
     required this.onHopChange,
@@ -2343,20 +2278,17 @@ class VolleyListItem extends StatefulWidget {
   State<VolleyListItem> createState() => _VolleyListItem();
 }
 
-class _VolleyListItem extends State<VolleyListItem>
-    with SingleTickerProviderStateMixin {
+class _VolleyListItem extends State<VolleyListItem> {
   late int _percentHopper;
   late int _percentAcc;
   late int _mainSide;
   late Color _UIcol;
-  late AnimationController _controller;
-  late Animation<Offset> _offsetAnimation;
   final List<ButtonSegment<int>> _percents = List<ButtonSegment<int>>.generate(
     5,
     (index) {
       return ButtonSegment<int>(
-        value: (index+5) * 10,
-        label: Text('${(index+5) * 10}', style: TextStyle(fontSize: 10)),
+        value: (index + 5) * 10,
+        label: Text('${(index + 5) * 10}', style: TextStyle(fontSize: 10)),
       );
     },
   );
@@ -2365,77 +2297,52 @@ class _VolleyListItem extends State<VolleyListItem>
   void initState() {
     super.initState();
 
-    _percents.insert(0, ButtonSegment<int>(value: 25, label: Text('25', style: TextStyle(fontSize: 10))));
-    _percents.insert(0, ButtonSegment<int>(value: 0, label: Text('0', style: TextStyle(fontSize: 10))));
-    _percents.add(ButtonSegment<int>(value: 100, label: Text('100', style: TextStyle(fontSize: 10))));
+    _percents.insert(
+        0, ButtonSegment<int>(value: 25, label: Text('25', style: TextStyle(fontSize: 10))));
+    _percents.insert(
+        0, ButtonSegment<int>(value: 0, label: Text('0', style: TextStyle(fontSize: 10))));
+    _percents.add(
+        ButtonSegment<int>(value: 100, label: Text('100', style: TextStyle(fontSize: 10))));
 
-    _percentAcc = widget.initAcc ?? 0;
-    _percentHopper = widget.initHop ?? 0;
-    _mainSide = widget.initSide ?? 1;
+    _percentAcc = widget.item[2] as int;
+    _percentHopper = widget.item[1] as int;
+    _mainSide = widget.item[3] as int;
     _UIcol = widget.UIcol ?? randPrimary();
-
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _offsetAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(1.5, 0.0), // Slides completely off-screen to the right
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
-
-    //_percents.add(ButtonSegment<int>(value: 100, label: Text('100')));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _triggerDismiss() async {
-    await _controller.forward();
-    setState(() {
-      widget.onDelete();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.isVolley) {
       return Dismissible(
-        key: UniqueKey(),
+        key: ObjectKey(widget.item),
         direction: DismissDirection.startToEnd,
         background: CustomContainer(
           color: Colors.red,
           padding: EdgeInsets.only(left: 20, right: 550),
           child: const Icon(Icons.delete_forever_sharp),
         ),
-        confirmDismiss:
-            (direction) => showDialog(
-              context: context,
-              builder:
-                  ((context) => AlertDialog(
-                    actionsAlignment: MainAxisAlignment.center,
-                    title: Text('Did you want to remove this volley?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: Text('No'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: Text('Yes'),
-                      ),
-                    ],
-                  )),
-            ),
-
+        confirmDismiss: (direction) => showDialog(
+          context: context,
+          builder: ((context) => AlertDialog(
+                actionsAlignment: MainAxisAlignment.center,
+                title: Text('Did you want to remove this volley?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text('Yes'),
+                  ),
+                ],
+              )),
+        ),
         onDismissed: (direction) {
-          _triggerDismiss();
+          widget.onDelete();
         },
         child: Card(
           color: widget.color,
-
           child: Container(
             padding: EdgeInsets.fromLTRB(10, 10, 20, 10),
             //height: 500,
@@ -2446,7 +2353,6 @@ class _VolleyListItem extends State<VolleyListItem>
                   SizedBox(width: 10),
                   Expanded(
                     child: Column(
-                      spacing: 2,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -2507,7 +2413,11 @@ class _VolleyListItem extends State<VolleyListItem>
                           child: SegmentedButton<int>(
                             showSelectedIcon: false,
                             style: SegmentedButton.styleFrom(
-                              selectedBackgroundColor: _mainSide == 1 ? Colors.grey[300] : (_mainSide == 0 ? (widget.isBlue ? Colors.blue : Colors.red) : (widget.isBlue ? Colors.red : Colors.blue)),
+                              selectedBackgroundColor: _mainSide == 1
+                                  ? Colors.grey[300]
+                                  : (_mainSide == 0
+                                      ? (widget.isBlue ? Colors.blue : Colors.red)
+                                      : (widget.isBlue ? Colors.red : Colors.blue)),
                               backgroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
@@ -2516,7 +2426,6 @@ class _VolleyListItem extends State<VolleyListItem>
                                 horizontal: -3,
                                 vertical: -3,
                               ),
-
                             ),
                             segments: [
                               ButtonSegment(value: 0, label: Text('Home')),
@@ -2532,16 +2441,9 @@ class _VolleyListItem extends State<VolleyListItem>
                             },
                           ),
                         ),
-                        /*Expanded(
-                          child: Row(
-                            children: [
-                              ],
-                          ),
-                        )*/],
-
+                      ],
                     ),
                   ),
-                  //SizedBox(width: 20),
                 ],
               ),
             ),
@@ -2634,7 +2536,8 @@ class _VolleyWidgetState extends State<VolleyWidget> {
     Provider.of<ScoutProvider>(
       context,
       listen: false,
-    ).updateData(column, jsonEncode(_items));  }
+    ).updateData(column, jsonEncode(_items));
+  }
 
   // New method to scroll to the bottom of the list
   void _scrollToBottom() {
@@ -2647,7 +2550,6 @@ class _VolleyWidgetState extends State<VolleyWidget> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final List<VolleyListItem> volleys = <VolleyListItem>[
@@ -2657,9 +2559,7 @@ class _VolleyWidgetState extends State<VolleyWidget> {
           color: intToBool(_items[i][0]) ? cardCol : cardCol.withAlpha(50),
           UIcol: buttonCol,
           isBlue: _isBlue,
-          initAcc: _items[i][2],
-          initHop: _items[i][1],
-          initSide: _items[i][3],
+          item: _items[i],
           onHopChange: (int value) {
             _items[i][1] = value;
             _updateData();
@@ -2678,7 +2578,7 @@ class _VolleyWidgetState extends State<VolleyWidget> {
               _updateData();
             });
           },
-          key: ValueKey(i), // Use ValueKey for better performance/reordering stability
+          key: ObjectKey(_items[i]), // Use ValueKey for better performance/reordering stability
         ),
     ];
 
@@ -2698,12 +2598,12 @@ class _VolleyWidgetState extends State<VolleyWidget> {
             // Create a Card based on the color and the content of the dragged one
             // and set its elevation to the animated value.
             child: Opacity(
-                opacity: 1 - (animation.value * 0.5),
-                child: Card(
-                  elevation: elevation,
-                  color: volleys[index].color,
-                  child: volleys[index],
-                ),
+              opacity: 1 - (animation.value * 0.5),
+              child: Card(
+                elevation: elevation,
+                color: volleys[index].color,
+                child: volleys[index],
+              ),
             ),
           );
         },
@@ -2711,67 +2611,62 @@ class _VolleyWidgetState extends State<VolleyWidget> {
       );
     }
 
-    return Column(
-      children: <Widget>[
-        BoldText(text: "Volley History", fontSize: 20),
-        SizedBox(height: 10),
-
-        Expanded(
-          flex: 7,
-          child: ReorderableListView(
-            scrollController: _scrollController, // Attach ScrollController
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            proxyDecorator: proxyDecorator,
-            onReorder: (int oldIndex, int newIndex) {
+    return Column(children: <Widget>[
+      BoldText(text: "Volley History", fontSize: 20),
+      SizedBox(height: 10),
+      Expanded(
+        flex: 7,
+        child: ReorderableListView(
+          scrollController: _scrollController, // Attach ScrollController
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          proxyDecorator: proxyDecorator,
+          onReorder: (int oldIndex, int newIndex) {
+            setState(() {
+              if (oldIndex < newIndex) {
+                newIndex -= 1;
+              }
+              final List<dynamic> item = _items.removeAt(oldIndex);
+              _items.insert(newIndex, item);
+              _updateData();
+            });
+          },
+          children: volleys,
+        ),
+      ),
+      SizedBox(height: 10),
+      Expanded(
+        flex: 1,
+        child: Container(
+          height: 50,
+          padding: EdgeInsets.all(10),
+          child: FilledButton(
+            style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, size: 50),
+                SizedBox(width: 10),
+                BoldText(text: "Add Volley", fontSize: 25),
+              ],
+            ),
+            onPressed: () {
               setState(() {
-                if (oldIndex < newIndex) {
-                  newIndex -= 1;
-                }
-                final List<dynamic> item = _items.removeAt(oldIndex);
-                _items.insert(newIndex, item);
+                _items.add([1, 0, 0, 1]);
                 _updateData();
               });
+              // Scroll to bottom after adding the item and the UI has rebuilt
+              WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
             },
-            children: volleys,
           ),
         ),
-        SizedBox(height: 10),
-
-        Expanded(
-          flex: 1,
-          child: Container(
-            height: 50,
-            padding: EdgeInsets.all(10),
-            child: FilledButton(
-              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, size: 50),
-                  SizedBox(width: 10),
-                  BoldText(text: "Add Volley", fontSize: 25),
-                ],
-              ),
-              onPressed: () {
-                setState(() {
-                  _items.add([1, 0, 0, 1]);
-                  _updateData();
-                });
-                // Scroll to bottom after adding the item and the UI has rebuilt
-                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-              },
-            ),
-          ),
-        ),
-        Expanded(
+      ),
+      Expanded(
           flex: 1,
           child: Container(
             padding: EdgeInsets.all(10),
             child: FilledButton(
               style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
-              onPressed: () {
-
-              },
+              onPressed: () {},
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -2781,9 +2676,7 @@ class _VolleyWidgetState extends State<VolleyWidget> {
                 ],
               ),
             ),
-          )
-        )
-      ]
-    );
+          ))
+    ]);
   }
 }

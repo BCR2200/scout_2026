@@ -40,13 +40,17 @@ class _TheEndPageState extends State<TheEndPage> {
   @override
   void initState() {
     super.initState();
-    initialPageColor = randPrimary();
-
+    
     // Defer color update until after build to avoid assertion error
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final colorProvider = Provider.of<ColorProvider>(context, listen: false);
+      initialPageColor = randPrimary(exclude: [
+        Color(colorProvider.auraCol),
+        Color(colorProvider.teleCol),
+        Color(colorProvider.qrCol),
+      ]);
       // Corrected column key to 'endCol'
       Provider.of<ColorProvider>(context, listen: false).updateColor('endCol', initialPageColor);
-      Provider.of<ColorProvider>(context, listen: false).loadSettings();
     });
   }
 

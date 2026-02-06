@@ -35,7 +35,7 @@ class QRPage extends StatefulWidget {
 }
 class _QRPageState extends State<QRPage> {
   // Use a final variable to store the initial random color
-  late final Color initialColor = randPrimary();
+  late final Color initialColor;
 
   @override
   void initState() {
@@ -43,8 +43,13 @@ class _QRPageState extends State<QRPage> {
     
     // Defer color update until after build to avoid assertion error
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final colorProvider = Provider.of<ColorProvider>(context, listen: false);
+      initialColor = randPrimary(exclude: [
+        Color(colorProvider.auraCol),
+        Color(colorProvider.teleCol),
+        Color(colorProvider.endCol),
+      ]);
       Provider.of<ColorProvider>(context, listen: false).updateColor('qrCol', initialColor);
-      Provider.of<ColorProvider>(context, listen: false).loadSettings();
     });
   }
   
