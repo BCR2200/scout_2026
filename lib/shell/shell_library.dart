@@ -2182,7 +2182,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
     ).getIntData(_posColumn);
 
     // If the widget is still active and the data isn't the default value (a space)
-    if (mounted && initPos != 0) {
+    if (mounted && initPos != -1) {
       setState(() {
         _climbSide = initPos;
       });
@@ -2195,30 +2195,39 @@ class _ClimbWidgetState extends State<ClimbWidget> {
       child: CustomContainer(
 
         color: Colors.white,
-        padding: const EdgeInsets.fromLTRB(50, 20, 25, 20),
+        padding: const EdgeInsets.fromLTRB(25, 20, 25, 20),
         margin: EdgeInsets.all(25),
         child: Row(
           children: [
-            BoldText(text: "Climb\nStatus", fontSize: 30),
+            BoldText(text: "Climb\nStatus", fontSize: 20),
 
             //flex: 1,
             Expanded(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  BoldText(text: 'Climb Level'),
+                  SizedBox(height: 10, child: BoldText(text: 'Climb Level')),
                   Expanded(
                     child: Container(
                       padding: EdgeInsets.only(
-                        left: 25,
+                        left: 5,
                         right: 15,
                       ), // Ensure spacing between labels
                       child: SliderTheme(
                         data: SliderThemeData(
-                          tickMarkShape: RoundSliderTickMarkShape(),
+                          valueIndicatorShape: RoundedRectSliderValueIndicatorShape(),
+
+                          trackHeight: 10,
+                          trackGap: 5,
+                          thumbShape: RoundSliderThumbShape(),
+                          activeTickMarkColor: Colors.transparent,
                           inactiveTickMarkColor: Colors.white,
+                            overlayShape: SliderComponentShape.noOverlay,
+
                         ),
                         child: Slider(
+
                           // Displaying the current value to user in a friendly fashion
                           year2023: false,
                           label:
@@ -2227,6 +2236,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                                   : _climbLevel.toInt().toString(),
                           inactiveColor: widget.pageColor,
                           activeColor: widget.pageColor,
+                          padding: EdgeInsets.all(0),
 
                           // Making it on a scale from 1–10, and an option of no defence
                           divisions: 3,
@@ -2249,7 +2259,6 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                       ),
                     ),
                   ),
-                  Container(height: 10),
                   BoldText(text: "Climb Side"),
                   Expanded(
                     //flex: 1,
@@ -2257,10 +2266,15 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                       opacity: _climbLevel == 0 ? 0.3 : 1,
                       child: SegmentedButton<int>(
                         showSelectedIcon: false,
+
                         style: SegmentedButton.styleFrom(
                           selectedBackgroundColor: widget.pageColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
+                          ),
+                          visualDensity: VisualDensity(
+                            horizontal: 0,
+                            vertical: 0,
                           ),
                         ),
                         segments: const <ButtonSegment<int>>[
@@ -2552,15 +2566,18 @@ class VolleyWidget extends StatefulWidget {
     super.key,
   });
   @override
-  State<VolleyWidget> createState() => _VolleyWidget();
+  State<VolleyWidget> createState() => _VolleyWidgetState();
 }
 
-class _VolleyWidget extends State<VolleyWidget> {
+class _VolleyWidgetState extends State<VolleyWidget> {
   late String column;
   late Color buttonCol;
   bool _isBlue = false;
   final cardCol = randPrimary().withAlpha(150);
   late List<dynamic> _items = [];
+
+  // Added ScrollController
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -2569,36 +2586,47 @@ class _VolleyWidget extends State<VolleyWidget> {
     column = widget.isAuto ? 'auto_volleys' : 'volleys';
     buttonCol = widget.UIcol;
 
+    // Perform data load and initialization after the first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      _loadAndInitializeData();
     });
-
-    if (widget.isAuto && _items.isEmpty) {
-      _items.add([1, 0, 0, 1]);
-      Provider.of<ScoutProvider>(
-        context,
-        listen: false,
-      ).updateData(column, jsonEncode(_items));
-    }
   }
 
-  Future<void> _loadData() async {
-    String data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getStringData(column);
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    int data2 = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getIntData('is_blue');
+  // Combines data loading and initialization to ensure order of operations and persistence.
+  Future<void> _loadAndInitializeData() async {
+    final scoutProvider = Provider.of<ScoutProvider>(context, listen: false);
 
-    // If the widget is still active and the data isn't the default value (a space)
-    if (mounted && data != '') {
+    // 1. Load existing data
+    String data = await scoutProvider.getStringData(column);
+    int data2 = await scoutProvider.getIntData('is_blue');
+
+    if (!mounted) return;
+
+    // 2. Process loaded data and update local state
+    if (data != '') {
       setState(() {
         _items = jsonDecode(data);
         _isBlue = intToBool(data2);
       });
+    }
+
+    // 3. Handle auto-initialization ONLY if in auto mode AND no data was loaded.
+    // _items will be empty if data == ''
+    if (mounted && widget.isAuto && _items.isEmpty) {
+      _items.add([1, 0, 0, 1]);
+
+      // Update DB. This is safe as it runs after the frame, and the Provider update
+      // should trigger the rebuild that draws the new default item.
+      scoutProvider.updateData(column, jsonEncode(_items));
+
+      // Explicitly set state locally to update the widget right away after the write.
+      //setState(() {});
     }
   }
 
@@ -2607,6 +2635,18 @@ class _VolleyWidget extends State<VolleyWidget> {
       context,
       listen: false,
     ).updateData(column, jsonEncode(_items));  }
+
+  // New method to scroll to the bottom of the list
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -2638,7 +2678,7 @@ class _VolleyWidget extends State<VolleyWidget> {
               _updateData();
             });
           },
-          key: UniqueKey(),
+          key: ValueKey(i), // Use ValueKey for better performance/reordering stability
         ),
     ];
 
@@ -2650,17 +2690,20 @@ class _VolleyWidget extends State<VolleyWidget> {
       return AnimatedBuilder(
         animation: animation,
         builder: (BuildContext context, Widget? child) {
-          final double animValue = Curves.easeInOut.transform(animation.value);
+          final double animValue = lerpDouble(0, 1, Curves.easeInOut.transform(animation.value))!;
           final double elevation = lerpDouble(1, 6, animValue)!;
           final double scale = lerpDouble(1, 1.02, animValue)!;
           return Transform.scale(
             scale: scale,
             // Create a Card based on the color and the content of the dragged one
             // and set its elevation to the animated value.
-            child: Card(
-              elevation: elevation,
-              color: volleys[index].color,
-              child: volleys[index],
+            child: Opacity(
+                opacity: 1 - (animation.value * 0.5),
+                child: Card(
+                  elevation: elevation,
+                  color: volleys[index].color,
+                  child: volleys[index],
+                ),
             ),
           );
         },
@@ -2670,12 +2713,13 @@ class _VolleyWidget extends State<VolleyWidget> {
 
     return Column(
       children: <Widget>[
-        BoldText(text: "Volley History", fontSize: 30),
+        BoldText(text: "Volley History", fontSize: 20),
         SizedBox(height: 10),
 
         Expanded(
           flex: 7,
           child: ReorderableListView(
+            scrollController: _scrollController, // Attach ScrollController
             padding: const EdgeInsets.symmetric(horizontal: 10),
             proxyDecorator: proxyDecorator,
             onReorder: (int oldIndex, int newIndex) {
@@ -2713,6 +2757,8 @@ class _VolleyWidget extends State<VolleyWidget> {
                   _items.add([1, 0, 0, 1]);
                   _updateData();
                 });
+                // Scroll to bottom after adding the item and the UI has rebuilt
+                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
               },
             ),
           ),
@@ -2724,7 +2770,7 @@ class _VolleyWidget extends State<VolleyWidget> {
             child: FilledButton(
               style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
               onPressed: () {
-                
+
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -10,13 +10,22 @@ class QrTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: randHighlight(), text: 'QR',),);
+    // Use Consumer to listen for changes to qrCol and rebuild the Tab
+    return Consumer<ColorProvider>(
+      builder: (context, colorProvider, child) {
+        return Tab(
+          child: ColouredTab(
+            color: Color(colorProvider.qrCol), 
+            text: 'QR'
+          ),
+        );
+      },
+    );
   }
 }
 
 
-
-// QRPage is a stateless widget called when creating the QR code page.
+// QRPage is a stateful widget called when creating the QR code page.
 class QRPage extends StatefulWidget {
   final VoidCallback? callback;
   
@@ -25,16 +34,26 @@ class QRPage extends StatefulWidget {
   State<QRPage> createState() => _QRPageState();
 }
 class _QRPageState extends State<QRPage> {
-  late Color primaryColor;
+  // Use a final variable to store the initial random color
+  late final Color initialColor = randPrimary();
 
   @override
   void initState() {
     super.initState();
-    primaryColor = randPrimary();
+    
+    // Defer color update until after build to avoid assertion error
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ColorProvider>(context, listen: false).updateColor('qrCol', initialColor);
+      Provider.of<ColorProvider>(context, listen: false).loadSettings();
+    });
   }
-  // Building the widget tree
+  
   @override
   Widget build(BuildContext context) {
+    // Read color from provider to ensure page color updates reactively
+    final colorProvider = Provider.of<ColorProvider>(context);
+    final primaryColor = Color(colorProvider.qrCol);
+
     return Container(
       color: primaryColor, // Setting the background colour
       child: Center(

@@ -2,9 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-//import 'package:tele_flutter/tele_flutter.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
@@ -14,11 +12,21 @@ class TeleTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: ColouredTab(color: randPrimary(), text: 'Tele'));
+    // Use Consumer to listen for changes to teleCol and rebuild the Tab
+    return Consumer<ColorProvider>(
+      builder: (context, colorProvider, child) {
+        return Tab(
+          child: ColouredTab(
+            color: Color(colorProvider.teleCol), 
+            text: 'Tele'
+          )
+        );
+      },
+    );
   }
 }
 
-// TelePage is a stateless widget called when creating the Tele code page.
+// TelePage is a stateful widget called when creating the Tele code page.
 class TelePage extends StatefulWidget {
   final VoidCallback? callback;
 
@@ -28,17 +36,29 @@ class TelePage extends StatefulWidget {
 }
 
 class _TelePageState extends State<TelePage> {
-  late Color pageColor;
-  // Building the widget tree
+  late Color initialPageColor;
+  late Color initialUIcol;
 
   @override
   void initState() {
     super.initState();
-    pageColor = randPrimary();
+    initialPageColor = randPrimary();
+    initialUIcol = randHighlight();
+
+    // Defer color update until after build to avoid assertion error
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ColorProvider>(context, listen: false).updateColor('teleCol', initialPageColor);
+      Provider.of<ColorProvider>(context, listen: false).loadSettings();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Read color from provider to ensure page color updates reactively
+    final colorProvider = Provider.of<ColorProvider>(context);
+    final pageColor = Color(colorProvider.teleCol);
+    final UIcol = initialUIcol; // Assuming UIcol uses the initial accent color
+
     return Container(
       color: pageColor, // Setting the background colour
       child: Column(
@@ -47,23 +67,9 @@ class _TelePageState extends State<TelePage> {
             flex: 3,
             child: CustomContainer(
               color: Colors.white,
-              margin: EdgeInsets.fromLTRB(50, 0, 50, 50),
+              margin: EdgeInsets.fromLTRB(25, 25, 25, 25),
               padding: EdgeInsets.all(25),
-              child: VolleyWidget(isAuto: false, pageColor: pageColor, UIcol: randHighlight(),),
-              /*child: Column(
-                children:[
-                  Expanded(
-                    child: ReorderableListView(children: children, onReorder: onReorder)
-                  ),
-                  Row(
-                    children: [
-                      BoldText(text: "Shift Change"),
-
-                      BoldText(text: "Volleys")
-                    ]
-                  )
-                ]
-              )*/
+              child: VolleyWidget(isAuto: false, pageColor: pageColor, UIcol: UIcol),
             ),
           ),
         ],

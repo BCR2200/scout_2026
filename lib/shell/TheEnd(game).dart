@@ -1,27 +1,26 @@
 import 'dart:math';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-//import 'package:theEnd_flutter/theEnd_flutter.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
-class TheEndTab extends StatefulWidget {
+class TheEndTab extends StatelessWidget {
 
   const TheEndTab({ super.key});
-  @override
-  State<TheEndTab> createState() => _TheEndTabState();
 
-}
-
-class _TheEndTabState extends State<TheEndTab> {
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-        listenable: ColorProvider(),
-        builder: (context, child) {return Tab(child: ColouredTab(color: Color(ColorProvider().endCol), text: 'post mortem'));});
+    // Use Consumer to listen for changes to endCol and rebuild the Tab
+    return Consumer<ColorProvider>(
+      builder: (context, colorProvider, child) {
+        return Tab(
+          child: ColouredTab(
+            color: Color(colorProvider.endCol),
+            text: 'post mortem'
+          )
+        );
+      },
+    );
   }
 }
 
@@ -35,22 +34,28 @@ class TheEndPage extends StatefulWidget {
 }
 
 class _TheEndPageState extends State<TheEndPage> {
-  late Color pageColor;
-  // Building the widget tree
+  // Use a nullable Color here, but it will be guaranteed to be initialized before use in build via load.
+  late Color initialPageColor;
 
   @override
   void initState() {
     super.initState();
-    pageColor = randPrimary();
+    initialPageColor = randPrimary();
 
-    ColorProvider().updateColor('endcol', pageColor);
-    ColorProvider().loadSettings();
+    // Defer color update until after build to avoid assertion error
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Corrected column key to 'endCol'
+      Provider.of<ColorProvider>(context, listen: false).updateColor('endCol', initialPageColor);
+      Provider.of<ColorProvider>(context, listen: false).loadSettings();
+    });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
+    // Read color from provider to ensure page color updates reactively
+    final colorProvider = Provider.of<ColorProvider>(context);
+    final pageColor = Color(colorProvider.endCol);
+
     return Container(
       color: pageColor, // Setting the background colour
       child: Column(
@@ -59,19 +64,19 @@ class _TheEndPageState extends State<TheEndPage> {
             flex: 1,
             child: ClimbWidget(isAuto: false, pageColor: pageColor,),
           ),
-          Expanded(
+          const Expanded(
             flex: 1,
             child: NotesWidget()
           ),
-          Expanded(
+          const Expanded(
             flex: 1,
             child: DriverSlider()
           ),
-          Expanded(
+          const Expanded(
             flex: 1,
             child: OffenceSlider()
           ),
-          Expanded(
+          const Expanded(
             flex: 1,
             child: DefenceSlider()
           ),

@@ -2,26 +2,27 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-//import 'package:aura_flutter/aura_flutter.dart';
 import 'package:scout_shell/shell/shell_library.dart';
 import 'package:scout_shell/databasing/provider_service.dart';
 
-class AuraTab extends StatefulWidget {
+class AuraTab extends StatelessWidget {
 
   const AuraTab({ super.key});
-  @override
-  State<AuraTab> createState() => _AuraTabState();
 
-}
-
-class _AuraTabState extends State<AuraTab> {
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: ColorProvider(),
-        builder: (context, child) {return Tab(child: ColouredTab(color: Color(ColorProvider().auraCol), text: 'Aura'));});
+    // Use Consumer to listen for changes to auraCol and rebuild the Tab
+    return Consumer<ColorProvider>(
+      builder: (context, colorProvider, child) {
+        return Tab(
+          child: ColouredTab(
+            color: Color(colorProvider.auraCol), 
+            text: 'Aura'
+          )
+        );
+      },
+    );
   }
 }
 
@@ -35,51 +36,48 @@ class AuraPage extends StatefulWidget {
 }
 
 class _AuraPageState extends State<AuraPage> {
-  late Color pageColor;
-  late Color UIcol;
-  // Building the widget tree
-
+  // We no longer need pageColor as state, but we need to generate it once
+  late Color initialPageColor;
+  final Color initialUIcol = randHighlight();
+  
   @override
   void initState() {
     super.initState();
-    pageColor = randPrimary();
-    UIcol = randHighlight();
-
-    ColorProvider().updateColor('auraCol', pageColor);
-    ColorProvider().loadSettings();
+    initialPageColor = randPrimary();
+    
+    // Defer color update until after build to avoid assertion error
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ColorProvider>(context, listen: false).updateColor('auraCol', initialPageColor);
+      Provider.of<ColorProvider>(context, listen: false).loadSettings();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Read color from provider to ensure page color updates when provider changes (e.g., when loading settings)
+    final colorProvider = Provider.of<ColorProvider>(context);
+    final pageColor = Color(colorProvider.auraCol);
+    
+    // UIcol is based on the initial page color, so we use the stored initial value.
+    // If UIcol is used as an accent, it should be derived from the current page color.
+    // Assuming UIcol is an accent color and should only be generated once per session:
+    final UIcol = initialUIcol;
+
     return Container(
       color: pageColor, // Setting the background colour
       child: Column(
         children: [
-          ClimbWidget(isAuto: true, pageColor: UIcol,),
+          ClimbWidget(isAuto: true, pageColor: UIcol),
           Expanded(
             child: CustomContainer(
               color: Colors.white,
               margin: EdgeInsets.fromLTRB(25, 0, 25, 25),
-              padding: EdgeInsets.all(25),
-              child: VolleyWidget(isAuto: true, pageColor: pageColor, UIcol: UIcol,),
-              /*child: Column(
-                children:[
-                  Expanded(
-                    child: ReorderableListView(children: children, onReorder: onReorder)
-                  ),
-                  Row(
-                    children: [
-                      BoldText(text: "Shift Change"),
-
-                      BoldText(text: "Volleys")
-                    ]
-                  )
-                ]
-              )*/
+              padding: EdgeInsets.all(15),
+              child: VolleyWidget(isAuto: true, pageColor: pageColor, UIcol: UIcol),
             ),
           ),
         ],
       ),
     );
-  } // Widget build
-} // _AuraPageState
+  }
+}

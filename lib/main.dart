@@ -9,10 +9,7 @@ import 'package:scout_shell/shell/qr_tab.dart';
 
 // The main function is the entry point of the application.
 void main() async {
-  Color auraColor = randPrimary();
-  Color teleColor = randPrimary();
-  Color endColor = randPrimary();
-  Color qrColor = randPrimary();
+  // Removed unused local color variables
 
   WidgetsFlutterBinding.ensureInitialized(); // Ensure initialized so the SharedPreferences doesn't cause a bug
   SharedPreferences prefs =
