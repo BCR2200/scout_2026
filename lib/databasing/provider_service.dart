@@ -61,6 +61,9 @@ class ScoutProvider extends ChangeNotifier {
             auto_volleys: e['auto_volleys'] as String,
             volleys: e['volleys'] as String,
             is_blue: e['is_blue'] as int,
+            main_role: e['main_role'] as String,
+            offense: e['offense'] as int,
+            who_scouted: e['who_scouted'] as String,
           ),
         )
         .toList();

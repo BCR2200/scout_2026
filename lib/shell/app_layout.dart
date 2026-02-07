@@ -133,17 +133,11 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
           children: <Widget>[
 
             // Putting a const divider to add some space
-            const VerticalDivider(
-              color: Colors.black,
-              width: 20.0,
-            ),
+            SizedBox(width:10),
 
             // Wrapping MatchSelector with expanded to fill up maximum space
             Expanded(
               child: MatchSelector(), // This custom widget is in shell_library
-            ),
-            Expanded(
-              child: WhoScoutedWidget(),
             ),
 
             // Putting a const divider to add some space
@@ -180,7 +174,7 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
       drawerEnableOpenDragGesture: false, // Prevent swiping from opening the menu since swiping changes tabs
 
       // This button make the fouls pop-up when pressed
-      floatingActionButton: FloatingActionButton.large(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: colourOfTeam,
         onPressed: () => showDialog<String>(
             context: context,
@@ -200,7 +194,7 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
               );
             } // builder
         ), // onPressed
-        child: const BoldText(text: 'Fouls', fontSize: 25), // Button label
+        label: const BoldText(text: 'Fouls', fontSize: 20), // Button label
       ),
     );
   } // Widget build

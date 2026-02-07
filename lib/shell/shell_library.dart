@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
@@ -743,10 +744,18 @@ class MainRoleSlider extends StatefulWidget {
   State<MainRoleSlider> createState() => _MainRoleSliderState();
 }
 
-//TODO: implement dropdown for main role
+typedef MenuEntry = DropdownMenuEntry<String>;
+
 class _MainRoleSliderState extends State<MainRoleSlider> {
   final String column = 'defence';
+  final String roleColumn = 'main_role';
+  final List<String> list = <String>[
+    'Defence',
+    'Passing',
+    'Scoring',];
+  static late List<MenuEntry> menuEntries;
   late double _currentSliderValue;
+  late String _mainRole;
   late bool defencePlayed;
 
   // This runs once when the widget is initialized
@@ -757,6 +766,10 @@ class _MainRoleSliderState extends State<MainRoleSlider> {
     // When this widget is loaded in, the slider value is 0.0 by default,
     // but it will try to get then set the value with the _loadData() method
     _currentSliderValue = 0.0;
+    _mainRole = list.first;
+    menuEntries = UnmodifiableListView<MenuEntry>(
+      list.map<MenuEntry>((String name) => MenuEntry(value: name, label: name)),
+    );
     defencePlayed = false;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -765,21 +778,22 @@ class _MainRoleSliderState extends State<MainRoleSlider> {
 
   // This method gets then sets the slider value from the database
   Future<void> _loadData() async {
-    int data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getIntData(column);
+    final provider = Provider.of<ScoutProvider>(context, listen: false);
+    int data = await provider.getIntData(column);
+    String roleData = await provider.getStringData(roleColumn);
 
     // If the widget is still active and the data isn't the default value (-1)
-    if (mounted && data != -1) {
+    if (mounted) {
       setState(() {
-        _currentSliderValue = data.toDouble(); // Slider needs it to be a double
-      });
-    }
-    // If the widget is still active and the data is the default value (-1)
-    if (mounted && data > 0) {
-      setState(() {
-        defencePlayed = true; // Set it to display as there being defence
+        if (data != -1) {
+          _currentSliderValue = data.toDouble(); // Slider needs it to be a double
+        }
+        if (data > 0) {
+          defencePlayed = true; // Set it to display as there being defence
+        }
+        if (roleData.isNotEmpty) {
+          _mainRole = roleData;
+        }
       });
     }
   }
@@ -792,9 +806,28 @@ class _MainRoleSliderState extends State<MainRoleSlider> {
           MainAxisAlignment.spaceEvenly, // Use up all vertical the space nicely
       children: <Widget>[
         // Widget title
-        Container(
-          margin: const EdgeInsets.only(left: 5.0, top: 10.0, right: 5.0),
-          child: const BoldText(text: 'Defence Rating', fontSize: 20.0),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const BoldText(text: 'Main Role:    ', fontSize: 20.0),
+            DropdownMenu<String>(
+              initialSelection: _mainRole,
+              onSelected: (String? value) {
+                // This is called when the user selects an item.
+                setState(() {
+                  _mainRole = value!;
+                  Provider.of<ScoutProvider>(context, listen: false)
+                      .updateData(roleColumn, _mainRole);
+                  if (_mainRole != 'Defence') {
+                    Provider.of<ScoutProvider>(context, listen: false)
+                        .updateData(column, _currentSliderValue.toInt());
+                    defencePlayed = false;
+                  }
+                });
+              },
+              dropdownMenuEntries: menuEntries,
+            ),
+          ],
         ),
 
         // Slider (and labels)
@@ -821,9 +854,6 @@ class _MainRoleSliderState extends State<MainRoleSlider> {
                   child: Slider(
                     // Displaying the current value to user in a friendly fashion
                     label:
-                        _currentSliderValue == 0.0
-                            ? "No Defence"
-                            : // If the minimum, display as no defence
                             _currentSliderValue
                                 .toInt()
                                 .toString(), // Otherwise show the value
@@ -882,7 +912,7 @@ class OffenceSlider extends StatefulWidget {
 }
 
 class _OffenceSliderState extends State<OffenceSlider> {
-  final String column = 'Offence';
+  final String column = 'offense';
   late double _currentSliderValue;
   late bool OffencePlayed;
 
@@ -1053,32 +1083,28 @@ class _NotesWidgetState extends State<NotesWidget> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         BoldText(text: 'Notes', fontSize: 20.0),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 50.0,
-          ), // Adding some horizontal spacing
-          child: TextField(
-            style: const TextStyle(fontFamily: 'Red_Hat_Display'),
-            controller: _controller,
-            textInputAction:
-                TextInputAction
-                    .done, // Replacing the "enter" key with a "done" key
-            // Making the maximum lines displayed 3
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 3,
+        TextField(
+          style: const TextStyle(fontFamily: 'Red_Hat_Display'),
+          decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))), labelText: 'Type...'),
+          controller: _controller,
+          textInputAction:
+              TextInputAction
+                  .done, // Replacing the "enter" key with a "done" key
+          // Making the maximum lines displayed 3
+          keyboardType: TextInputType.multiline,
+          minLines: 1,
+          maxLines: 3,
 
-            // Sending the notes to the database when they are typed
-            onChanged: (String value) {
-              // If the notes are deleted, set it as a space so it properly tabs in the QR
-              // The trim is there to get rid of any leading or trailing spaces
-              value == '' ? value = ' ' : value = value.trim();
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData(column, value);
-            },
-          ),
+          // Sending the notes to the database when they are typed
+          onChanged: (String value) {
+            // If the notes are deleted, set it as a space so it properly tabs in the QR
+            // The trim is there to get rid of any leading or trailing spaces
+            value == '' ? value = ' ' : value = value.trim();
+            Provider.of<ScoutProvider>(
+              context,
+              listen: false,
+            ).updateData(column, value);
+          },
         ),
       ],
     );
@@ -1210,7 +1236,7 @@ class WhoScoutedWidget extends StatefulWidget {
 }
 
 class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
-  final String column = 'who scouted';
+  final String column = 'who_scouted';
   final TextEditingController _controller = TextEditingController();
   late String whoScoutedText;
 
@@ -1255,38 +1281,47 @@ class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
   // Building the widget tree
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        BoldText(text: 'Scouted By:', fontSize: 20.0),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 50.0,
-          ), // Adding some horizontal spacing
-          child: TextField(
-            style: const TextStyle(fontFamily: 'FunnelDisplay'),
-            controller: _controller,
-            textInputAction:
-            TextInputAction
-                .done, // Replacing the "enter" key with a "done" key
-            // Making the maximum lines displayed 3
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 1,
+    return Container(
+      margin: EdgeInsets.only(left: 25, right: 25, top:25),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          BoldText(text: 'Scouted By:    ', fontSize: 20.0),
+          Expanded(
+            child: CustomContainer(
+              color: Colors.white,
+              padding: EdgeInsets.all(5),
+              margin: EdgeInsets.all(0),
+              borderRadius: 5,
+              child: TextField(
+                style: const TextStyle(fontFamily: 'Red_Hat_Display', fontSize: 20),
+                decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Name'),
+                controller: _controller,
+                textInputAction:
+                TextInputAction
+                    .done, // Replacing the "enter" key with a "done" key
+                // Making the maximum lines displayed 3
+                keyboardType: TextInputType.multiline,
+                minLines: 1,
+                maxLines: 1,
 
-            // Sending the whoScout to the database when they are typed
-            onChanged: (String value) {
-              // If the whoScout are deleted, set it as a space so it properly tabs in the QR
-              // The trim is there to get rid of any leading or trailing spaces
-              value == '' ? value = ' ' : value = value.trim();
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData(column, value);
-            },
+                // Sending the whoScout to the database when they are typed
+                onChanged: (String value) {
+                  // If the whoScout are deleted, set it as a space so it properly tabs in the QR
+                  // The trim is there to get rid of any leading or trailing spaces
+                  value == '' ? value = ' ' : value = value.trim();
+                  Provider.of<ScoutProvider>(
+                    context,
+                    listen: false,
+                  ).updateData(column, value);
+                },
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   } // build
 } // _WhoScoutedWidgetState
@@ -1328,8 +1363,6 @@ class _MatchSelectorState extends State<MatchSelector> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Title (left side)
-        const BoldText(text: 'Match:', fontSize: 35.0),
 
         // Dropdown button to show all matches, using custom MatchPopUpWidget
         IconButton(
@@ -1337,12 +1370,17 @@ class _MatchSelectorState extends State<MatchSelector> {
           icon: Icon(Icons.arrow_drop_down_sharp),
           onPressed:
               () => showDialog<String>(
-                context: context,
-                builder: (BuildContext context) {
-                  return MatchPopUpWidget(); // See class below for the widget
-                },
-              ),
+            context: context,
+            builder: (BuildContext context) {
+              return MatchPopUpWidget(); // See class below for the widget
+            },
+          ),
         ),
+
+        // Title (left side)
+        const BoldText(text: 'Match:  ', fontSize: 35.0),
+
+
 
         // Rest of the space is a textfield for the match name
         Expanded(
@@ -2234,17 +2272,20 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                   data: SliderThemeData(
                     trackHeight: 10,
                     thumbShape: const RoundedSquareThumbShape(),
+                    overlayColor: Colors.transparent,
                     overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
                     activeTickMarkColor: Colors.transparent,
                     inactiveTickMarkColor: Colors.transparent,
                     valueIndicatorShape: RoundedRectSliderValueIndicatorShape(),
+                    thumbColor: widget.pageColor,
+                    valueIndicatorColor: widget.pageColor,
+                    activeTrackColor: widget.pageColor.withOpacity(0.5),
+                    inactiveTrackColor: widget.pageColor.withOpacity(0.5),
                   ),
                   child: Slider(
                     label: _climbLevel == 0
                         ? "No Climb"
                         : _climbLevel.toInt().toString(),
-                    inactiveColor: widget.pageColor.withOpacity(0.5),
-                    activeColor: widget.pageColor,
                     divisions: 3,
                     min: 0.0,
                     max: 3.0,
@@ -2484,7 +2525,7 @@ class _VolleyListItem extends State<VolleyListItem> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        const Text('Action:  ', style: TextStyle(height: 0.2, color: Colors.black)),
+                        /*const Text('Action:  ', style: TextStyle(height: 0.2, color: Colors.black)),
                         DropdownButton<String>(
                           value: _volleyType,
                           icon: const Icon(Icons.keyboard_arrow_down),
@@ -2503,7 +2544,7 @@ class _VolleyListItem extends State<VolleyListItem> {
                             return DropdownMenuItem<String>(value: value, child: Text(value));
                           }).toList(),
                         ),
-                        SizedBox(width: 20),
+                        SizedBox(width: 20),*/
                         Column(
                           children: [
                             const Text('Robot mainly in this side:'),
@@ -2520,7 +2561,7 @@ class _VolleyListItem extends State<VolleyListItem> {
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                                 visualDensity: VisualDensity(
-                                  horizontal: -3,
+                                  horizontal: -4,
                                   vertical: -3,
                                 ),
                               ),
@@ -2703,7 +2744,7 @@ class _VolleyWidgetState extends State<VolleyWidget> {
         builder: (BuildContext context, Widget? child) {
           final double animValue = lerpDouble(0, 1, Curves.easeInOut.transform(animation.value))!;
           final double elevation = lerpDouble(1, 6, animValue)!;
-          final double scale = lerpDouble(1, 1.02, animValue)!;
+          final double scale = lerpDouble(1, 1.05, animValue)!;
           return Transform.scale(
             scale: scale,
             // Create a Card based on the color and the content of the dragged one
@@ -2722,8 +2763,10 @@ class _VolleyWidgetState extends State<VolleyWidget> {
       );
     }
 
-    return Column(children: <Widget>[
-      BoldText(text: "Action History", fontSize: 20),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+      Text("Action History", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,), textAlign: TextAlign.center),
       SizedBox(height: 10),
       Expanded(
         flex: 8,
@@ -2745,59 +2788,83 @@ class _VolleyWidgetState extends State<VolleyWidget> {
         ),
       ),
       SizedBox(height: 10),
-      Expanded(
-        flex: 1,
-        child: Container(
-          height: 50,
-          padding: EdgeInsets.all(10),
-          child: FilledButton(
-            style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add, size: 50),
-                SizedBox(width: 10),
-                BoldText(text: "Add Volley", fontSize: 25),
-              ],
-            ),
-            onPressed: () {
-              setState(() {
-                _items.add(['volley', 0, 0, 1]);
-                _updateData();
-              });
-              // Scroll to bottom after adding the item and the UI has rebuilt
-              WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-            },
-          ),
-        ),
-      ),
-      Visibility(
-        visible: !widget.isAuto,
-        child: Expanded(
-            flex: 1,
-            child: Container(
-              padding: EdgeInsets.all(10),
-              child: FilledButton(
-                style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
-                onPressed: () {
-                  setState(() {
-                    _items.add(['harvest', 0, 0, 1]);
-                    _updateData();
-                  });
-                  // Scroll to bottom after adding the item and the UI has rebuilt
-                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, size: 50),
-                    SizedBox(width: 10),
-                    BoldText(text: "Add Harvest shift", fontSize: 25),
-                  ],
-                ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Container(
+            height: 50,
+            constraints: BoxConstraints(minHeight: 67.7),
+            padding: EdgeInsets.only(left: 0, right: 5, top: 10, bottom: 0),
+            child: FilledButton(
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 35),
+                  SizedBox(width: 10),
+                  BoldText(text: "Volley", fontSize: 20),
+                ],
               ),
-            )),
-      )
+              onPressed: () {
+                setState(() {
+                  _items.add(['volley', 0, 0, 1]);
+                  _updateData();
+                });
+                // Scroll to bottom after adding the item and the UI has rebuilt
+                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+              },
+            ),
+          ),
+          Container(
+            height: 50,
+            constraints: BoxConstraints(minHeight: 67.7),
+            padding: EdgeInsets.only(left: 0, right: 5, top: 10, bottom: 0),
+            child: FilledButton(
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 35),
+                  SizedBox(width: 10),
+                  BoldText(text: "Harvest", fontSize: 20),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                  _items.add(['harvest', 0, 0, 1]);
+                  _updateData();
+                });
+                // Scroll to bottom after adding the item and the UI has rebuilt
+                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+              },
+            ),
+          ),
+          Container(
+            height: 50,
+            constraints: BoxConstraints(minHeight: 67.7),
+            padding: EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 0),
+            child: FilledButton(
+              style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 35),
+                  SizedBox(width: 10),
+                  BoldText(text: "Pass", fontSize: 20),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                  _items.add(['pass', 0, 0, 1]);
+                  _updateData();
+                });
+                // Scroll to bottom after adding the item and the UI has rebuilt
+                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+              },
+            ),
+          ),
+        ],
+      ),
     ]);
   }
 }

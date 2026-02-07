@@ -64,13 +64,13 @@ class _TheEndPageState extends State<TheEndPage> {
       color: pageColor, // Setting the background colour
       child: Column(
         children: [
-          Expanded(
-            flex: 1,
-            child: ClimbWidget(isAuto: false, pageColor: pageColor,),
-          ),
-          const Expanded(
-            flex: 1,
-            child: NotesWidget()
+          WhoScoutedWidget(),
+          ClimbWidget(isAuto: false, pageColor: pageColor,),
+          CustomContainer(
+            color: Colors.white,
+            margin: EdgeInsets.only(left: 25, right: 25, bottom: 25),
+            padding: EdgeInsets.all(15),
+            child: NotesWidget(),
           ),
           const Expanded(
             flex: 1,
