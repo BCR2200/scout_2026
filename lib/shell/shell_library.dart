@@ -685,6 +685,146 @@ class _DriverSliderState extends State<DriverSlider> {
   } // build
 } // _DriverSliderState
 
+class Intakerating extends StatefulWidget {
+  const Intakerating({super.key});
+
+  @override
+  State<Intakerating> createState() => _IntakeratingState();
+}
+
+class _IntakeratingState extends State<Intakerating> {
+  final String column = 'drive_rating';
+  late double _currentSliderValue;
+  late bool isDefault;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // When this widget is loaded in, the slider value is 1.0 by default,
+    // but it will try to get then set the value with the _loadData() method
+    _currentSliderValue = 1.0;
+    isDefault = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  // This method gets then sets the slider value from the database
+  Future<void> _loadData() async {
+    int data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData(column);
+
+    // If the widget is still active and the data isn't the default value (-1)
+    if (mounted && data != -1) {
+      setState(() {
+        _currentSliderValue = data.toDouble(); // Slider needs it to be a double
+      });
+    }
+    // If the widget is still active and the data is the default value (-1)
+    else if (mounted && data == -1) {
+      setState(() {
+        isDefault = true; // Set it to display as the default
+      });
+    }
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment:
+      MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
+      children: <Widget>[
+        // Widget title
+        Container(
+          margin: const EdgeInsets.only(left: 5.0, top: 10.0, right: 5.0),
+          child: const BoldText(text: 'Intake Consistency', fontSize: 20.0),
+        ),
+
+        // Slider (and labels)
+        Container(
+          margin: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 50.0,
+          ), // Spacing at edges
+          padding: EdgeInsets.zero, // Vertically ensuring it is squished
+          child: Row(
+            mainAxisAlignment:
+            MainAxisAlignment
+                .spaceEvenly, // Use up all the horizontal space nicely
+            children: [
+              // Left label
+              const BoldText(text: 'Bad', fontSize: 25.0),
+
+              // Fill up all available space with Expanded slider
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: 15.0,
+                  ), // Ensure spacing between labels
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      10.0,
+                    ), // Rounding the corners (for the red)
+                    color:
+                    isDefault
+                        ? Colors.red
+                        : null, // If it is the default, display as red
+                  ),
+                  child: Slider(
+                    // Displaying the current value to user in a friendly fashion
+                    label: _currentSliderValue.toInt().toString(),
+                    inactiveColor: Colors.white,
+                    activeColor: Colors.grey[700],
+
+                    // Making it on a scale from 1–10
+                    divisions: 9,
+                    min: 1.0,
+                    max: 10.0,
+
+                    value: _currentSliderValue,
+
+                    // When it is first changed, send the value to the database
+                    // and change it to not display as the default
+                    onChangeStart: (value) {
+                      setState(() {
+                        _currentSliderValue = value;
+                        Provider.of<ScoutProvider>(
+                          context,
+                          listen: false,
+                        ).updateData(column, _currentSliderValue.toInt());
+                        isDefault = false;
+                      });
+                    },
+
+                    // Sending the current value to the database when changed
+                    onChanged: (double value) {
+                      setState(() {
+                        _currentSliderValue = value;
+                        Provider.of<ScoutProvider>(
+                          context,
+                          listen: false,
+                        ).updateData(column, _currentSliderValue.toInt());
+                      });
+                    },
+                  ),
+                ),
+              ),
+
+              // Right label
+              const BoldText(text: 'Good', fontSize: 25.0),
+            ], // children:
+          ),
+        ),
+      ],
+    );
+  } // build
+} // _IntakeratingState
+
 // This widget is the slider for the defence rating
 class DefenceSlider extends StatefulWidget {
   const DefenceSlider({super.key});
@@ -2666,7 +2806,14 @@ class _VolleyWidgetState extends State<VolleyWidget> {
             padding: EdgeInsets.all(10),
             child: FilledButton(
               style: ButtonStyle(backgroundColor: WidgetStateProperty.all(buttonCol)),
-              onPressed: () {},
+              onPressed: () {
+                setState(() {
+
+                  _updateData();
+                });
+                // Scroll to bottom after adding the item and the UI has rebuilt
+                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+              },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
