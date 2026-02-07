@@ -78,11 +78,15 @@ class _TheEndPageState extends State<TheEndPage> {
           ),
           const Expanded(
             flex: 1,
-            child: OffenceSlider()
+            child: Intakerating()
           ),
           const Expanded(
             flex: 1,
             child: MainRoleSlider()
+          ),
+          const Expanded(
+            flex: 1,
+            child: OffenceSlider(),
           ),
       ],
     ),
