@@ -59,34 +59,34 @@ class _TheEndPageState extends State<TheEndPage> {
     // Read color from provider to ensure page color updates reactively
     final colorProvider = Provider.of<ColorProvider>(context);
     final pageColor = Color(colorProvider.endCol);
+    final UIcol = randHighlight();
 
     return Container(
       color: pageColor, // Setting the background colour
       child: Column(
         children: [
-          WhoScoutedWidget(),
-          ClimbWidget(isAuto: false, pageColor: pageColor,),
+          WhoScoutedWidget(UIcol: UIcol,),
+          ClimbWidget(isAuto: false, pageColor: UIcol,),
           CustomContainer(
             color: Colors.white,
             margin: EdgeInsets.only(left: 25, right: 25, bottom: 25),
             padding: EdgeInsets.all(15),
-            child: NotesWidget(),
+            child: NotesWidget(UIcol: UIcol,),
           ),
-          const Expanded(
-            flex: 1,
-            child: DriverSlider()
-          ),
-          const Expanded(
-            flex: 1,
-            child: Intakerating()
-          ),
-          const Expanded(
-            flex: 1,
-            child: MainRoleSlider()
-          ),
-          const Expanded(
-            flex: 1,
-            child: OffenceSlider(),
+          Expanded(
+            child: CustomContainer(
+              margin: EdgeInsets.only(left: 25, right: 25, bottom: 25),
+              color: Colors.white,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  DriverSlider(),
+                  //IntakeRating(),
+                  MainRoleSlider(),
+                  OffenceSlider(),
+                ],
+              ),
+            ),
           ),
       ],
     ),
