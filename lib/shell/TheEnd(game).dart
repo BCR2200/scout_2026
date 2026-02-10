@@ -72,6 +72,7 @@ class _TheEndPageState extends State<TheEndPage> {
             padding: EdgeInsets.all(15),
             child: NotesWidget(),
           ),
+          RobotDied(column: 'robot died',),
           const Expanded(
             flex: 1,
             child: DriverSlider()
