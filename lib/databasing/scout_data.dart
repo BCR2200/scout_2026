@@ -108,26 +108,27 @@ class ScoutDatabase {
       **/
 
       // Creating the database
+      //defence is the main role but haven't updated the text here yet
       onCreate: (Database db, int version) async {
         await db.execute('''
         CREATE TABLE $tableName (
         team INTEGER NOT NULL,
         match_name TEXT NOT NULL PRIMARY KEY,
-        defence INTEGER NOT NULL,
-        drive_rating INTEGER NOT NULL,
-        died INTEGER NOT NULL,
-        fouls INTEGER NOT NULL,
         auto_climb_level INTEGER NOT NULL,
         auto_climb_position INTEGER NOT NULL,
-        climb_level INTEGER NOT NULL,
-        climb_position INTEGER NOT NULL,
-        is_blue INTEGER NOT NULL,
-        main_role TEXT NOT NULL,
-        placeholder TEXT,
-        notes TEXT,
         auto_volleys TEXT,
         volleys TEXT,
+        climb_level INTEGER NOT NULL,
+        climb_position INTEGER NOT NULL,
+        fouls INTEGER NOT NULL,
+        placeholder TEXT,
+        is_blue INTEGER NOT NULL,
+        drive_rating INTEGER NOT NULL,
+        main_role TEXT NOT NULL,
+        defence INTEGER NOT NULL,
         offense INTEGER NOT NULL,
+        died INTEGER NOT NULL,
+        notes TEXT,
         who_scouted TEXT
         )
         ''');
