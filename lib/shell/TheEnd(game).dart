@@ -73,6 +73,13 @@ class _TheEndPageState extends State<TheEndPage> {
             padding: EdgeInsets.all(15),
             child: NotesWidget(UIcol: UIcol,),
           ),
+          RobotDied(
+            title: "Robot Died",
+            column: 'robot_died',
+            scale: 1.5,
+            fontSize: 20,
+            checkColor: randPrimary(),
+          ),
           Expanded(
             child: CustomContainer(
               margin: EdgeInsets.only(left: 25, right: 25, bottom: 25),
