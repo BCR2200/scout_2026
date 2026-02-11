@@ -128,8 +128,8 @@ class ScoutDatabase {
         offense INTEGER NOT NULL,
         died INTEGER NOT NULL,
         notes TEXT,
-        who_scouted ,
-        placeholder TEXT,
+        who_scouted TEXT NOT NULL,
+        placeholder TEXT
         )
         ''');
       },
