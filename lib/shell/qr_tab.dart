@@ -63,12 +63,15 @@ class _QRPageState extends State<QRPage> {
       color: primaryColor, // Setting the background colour
       child: Center(
         child: FutureBuilder<List<String>>(
-
           // Getting QR data from the database, which uses a FutureBuilder because it is asynchronous
           future: Provider.of<ScoutProvider>(context).getQRData(),
           builder: (context, AsyncSnapshot<List<String>> snapShot) {
-            // If it got the QRData, show the QR code
-            if (snapShot.hasData) {
+            if (snapShot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator(); // Loading widget
+            } else if (snapShot.hasError) {
+              return Text('Error: ${snapShot.error}'); // Error widget
+            } else if (snapShot.hasData) {
+              // If it got the QRData, show the QR code
               return Container(
                 margin: const EdgeInsets.fromLTRB(20.0, 60.0, 20.0, 150), // Outer spacing
                 padding: const EdgeInsets.all(10.0), // Inner spacing
@@ -80,7 +83,6 @@ class _QRPageState extends State<QRPage> {
                   mainAxisAlignment: MainAxisAlignment.center, // Align to squish into the center
                   children: [
                     QrImageView(
-
                       // The QR data is joined with tab to make it tab between each entry in the QR code 
                       data: snapShot.data!.join("\t").toString(),
                       version: QrVersions.auto,
@@ -92,7 +94,7 @@ class _QRPageState extends State<QRPage> {
                 ),
               );
             } else {
-              return const CircularProgressIndicator(); // Loading widget because it hasn't finished loading
+              return const Text('No data to generate QR code.'); // Empty data widget
             }
           }, // builder:
         ),

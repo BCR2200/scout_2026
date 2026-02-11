@@ -3037,34 +3037,6 @@ class _VolleyWidgetState extends State<VolleyWidget> {
             Container(
               height: 50,
               constraints: BoxConstraints(minHeight: 67.7),
-              padding: EdgeInsets.only(left: 0, right: 5, top: 10, bottom: 0),
-              child: FilledButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(buttonCol),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, size: 35),
-                    SizedBox(width: 10),
-                    BoldText(text: "Harvest", fontSize: 20),
-                  ],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _items.add(['harvest', 0, 0, 1]);
-                    _updateData();
-                  });
-                  // Scroll to bottom after adding the item and the UI has rebuilt
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => _scrollToBottom(),
-                  );
-                },
-              ),
-            ),
-            Container(
-              height: 50,
-              constraints: BoxConstraints(minHeight: 67.7),
               padding: EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 0),
               child: FilledButton(
                 style: ButtonStyle(
@@ -3081,6 +3053,34 @@ class _VolleyWidgetState extends State<VolleyWidget> {
                 onPressed: () {
                   setState(() {
                     _items.add(['pass', 0, 0, 1]);
+                    _updateData();
+                  });
+                  // Scroll to bottom after adding the item and the UI has rebuilt
+                  WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => _scrollToBottom(),
+                  );
+                },
+              ),
+            ),
+            Container(
+              height: 50,
+              constraints: BoxConstraints(minHeight: 67.7),
+              padding: EdgeInsets.only(left: 0, right: 5, top: 10, bottom: 0),
+              child: FilledButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(buttonCol),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add, size: 35),
+                    SizedBox(width: 10),
+                    BoldText(text: "Harvest", fontSize: 20),
+                  ],
+                ),
+                onPressed: () {
+                  setState(() {
+                    _items.add(['harvest', 0, 0, 1]);
                     _updateData();
                   });
                   // Scroll to bottom after adding the item and the UI has rebuilt

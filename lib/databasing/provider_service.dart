@@ -186,31 +186,68 @@ class ScoutProvider extends ChangeNotifier {
 
         // Adding the match number to the list<String> for QR
         dataList.add(matchNum?.group(0) ?? '0');
-      } else if (key == 'volleys' || key == 'auto_volleys') {
+      } else if (key == 'climb_side' || key == 'auto_climb_side') {
+        if (value.toString() == '0') dataList.add('Left');
+        else if (value.toString() == '1') dataList.add('Middle');
+        else dataList.add('Right');
+      }
+      else if (key == 'volleys' || key == 'auto_volleys') {
         String volleyString = value.toString();
         if (volleyString.isNotEmpty && volleyString != '[]') {
-          List<dynamic> volleys = jsonDecode(volleyString);
-          if (volleys.isNotEmpty && volleys[0] is List && volleys[0][0] is String) {
-            List<List<dynamic>> convertedVolleys = volleys.map((v) {
-              int typeAsInt;
-              switch (v[0]) {
-                case 'volley':
-                  typeAsInt = 1;
-                  break;
-                case 'harvest':
-                  typeAsInt = 0;
-                  break;
-                case 'pass':
-                  typeAsInt = 2;
-                  break;
-                default:
-                  typeAsInt = -1; // Or some other default
+          try {
+            List<dynamic> volleys = jsonDecode(volleyString);
+            if (volleys.isNotEmpty &&
+                volleys[0] is List &&
+                (volleys[0] as List).isNotEmpty &&
+                volleys[0][0] is String) {
+              List<List<dynamic>> convertedVolleys = volleys.map((v) {
+                int typeAsInt;
+                switch (v[0]) {
+                  case 'volley':
+                    typeAsInt = 0;
+                    break;
+                  case 'harvest':
+                    typeAsInt = 2;
+                    break;
+                  case 'pass':
+                    typeAsInt = 1;
+                    break;
+                  default:
+                    typeAsInt = -1; // Or some other default
+                }
+                return [typeAsInt, v[1], v[2], v[3]];
+              }).toList();
+              List<int> vData = [
+                0,
+                0,
+                0,
+                0
+              ]; // 0: home count, 1: neutral count, 2: opp count, 3: total hopper %
+              double totalAcc = 0.0;
+              double totalIn = 0.0;
+              int numVolleys = 0;
+              for (List<dynamic> v in volleys) {
+                vData[v[3]]++;
+                if (v[0] == 'volley') {
+                  numVolleys++;
+                  vData[3] += (v[1] as num).toInt();
+                  totalAcc += (v[2] as num).toDouble();
+                  totalIn +=
+                      (v[1] as num).toDouble() * (v[2] as num).toDouble() * 0.01;
+                }
               }
-              return [typeAsInt, v[1], v[2], v[3]];
-            }).toList();
-            dataList.add(jsonEncode(convertedVolleys));
-          } else {
-            // It's not the new format, so just add it as is.
+              totalAcc /= numVolleys;
+              dataList.add(jsonEncode(convertedVolleys));
+              dataList.add(vData[0].toString());
+              dataList.add(vData[1].toString());
+              dataList.add(vData[2].toString());
+              dataList.add("${vData[3]}%");
+              dataList.add("${((totalAcc*10).round()/10)}%");
+              dataList.add("${((totalIn*10).round()/10)}%");
+            } else {
+              dataList.add(volleyString);
+            }
+          } catch (e) {
             dataList.add(volleyString);
           }
         } else {

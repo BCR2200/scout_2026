@@ -121,7 +121,6 @@ class ScoutDatabase {
         climb_level INTEGER NOT NULL,
         climb_position INTEGER NOT NULL,
         fouls INTEGER NOT NULL,
-        placeholder TEXT,
         is_blue INTEGER NOT NULL,
         drive_rating INTEGER NOT NULL,
         main_role TEXT NOT NULL,
@@ -129,7 +128,8 @@ class ScoutDatabase {
         offense INTEGER NOT NULL,
         died INTEGER NOT NULL,
         notes TEXT,
-        who_scouted TEXT
+        who_scouted ,
+        placeholder TEXT,
         )
         ''');
       },
