@@ -91,11 +91,8 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
       setState(() { // Set state rebuilds the widget with the new info given from scout index
         scoutIndex = prefs.getInt('scoutIndex')!;
         scoutIndex % 2 == 0 ? blueAlliance = false : blueAlliance = true; // Determining alliance
-        Provider.of<ScoutProvider>(
-          context,
-          listen: false,
-        ).updateData('is_blue', boolToInt(blueAlliance));
       });
+      await prefs.setBool('is_blue', blueAlliance);
     }
   } // _loadScoutIndex
 
