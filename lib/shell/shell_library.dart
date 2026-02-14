@@ -2846,12 +2846,15 @@ class _VolleyWidgetState extends State<VolleyWidget> {
   // Combines data loading and initialization to ensure order of operations and persistence.
   Future<void> _loadAndInitializeData() async {
     final scoutProvider = Provider.of<ScoutProvider>(context, listen: false);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // 1. Load existing data
     String data = await scoutProvider.getStringData(column);
-    int data2 = await scoutProvider.getIntData('is_blue');
+    bool data2 = prefs.getBool('is_blue')!;
 
     if (!mounted) return;
+
+    _isBlue = data2;
 
     // 2. Process loaded data and update local state
     if (data.isNotEmpty && data != "[]") {
@@ -2869,9 +2872,7 @@ class _VolleyWidgetState extends State<VolleyWidget> {
       } else {
         _items = decoded;
       }
-      setState(() {
-        _isBlue = intToBool(data2);
-      });
+
     }
 
     // 3. Handle auto-initialization ONLY if in auto mode AND no data was loaded.
