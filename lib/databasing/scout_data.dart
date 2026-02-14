@@ -24,6 +24,8 @@ class ScoutModel {
       defence,
       drive_rating,
       died,
+      beached,
+      jammed,
       fouls,
       auto_climb_level,
       auto_climb_position,
@@ -40,6 +42,8 @@ class ScoutModel {
     this.defence = 0,
     this.drive_rating = -1,
     this.died = 0,
+    this.beached = 0,
+    this.jammed = 0,
     this.fouls = 0,
     this.auto_climb_level = 0,
     this.auto_climb_position = 1,
@@ -62,6 +66,8 @@ class ScoutModel {
       'defence': defence,
       'drive_rating': drive_rating,
       'died': died,
+      'beached': beached,
+      'jammed': jammed,
       'fouls': fouls,
       'auto_climb_level': auto_climb_level,
       'auto_climb_position': auto_climb_position,
@@ -82,7 +88,7 @@ class ScoutModel {
 
 // This class is used to interact with the database wherever needed
 class ScoutDatabase {
-  static const tableName = 'scout_data_2025'; // Constant table name
+  static const tableName = 'scout_data_2026'; // Constant table name
 
   // This is the method that gives the database
   static Future<Database> scoutDatabase() async {
