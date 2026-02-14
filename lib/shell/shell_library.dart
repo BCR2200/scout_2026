@@ -448,7 +448,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                 ),
                 BoldText(
                   text:
-                      '5. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. know on discord',
+                      '5. If you find an error/bug in the app or have any (good) recommendations, let Cameron D. or Liam S. know on discord',
                   fontSize: 17.5,
                 ),
               ],

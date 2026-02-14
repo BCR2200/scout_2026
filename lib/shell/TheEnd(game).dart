@@ -75,7 +75,7 @@ class _TheEndPageState extends State<TheEndPage> {
           ),
           RobotDied(
             title: "Robot Died",
-            column: 'robot_died',
+            column: 'died',
             scale: 1.5,
             fontSize: 20,
             checkColor: randPrimary(),

@@ -18,7 +18,7 @@ class AuraTab extends StatelessWidget {
         return Tab(
           child: ColouredTab(
             color: Color(colorProvider.auraCol), 
-            text: 'Aura'
+            text: 'Aura of the'
           )
         );
       },
