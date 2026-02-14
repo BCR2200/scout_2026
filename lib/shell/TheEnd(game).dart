@@ -65,24 +65,48 @@ class _TheEndPageState extends State<TheEndPage> {
       color: pageColor, // Setting the background colour
       child: Column(
         children: [
-          WhoScoutedWidget(UIcol: UIcol,),
-          ClimbWidget(isAuto: false, pageColor: UIcol,),
+          WhoScoutedWidget(UIcol: UIcol, margin: EdgeInsets.symmetric(vertical: 10, horizontal: 25), ),
+          ClimbWidget(isAuto: false, pageColor: UIcol, margin: EdgeInsets.only(left: 25, right: 25, bottom: 10), ),
+            CustomContainer(
+              color: Colors.white,
+              margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
+              padding: EdgeInsets.all(15),
+              child: NotesWidget(UIcol: UIcol,),
+            ),
           CustomContainer(
-            color: Colors.white,
-            margin: EdgeInsets.only(left: 25, right: 25, bottom: 25),
-            padding: EdgeInsets.all(15),
-            child: NotesWidget(UIcol: UIcol,),
-          ),
-          RobotDied(
-            title: "Robot Died",
-            column: 'died',
-            scale: 1.5,
-            fontSize: 20,
-            checkColor: randPrimary(),
-          ),
+              margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
+              color: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  RobotDied(
+                    title: "Robot Died",
+                    column: 'died',
+                    scale: 1.5,
+                    fontSize: 20,
+                    checkColor: randPrimary(),
+                  ),
+                  Beached(
+                    title: "Robot Beached",
+                    column: 'beached',
+                    scale: 1.5,
+                    fontSize: 20,
+                    checkColor: randPrimary(),
+                  ),
+                  FuelJammed(
+                    title: "Fuel Jammed",
+                    column: 'jammed',
+                    scale: 1.5,
+                    fontSize: 20,
+                    checkColor: randPrimary(),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: CustomContainer(
-              margin: EdgeInsets.only(left: 25, right: 25, bottom: 25),
+              margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
               color: Colors.white,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
