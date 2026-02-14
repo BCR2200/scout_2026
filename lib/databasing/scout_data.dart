@@ -123,6 +123,8 @@ class ScoutDatabase {
         defence INTEGER NOT NULL,
         offense INTEGER NOT NULL,
         died INTEGER NOT NULL,
+        beached INTEGER NOT NULL,
+        jammed INTEGER NOT NULL,
         notes TEXT,
         who_scouted TEXT NOT NULL,
         placeholder TEXT

@@ -1391,8 +1391,9 @@ class _NextMatchWidgetState extends State<NextMatchWidget> {
 
 class WhoScoutedWidget extends StatefulWidget {
   final Color UIcol;
+  final EdgeInsetsGeometry margin;
 
-  const WhoScoutedWidget({required this.UIcol, super.key});
+  const WhoScoutedWidget({required this.UIcol, this.margin = const EdgeInsets.only(left: 25, right: 25, top: 25), super.key});
 
   @override
   State<WhoScoutedWidget> createState() => _WhoScoutedWidgetState();
@@ -1447,7 +1448,7 @@ class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
     return CustomContainer(
       color: Colors.white,
       padding: EdgeInsets.only(top: 5, right: 5, bottom: 5, left: 15),
-      margin: EdgeInsets.only(left: 25, right: 25, top: 25),
+      margin: widget.margin,
       borderRadius: 10,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -2373,8 +2374,9 @@ class _LabelledCheckBoxState extends State<LabelledCheckBox> {
 class ClimbWidget extends StatefulWidget {
   final bool isAuto;
   final Color pageColor;
+  final EdgeInsetsGeometry margin;
 
-  const ClimbWidget({required this.isAuto, required this.pageColor, super.key});
+  const ClimbWidget({required this.isAuto, required this.pageColor, this.margin = const EdgeInsets.all(25), super.key});
 
   @override
   State<ClimbWidget> createState() => _ClimbWidgetState();
@@ -2434,7 +2436,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
     return CustomContainer(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      margin: EdgeInsets.all(25),
+      margin: widget.margin,
       child: Row(
         children: [
           BoldText(text: "Climb\nStatus", fontSize: 20),
@@ -3238,3 +3240,283 @@ class _RobotDiedState extends State<RobotDied> {
     );
   } // build
 } // _RobotDiedState
+class Beached extends StatefulWidget {
+  final String? title;
+  final Color? checkColor;
+  final EdgeInsetsGeometry padding;
+  final double fontSize;
+  final double scale;
+  final double? width;
+  final bool redHighlight;
+  final VoidCallback? onChanged;
+  final String column; // Asking for the database column
+
+  // Constructor (the this.[variable]s are like options for the widget)
+  const Beached({
+    this.title,
+    this.checkColor,
+    this.scale = 2.0,
+    this.fontSize = 16.0,
+    this.padding = const EdgeInsets.all(3.0),
+    this.width,
+    this.redHighlight = false,
+    this.onChanged,
+    super.key,
+    required this.column, // Required so the data has a place to send
+  });
+
+  @override
+  State<Beached> createState() => _BeachedState();
+}
+
+class _BeachedState extends State<Beached> {
+  late bool isChecked;
+  late bool isDefault;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // Set the default parameters upon initialization
+    isChecked = false;
+    isDefault = false;
+
+    // After initialization, get and set from database using _loadData method
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  // This method gets and sets the checkbox state from the data in the database
+  Future<void> _loadData() async {
+    int data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData(widget.column);
+
+    // Reload the widget to display data only if it the widget is still displayed (due to async)
+    if (mounted) {
+      setState(() {
+        // If the data isn't the default value, set the check state using the intToBool function
+        if (data != -1) {
+          isChecked = intToBool(data);
+          isDefault = false;
+        }
+        // If the data IS the default value and the redHighlight option for the widget is true
+        else if (widget.redHighlight && data == -1) {
+          isDefault = true;
+        }
+      });
+    }
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: widget.padding,
+      width: widget.width,
+
+      decoration: BoxDecoration(
+        color:
+        isDefault
+            ? Colors.red
+            : null, // If it is the default, it will have a red highlight
+        borderRadius: BorderRadius.circular(
+          10.0,
+        ), // Rounding the corners (for if it is highlighted)
+      ),
+
+      child: Column(
+        mainAxisAlignment:
+        MainAxisAlignment
+            .center, // Squish everything into the center vertically
+        children: <Widget>[
+          // Display the title only if there is a title
+          if (widget.title != null)
+            BoldText(text: widget.title!, fontSize: widget.fontSize),
+
+          // The checkbox itself, wrapped with a scale for variable sizing
+          Transform.scale(
+            scale: widget.scale,
+
+            // Consumer is used so it updates when the database data changes
+            child: Consumer<ScoutProvider>(
+              builder: (context, scoutProvider, child) {
+                // If the widget has a reason to load from the database (onChanged callback exists or redHighlight is true)
+                if (widget.onChanged != null || widget.redHighlight) {
+                  _loadData(); // Method defined earlier in class
+                }
+
+                return Checkbox(
+                  activeColor: widget.checkColor,
+                  focusColor: widget.checkColor,
+                  hoverColor: widget.checkColor,
+                  value: isChecked,
+                  onChanged: (value) {
+                    // Redraw the widget when pressed
+                    setState(() {
+                      isChecked = value!;
+                      isDefault =
+                      false; // No longer the default if it got updated
+                      scoutProvider.updateData(
+                        widget.column,
+                        boolToInt(value),
+                      ); // Send data to the database
+
+                      // Run callback if it exists
+                      if (widget.onChanged != null) {
+                        widget.onChanged!();
+                      }
+                    });
+                  }, // onChanged
+                );
+              }, // builder:
+            ),
+          ),
+        ],
+      ),
+    );
+  } // build
+} // _BeachedState
+class FuelJammed extends StatefulWidget {
+  final String? title;
+  final Color? checkColor;
+  final EdgeInsetsGeometry padding;
+  final double fontSize;
+  final double scale;
+  final double? width;
+  final bool redHighlight;
+  final VoidCallback? onChanged;
+  final String column; // Asking for the database column
+
+  // Constructor (the this.[variable]s are like options for the widget)
+  const FuelJammed({
+    this.title,
+    this.checkColor,
+    this.scale = 2.0,
+    this.fontSize = 16.0,
+    this.padding = const EdgeInsets.all(3.0),
+    this.width,
+    this.redHighlight = false,
+    this.onChanged,
+    super.key,
+    required this.column, // Required so the data has a place to send
+  });
+
+  @override
+  State<FuelJammed> createState() => _FuelJammedState();
+}
+
+class _FuelJammedState extends State<FuelJammed> {
+  late bool isChecked;
+  late bool isDefault;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // Set the default parameters upon initialization
+    isChecked = false;
+    isDefault = false;
+
+    // After initialization, get and set from database using _loadData method
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  // This method gets and sets the checkbox state from the data in the database
+  Future<void> _loadData() async {
+    int data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData(widget.column);
+
+    // Reload the widget to display data only if it the widget is still displayed (due to async)
+    if (mounted) {
+      setState(() {
+        // If the data isn't the default value, set the check state using the intToBool function
+        if (data != -1) {
+          isChecked = intToBool(data);
+          isDefault = false;
+        }
+        // If the data IS the default value and the redHighlight option for the widget is true
+        else if (widget.redHighlight && data == -1) {
+          isDefault = true;
+        }
+      });
+    }
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: widget.padding,
+      width: widget.width,
+
+      decoration: BoxDecoration(
+        color:
+        isDefault
+            ? Colors.red
+            : null, // If it is the default, it will have a red highlight
+        borderRadius: BorderRadius.circular(
+          10.0,
+        ), // Rounding the corners (for if it is highlighted)
+      ),
+
+      child: Column(
+        mainAxisAlignment:
+        MainAxisAlignment
+            .center, // Squish everything into the center vertically
+        children: <Widget>[
+          // Display the title only if there is a title
+          if (widget.title != null)
+            BoldText(text: widget.title!, fontSize: widget.fontSize),
+
+          // The checkbox itself, wrapped with a scale for variable sizing
+          Transform.scale(
+            scale: widget.scale,
+
+            // Consumer is used so it updates when the database data changes
+            child: Consumer<ScoutProvider>(
+              builder: (context, scoutProvider, child) {
+                // If the widget has a reason to load from the database (onChanged callback exists or redHighlight is true)
+                if (widget.onChanged != null || widget.redHighlight) {
+                  _loadData(); // Method defined earlier in class
+                }
+
+                return Checkbox(
+                  activeColor: widget.checkColor,
+                  focusColor: widget.checkColor,
+                  hoverColor: widget.checkColor,
+                  value: isChecked,
+                  onChanged: (value) {
+                    // Redraw the widget when pressed
+                    setState(() {
+                      isChecked = value!;
+                      isDefault =
+                      false; // No longer the default if it got updated
+                      scoutProvider.updateData(
+                        widget.column,
+                        boolToInt(value),
+                      ); // Send data to the database
+
+                      // Run callback if it exists
+                      if (widget.onChanged != null) {
+                        widget.onChanged!();
+                      }
+                    });
+                  }, // onChanged
+                );
+              }, // builder:
+            ),
+          ),
+        ],
+      ),
+    );
+  } // build
+} // _FuelJammedState
