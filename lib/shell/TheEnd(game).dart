@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:scout_shell/shell/shell_library.dart';
-import 'package:scout_shell/databasing/provider_service.dart';
+import 'package:rescout_2026/shell/shell_library.dart';
+import 'package:rescout_2026/databasing/provider_service.dart';
 
 class TheEndTab extends StatelessWidget {
 

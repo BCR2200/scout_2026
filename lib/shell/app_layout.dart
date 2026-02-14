@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:scout_shell/shell/qr_tab.dart';
+import 'package:rescout_2026/shell/qr_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../databasing/provider_service.dart';
 import '../../databasing/scout_data.dart';
 import 'shell_library.dart';
-import 'package:scout_shell/shell/TheEnd(game).dart';
-import 'package:scout_shell/shell/aura_tab.dart';
-import 'package:scout_shell/shell/tele.dart';
+import 'package:rescout_2026/shell/TheEnd(game).dart';
+import 'package:rescout_2026/shell/aura_tab.dart';
+import 'package:rescout_2026/shell/tele.dart';
 
 // ScoutApp is the root widget of the application.
 class ScoutApp extends StatelessWidget {
@@ -35,6 +35,7 @@ class ScoutApp extends StatelessWidget {
       ],
       builder: (context, child) => MaterialApp(
         debugShowCheckedModeBanner: false, // Get rid of debug banner
+        title: 'ReScout 2026', // App name
 
         // Sets some of the design elements - only the font really matters here
         theme: ThemeData(
