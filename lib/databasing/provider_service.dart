@@ -186,7 +186,7 @@ class ScoutProvider extends ChangeNotifier {
 
         // Adding the match number to the list<String> for QR
         dataList.add(matchNum?.group(0) ?? '0');
-      } else if (key == 'climb_side' || key == 'auto_climb_side') {
+      } else if (key == 'climb_position' || key == 'auto_climb_position') {
         if (value.toString() == '0') dataList.add('Left');
         else if (value.toString() == '1') dataList.add('Middle');
         else dataList.add('Right');

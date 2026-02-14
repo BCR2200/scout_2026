@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:scout_shell/shell/TheEnd(game).dart';
-import 'package:scout_shell/shell/aura_tab.dart';
-import 'package:scout_shell/shell/shell_library.dart';
-import 'package:scout_shell/shell/tele.dart';
+import 'package:rescout_2026/shell/TheEnd(game).dart';
+import 'package:rescout_2026/shell/aura_tab.dart';
+import 'package:rescout_2026/shell/shell_library.dart';
+import 'package:rescout_2026/shell/tele.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:scout_shell/shell/app_layout.dart';
-import 'package:scout_shell/shell/qr_tab.dart';
+import 'package:rescout_2026/shell/app_layout.dart';
+import 'package:rescout_2026/shell/qr_tab.dart';
 
 // The main function is the entry point of the application.
 void main() async {
