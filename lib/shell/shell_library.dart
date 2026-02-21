@@ -2595,6 +2595,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                     valueIndicatorColor: widget.pageColor,
                     activeTrackColor: widget.pageColor.withOpacity(0.5),
                     inactiveTrackColor: widget.pageColor.withOpacity(0.5),
+                    valueIndicatorTextStyle: TextStyle(color: Colors.black),
                   ),
                   child: Slider(
                     label:
@@ -2852,74 +2853,77 @@ class _VolleyListItem extends State<VolleyListItem> {
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        /*const Text('Action:  ', style: TextStyle(height: 0.2, color: Colors.black)),
-                        DropdownButton<String>(
-                          value: _volleyType,
-                          icon: const Icon(Icons.keyboard_arrow_down),
-                          elevation: 16,
-                          style: const TextStyle(color: Colors.black),
-                          underline: Container(height: 2, color: widget.UIcol),
-                          onChanged: (String? value) {
-                            if (value != null) {
-                              setState(() {
-                                _volleyType = value;
-                              });
-                              widget.onTypeChange(value);
-                            }
-                          },
-                          items: typeList.map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(value: value, child: Text(value));
-                          }).toList(),
-                        ),
-                        SizedBox(width: 20),*/
-                        Column(
-                          children: [
-                            const Text('Robot mainly in this side:'),
-                            SegmentedButton<int>(
-                              showSelectedIcon: false,
-                              style: SegmentedButton.styleFrom(
-                                selectedBackgroundColor:
-                                    _mainSide == 1
-                                        ? Colors.grey[300]
-                                        : (_mainSide == 0
-                                            ? (widget.isBlue
-                                                ? Colors.blue
-                                                : Colors.red)
-                                            : (widget.isBlue
-                                                ? Colors.red
-                                                : Colors.blue)),
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                visualDensity: VisualDensity(
-                                  horizontal: -4,
-                                  vertical: -3,
-                                ),
-                              ),
-                              segments: [
-                                ButtonSegment(value: 0, label: Text('Home')),
-                                ButtonSegment(value: 1, label: Text('Neutral')),
-                                ButtonSegment(
-                                  value: 2,
-                                  label: Text('Opponent'),
-                                ),
-                              ],
-                              selected: <int>{_mainSide},
-                              onSelectionChanged: (Set<int> newSelection) {
+                    Visibility(
+                      visible: _volleyType != "volley",
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          /*const Text('Action:  ', style: TextStyle(height: 0.2, color: Colors.black)),
+                          DropdownButton<String>(
+                            value: _volleyType,
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            elevation: 16,
+                            style: const TextStyle(color: Colors.black),
+                            underline: Container(height: 2, color: widget.UIcol),
+                            onChanged: (String? value) {
+                              if (value != null) {
                                 setState(() {
-                                  _mainSide = newSelection.first;
-                                  widget.onSideChange(_mainSide);
+                                  _volleyType = value;
                                 });
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+                                widget.onTypeChange(value);
+                              }
+                            },
+                            items: typeList.map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(value: value, child: Text(value));
+                            }).toList(),
+                          ),
+                          SizedBox(width: 20),*/
+                          Column(
+                            children: [
+                              const Text('Robot mainly in this side:'),
+                              SegmentedButton<int>(
+                                showSelectedIcon: false,
+                                style: SegmentedButton.styleFrom(
+                                  selectedBackgroundColor:
+                                      _mainSide == 1
+                                          ? Colors.grey[300]
+                                          : (_mainSide == 0
+                                              ? (widget.isBlue
+                                                  ? Colors.blue
+                                                  : Colors.red)
+                                              : (widget.isBlue
+                                                  ? Colors.red
+                                                  : Colors.blue)),
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  visualDensity: VisualDensity(
+                                    horizontal: -4,
+                                    vertical: -3,
+                                  ),
+                                ),
+                                segments: [
+                                  ButtonSegment(value: 0, label: Text('Home')),
+                                  ButtonSegment(value: 1, label: Text('Neutral')),
+                                  ButtonSegment(
+                                    value: 2,
+                                    label: Text('Opponent'),
+                                  ),
+                                ],
+                                selected: <int>{_mainSide},
+                                onSelectionChanged: (Set<int> newSelection) {
+                                  setState(() {
+                                    _mainSide = newSelection.first;
+                                    widget.onSideChange(_mainSide);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

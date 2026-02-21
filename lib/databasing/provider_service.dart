@@ -198,6 +198,7 @@ class ScoutProvider extends ChangeNotifier {
   Future<List<String>> getQRData() async {
     var data =
         await ScoutDatabase.matchData(ScoutDatabase.tableName, currentMatch);
+
     List<String> dataList = [];
 
     if (data.isEmpty) {
@@ -219,7 +220,7 @@ class ScoutProvider extends ChangeNotifier {
         // Adding the match number to the list<String> for QR
         dataList.add(matchNum?.group(0) ?? '0');
       } else if (key == 'climb_position' || key == 'auto_climb_position') {
-        if (value.toString() == '0') dataList.add('Left');
+        else if (value.toString() == '0') dataList.add('Left');
         else if (value.toString() == '1') dataList.add('Middle');
         else dataList.add('Right');
       }
@@ -259,7 +260,7 @@ class ScoutProvider extends ChangeNotifier {
               double totalIn = 0.0;
               int numVolleys = 0;
               for (List<dynamic> v in volleys) {
-                vData[v[3]]++;
+                if (v[0] != 'volley') vData[v[3]]++;
                 if (v[0] == 'volley') {
                   numVolleys++;
                   vData[3] += (v[1] as num).toInt();

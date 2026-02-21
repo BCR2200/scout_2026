@@ -84,7 +84,7 @@ class _QRPageState extends State<QRPage> {
                   children: [
                     QrImageView(
                       // The QR data is joined with tab to make it tab between each entry in the QR code 
-                      data: "${snapShot.data!.join("\t")}",
+                      data: snapShot.data!.join("\t").toString(),
                       version: QrVersions.auto,
                       size: 500, // QR code size
                       backgroundColor: Colors.white,
