@@ -82,82 +82,118 @@ class ColorProvider extends ChangeNotifier {
   late int _teleCol;
   late int _endCol;
   late int _qrCol;
+  bool _isRandom = true;
 
   int get auraCol => _auraCol;
   int get teleCol => _teleCol;
   int get endCol => _endCol;
   int get qrCol => _qrCol;
+  bool get isRandom => _isRandom;
 
   ColorProvider() {
+    _setRandomColors(save: false);
+  }
+
+  void _setRandomColors({bool save = true}) {
     List<Color> usedColors = [];
     _auraCol = randPrimary(exclude: usedColors).value;
     usedColors.add(Color(_auraCol));
+    if (save) _asyncPrefs.setInt('auraCol', _auraCol);
+
     _teleCol = randPrimary(exclude: usedColors).value;
     usedColors.add(Color(_teleCol));
+    if (save) _asyncPrefs.setInt('teleCol', _teleCol);
+
     _endCol = randPrimary(exclude: usedColors).value;
     usedColors.add(Color(_endCol));
+    if (save) _asyncPrefs.setInt('endCol', _endCol);
+
     _qrCol = randPrimary(exclude: usedColors).value;
+    if (save) _asyncPrefs.setInt('qrCol', _qrCol);
+  }
+
+  void _setPresetColors() {
+    _auraCol = Colors.lightBlue.value;
+    _teleCol = Colors.lightGreen.value;
+    _endCol = Colors.red.value;
+    _qrCol = Colors.purple.value;
   }
 
   // Call this during app initialization
   Future<void> loadSettings() async {
-    List<Color> usedColors = [];
+    _isRandom = await _asyncPrefs.getBool('random') ?? true;
 
-    int? aura = await _asyncPrefs.getInt('auraCol');
-    if (aura != null) {
-      _auraCol = aura;
-      usedColors.add(Color(aura));
-    }
+    if (_isRandom) {
+      List<Color> usedColors = [];
+      int? aura = await _asyncPrefs.getInt('auraCol');
+      if (aura != null) {
+        _auraCol = aura;
+        usedColors.add(Color(aura));
+      } else {
+        _auraCol = randPrimary(exclude: usedColors).value;
+        usedColors.add(Color(_auraCol));
+        await _asyncPrefs.setInt('auraCol', _auraCol);
+      }
 
-    int? tele = await _asyncPrefs.getInt('teleCol');
-    if (tele != null) {
-      _teleCol = tele;
-      usedColors.add(Color(tele));
-    }
+      int? tele = await _asyncPrefs.getInt('teleCol');
+      if (tele != null) {
+        _teleCol = tele;
+        usedColors.add(Color(tele));
+      } else {
+        _teleCol = randPrimary(exclude: usedColors).value;
+        usedColors.add(Color(_teleCol));
+        await _asyncPrefs.setInt('teleCol', _teleCol);
+      }
 
-    int? end = await _asyncPrefs.getInt('endCol');
-    if (end != null) {
-      _endCol = end;
-      usedColors.add(Color(end));
-    }
+      int? end = await _asyncPrefs.getInt('endCol');
+      if (end != null) {
+        _endCol = end;
+        usedColors.add(Color(end));
+      } else {
+        _endCol = randPrimary(exclude: usedColors).value;
+        usedColors.add(Color(_endCol));
+        await _asyncPrefs.setInt('endCol', _endCol);
+      }
 
-    int? qr = await _asyncPrefs.getInt('qrCol');
-    if (qr != null) {
-      _qrCol = qr;
-      usedColors.add(Color(qr));
-    }
-
-    if (aura == null) {
-      _auraCol = randPrimary(exclude: usedColors).value;
-      usedColors.add(Color(_auraCol));
-    }
-    if (tele == null) {
-      _teleCol = randPrimary(exclude: usedColors).value;
-      usedColors.add(Color(_teleCol));
-    }
-    if (end == null) {
-      _endCol = randPrimary(exclude: usedColors).value;
-      usedColors.add(Color(_endCol));
-    }
-    if (qr == null) {
-      _qrCol = randPrimary(exclude: usedColors).value;
+      int? qr = await _asyncPrefs.getInt('qrCol');
+      if (qr != null) {
+        _qrCol = qr;
+      } else {
+        _qrCol = randPrimary(exclude: usedColors).value;
+        await _asyncPrefs.setInt('qrCol', _qrCol);
+      }
+    } else {
+      _setPresetColors();
     }
 
     notifyListeners(); // Updates any listening widgets
   }
 
   Future<void> updateColor(String key, Color newCol) async {
-    await _asyncPrefs.setInt(key, newCol.value);
-    if (key == 'auraCol') {
-      _auraCol = newCol.value;
-    } else if (key == 'teleCol') {
-      _teleCol = newCol.value;
-    } else if (key == 'endCol') {
-      _endCol = newCol.value;
-    } else if (key == 'qrCol') {
-      _qrCol = newCol.value;
+    if (_isRandom) {
+      await _asyncPrefs.setInt(key, newCol.value);
+      if (key == 'auraCol') {
+        _auraCol = newCol.value;
+      } else if (key == 'teleCol') {
+        _teleCol = newCol.value;
+      } else if (key == 'endCol') {
+        _endCol = newCol.value;
+      } else if (key == 'qrCol') {
+        _qrCol = newCol.value;
+      }
+      notifyListeners();
     }
-    notifyListeners(); // This is what triggers your UI update
+  }
+
+  Future<void> toggleRandom() async {
+    _isRandom = !_isRandom;
+    await _asyncPrefs.setBool('random', _isRandom);
+    if (_isRandom) {
+      _setRandomColors();
+    } else {
+      _setPresetColors();
+    }
+    notifyListeners();
   }
 }
 
@@ -371,6 +407,7 @@ class SettingsWidget extends StatefulWidget {
 }
 
 class _SettingsWidgetState extends State<SettingsWidget> {
+  final SharedPreferencesAsync _prefs = SharedPreferencesAsync();
   // All the options for the scout tablet
   final List<String> _tabletIndex = [
     'Red Left',
@@ -456,15 +493,22 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           ),
 
           const Divider(), // Spacer
-          // Third list tile, tis but a to-do to fill space
-          ListTile(
-            // TODO make cycles mode
-
-            // These are under stateless widgets in widget_library.dart
-            title: const BoldText(text: 'Change Mode', fontSize: 22.5),
-
-            // Making it tappable but do nothing
-            onTap: () {},
+          Consumer<ColorProvider>(
+            builder: (context, colorProvider, child) {
+              return ListTile(
+                title: const BoldText(
+                  text: 'Toggle Color Mode',
+                  fontSize: 22.5,
+                ),
+                subtitle: BoldText(
+                  text:
+                      colorProvider.isRandom ? "Mode: Random" : "Mode: Preset",
+                ),
+                onTap: () {
+                  colorProvider.toggleRandom();
+                },
+              );
+            },
           ),
 
           // Spacer
@@ -531,11 +575,11 @@ class _TeamSelectorState extends State<TeamSelector> {
                 .center, // Keeping all the widgets squished in the center
         children: [
           // Widget title
-          const BoldText(text: 'Team:', fontSize: 35),
+          const BoldText(text: 'Team:  ', fontSize: 30),
 
           // Sized textfield (to input the team number)
           SizedBox(
-            width: 100,
+            width: 80,
             child: Consumer<ScoutProvider>(
               // The consumer makes this widget update when data changes
               builder: (context, scoutProvider, child) {
@@ -556,7 +600,7 @@ class _TeamSelectorState extends State<TeamSelector> {
                   ],
 
                   // Styling the text
-                  style: TextStyle(fontFamily: 'Red_Hat_Display', fontSize: 30),
+                  style: TextStyle(fontFamily: 'Red_Hat_Display', fontSize: 20),
                   textAlign: TextAlign.center,
                   decoration:
                       _controller.value.text == '0'
@@ -564,8 +608,18 @@ class _TeamSelectorState extends State<TeamSelector> {
                           InputDecoration(
                             filled: true,
                             fillColor: Colors.red[700],
+                            border: OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 13,
+                            ),
                           )
-                          : InputDecoration(filled: false),
+                          : InputDecoration(
+                            filled: false,
+                            border: OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 13,
+                            ),
+                          ),
 
                   // Limits the input keyboard to only numbers, and no symbols
                   keyboardType: TextInputType.numberWithOptions(),
@@ -1344,7 +1398,7 @@ class _NextMatchWidgetState extends State<NextMatchWidget> {
                       onPressed: () {
                         // Sending new match to the database
                         scoutProvider.setMatch(newMatchName);
-                        scoutProvider.insertMatch();
+                        scoutProvider.insertMatch('');
 
                         // Running callback if it exists
                         if (widget.callback != null) {
@@ -1393,7 +1447,11 @@ class WhoScoutedWidget extends StatefulWidget {
   final Color UIcol;
   final EdgeInsetsGeometry margin;
 
-  const WhoScoutedWidget({required this.UIcol, this.margin = const EdgeInsets.only(left: 25, right: 25, top: 25), super.key});
+  const WhoScoutedWidget({
+    required this.UIcol,
+    this.margin = const EdgeInsets.only(left: 25, right: 25, top: 25),
+    super.key,
+  });
 
   @override
   State<WhoScoutedWidget> createState() => _WhoScoutedWidgetState();
@@ -1463,7 +1521,8 @@ class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
               ),
               decoration: InputDecoration(
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10))),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
                 labelText: 'Name',
                 hintStyle: TextStyle(color: widget.UIcol),
                 floatingLabelStyle: TextStyle(color: widget.UIcol),
@@ -1475,8 +1534,9 @@ class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
                 ),
               ),
               controller: _controller,
-              textInputAction: TextInputAction
-                  .done, // Replacing the "enter" key with a "done" key
+              textInputAction:
+                  TextInputAction
+                      .done, // Replacing the "enter" key with a "done" key
               // Making the maximum lines displayed 3
               keyboardType: TextInputType.multiline,
               minLines: 1,
@@ -1509,26 +1569,12 @@ class MatchSelector extends StatefulWidget {
 }
 
 class _MatchSelectorState extends State<MatchSelector> {
-  late TextEditingController _controller;
   bool isFirstTap = true;
 
   // This runs once when the widget is initialized
   @override
   void initState() {
     super.initState();
-
-    // Set the match name to current match name in database upon widget initialization
-    _controller = TextEditingController(
-      text: Provider.of<ScoutProvider>(context, listen: false).currentMatch,
-    );
-  }
-
-  // This runs once when the widget is no longer in use
-  @override
-  void dispose() {
-    super.dispose();
-    _controller
-        .dispose(); // Get rid of the controller once it is finished being used
   }
 
   // Building the widget tree
@@ -1539,6 +1585,8 @@ class _MatchSelectorState extends State<MatchSelector> {
       children: [
         // Dropdown button to show all matches, using custom MatchPopUpWidget
         IconButton(
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
           iconSize: 50,
           icon: Icon(Icons.arrow_drop_down_sharp),
           onPressed:
@@ -1551,10 +1599,53 @@ class _MatchSelectorState extends State<MatchSelector> {
         ),
 
         // Title (left side)
-        const BoldText(text: 'Match:  ', fontSize: 35.0),
-
+        const BoldText(text: 'Match:  ', fontSize: 30),
+        Consumer<ScoutProvider>(
+          builder: (context, scoutProvider, child) {
+            return Expanded(
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                    scoutProvider.currentMatch,
+                    style: TextStyle(
+                      fontFamily: "Red_Hat_Display",
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        Consumer<ScoutProvider>(
+          builder: (context, scoutProvider, child) {
+            return IconButton(
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(),
+              iconSize: 30,
+              icon: Icon(Icons.edit),
+              onPressed:
+                  () => showDialog<void>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return MatchRenameWidget(
+                        matchName: scoutProvider.currentMatch,
+                        onSubmit: (value) {
+                          scoutProvider.changeMatch(
+                            scoutProvider.currentMatch,
+                            value,
+                          );
+                        },
+                      );
+                    },
+                  ),
+            );
+          },
+        ),
         // Rest of the space is a textfield for the match name
-        Expanded(
+        /*Expanded(
           child: Padding(
             padding: const EdgeInsets.only(
               right: 5.0,
@@ -1672,7 +1763,7 @@ class _MatchSelectorState extends State<MatchSelector> {
               }, // builder:
             ),
           ),
-        ),
+        ),*/
       ], // children:
     );
   } // build
@@ -1744,127 +1835,164 @@ class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
             ),
           ], // children:
         ),
-        content: Consumer<ScoutProvider>(
-          builder: (context, scoutProvider, child) {
-            if (scoutProvider.isLoading) {
-              return const SizedBox(
-                // Sized box to dimension the alert dialog
-                width: 300,
-                height: 500,
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-            return scoutProvider.scoutItem.isNotEmpty
-                ? // Check if there are any matches
-                // Display matches if there are matches
-                SizedBox(
-                  height: 500,
-                  width: 300,
-                  child: ListView.builder(
-                    itemCount: scoutProvider.scoutItem.length,
-                    itemBuilder: (context, int index) {
-                      return Card(
-                        elevation: 3,
-                        child: ListTile(
-                          style: ListTileStyle.drawer,
-                          textColor: Colors.black,
-                          title: BoldText(
-                            text: scoutProvider.scoutItem[index].match_name,
-                            fontSize: 20.0,
-                          ),
-                          subtitle: Text(
-                            'TEAM: ${scoutProvider.scoutItem[index].team.toString()}',
-                          ),
-                          onTap: () {
-                            Provider.of<ScoutProvider>(
-                              context,
-                              listen: false,
-                            ).setMatch(
-                              scoutProvider.scoutItem[index].match_name,
-                            );
-                            Navigator.pop(context);
-                          },
-                          leading: IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed:
-                                () => showDialog<void>(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    final String selectedMatchName =
-                                        scoutProvider
-                                            .scoutItem[index]
-                                            .match_name;
-                                    return AlertDialog(
-                                      title: const BoldText(
-                                        text: 'Delete?',
-                                        fontSize: 40,
-                                      ),
-                                      content: BoldText(
-                                        text: 'match name: $selectedMatchName',
-                                        fontSize: 20,
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed:
-                                              () => Navigator.pop(context),
-                                          child: const BoldText(
-                                            text: 'No',
-                                            fontSize: 25,
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            scoutProvider.deleteData(
-                                              selectedMatchName,
-                                            );
-                                            Navigator.pop(context);
-                                          },
-                                          child: const BoldText(
-                                            text: 'Yes',
-                                            fontSize: 25,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed:
-                                () => showDialog<void>(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return MatchRenameWidget(
-                                      matchName:
+        content: Column(
+          children: [
+            Consumer<ScoutProvider>(
+              builder: (context, scoutProvider, child) {
+                if (scoutProvider.isLoading) {
+                  return const SizedBox(
+                    // Sized box to dimension the alert dialog
+                    width: 300,
+                    height: 500,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                return scoutProvider.scoutItem.isNotEmpty
+                    ? // Check if there are any matches
+                    // Display matches if there are matches
+                    SizedBox(
+                      height: 500,
+                      width: 300,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: scoutProvider.scoutItem.length,
+                              itemBuilder: (context, int index) {
+                                return Card(
+                                  elevation: 3,
+                                  child: ListTile(
+                                    style: ListTileStyle.drawer,
+                                    textColor: Colors.black,
+                                    title: BoldText(
+                                      text:
                                           scoutProvider
                                               .scoutItem[index]
                                               .match_name,
-                                      onSubmit: (value) {
-                                        scoutProvider.changeMatch(
-                                          scoutProvider
-                                              .scoutItem[index]
-                                              .match_name,
-                                          value,
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
+                                      fontSize: 20.0,
+                                    ),
+                                    subtitle: Text(
+                                      'TEAM: ${scoutProvider.scoutItem[index].team.toString()}',
+                                    ),
+                                    onTap: () {
+                                      Provider.of<ScoutProvider>(
+                                        context,
+                                        listen: false,
+                                      ).setMatch(
+                                        scoutProvider.scoutItem[index].match_name,
+                                      );
+                                      Navigator.pop(context);
+                                    },
+                                    leading: IconButton(
+                                      icon: Icon(Icons.delete_forever_sharp),
+                                      onPressed:
+                                          () => showDialog<void>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              final String selectedMatchName =
+                                                  scoutProvider
+                                                      .scoutItem[index]
+                                                      .match_name;
+                                              return AlertDialog(
+                                                title: const BoldText(
+                                                  text: 'Delete?',
+                                                  fontSize: 40,
+                                                ),
+                                                content: BoldText(
+                                                  text:
+                                                      'match name: $selectedMatchName',
+                                                  fontSize: 20,
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                        ),
+                                                    child: const BoldText(
+                                                      text: 'No',
+                                                      fontSize: 25,
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      scoutProvider.deleteData(
+                                                        selectedMatchName,
+                                                      );
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: const BoldText(
+                                                      text: 'Yes',
+                                                      fontSize: 25,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: Icon(Icons.edit),
+                                      onPressed:
+                                          () => showDialog<void>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return MatchRenameWidget(
+                                                matchName:
+                                                    scoutProvider
+                                                        .scoutItem[index]
+                                                        .match_name,
+                                                onSubmit: (value) {
+                                                  scoutProvider.changeMatch(
+                                                    scoutProvider
+                                                        .scoutItem[index]
+                                                        .match_name,
+                                                    value,
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                )
-                : const SizedBox(
-                  height: 500,
-                  width: 300,
-                  child: Center(
-                    child: Image(image: AssetImage('assets/noMatches.png')),
-                  ),
-                );
-          },
+                          FilledButton(
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStateProperty.all(
+                                Colors.lightBlue,
+                              ),
+                            ),
+                            onPressed: () {
+                              Provider.of<ScoutProvider>(
+                                context,
+                                listen: false,
+                              ).insertMatch('yep');
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add, size: 35),
+                                SizedBox(width: 10),
+                                BoldText(text: "Match", fontSize: 20),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    : const SizedBox(
+                      height: 500,
+                      width: 300,
+                      child: Center(
+                        child: Image(image: AssetImage('assets/noMatches.png')),
+                      ),
+                    );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -2376,7 +2504,12 @@ class ClimbWidget extends StatefulWidget {
   final Color pageColor;
   final EdgeInsetsGeometry margin;
 
-  const ClimbWidget({required this.isAuto, required this.pageColor, this.margin = const EdgeInsets.all(25), super.key});
+  const ClimbWidget({
+    required this.isAuto,
+    required this.pageColor,
+    this.margin = const EdgeInsets.all(25),
+    super.key,
+  });
 
   @override
   State<ClimbWidget> createState() => _ClimbWidgetState();
@@ -2872,7 +3005,6 @@ class _VolleyWidgetState extends State<VolleyWidget> {
       } else {
         _items = decoded;
       }
-
     }
 
     // 3. Handle auto-initialization ONLY if in auto mode AND no data was loaded.
@@ -3060,7 +3192,7 @@ class _VolleyWidgetState extends State<VolleyWidget> {
                   });
                   // Scroll to bottom after adding the item and the UI has rebuilt
                   WidgetsBinding.instance.addPostFrameCallback(
-                        (_) => _scrollToBottom(),
+                    (_) => _scrollToBottom(),
                   );
                 },
               ),
@@ -3180,9 +3312,9 @@ class _RobotDiedState extends State<RobotDied> {
 
       decoration: BoxDecoration(
         color:
-        isDefault
-            ? Colors.red
-            : null, // If it is the default, it will have a red highlight
+            isDefault
+                ? Colors.red
+                : null, // If it is the default, it will have a red highlight
         borderRadius: BorderRadius.circular(
           10.0,
         ), // Rounding the corners (for if it is highlighted)
@@ -3190,8 +3322,8 @@ class _RobotDiedState extends State<RobotDied> {
 
       child: Column(
         mainAxisAlignment:
-        MainAxisAlignment
-            .center, // Squish everything into the center vertically
+            MainAxisAlignment
+                .center, // Squish everything into the center vertically
         children: <Widget>[
           // Display the title only if there is a title
           if (widget.title != null)
@@ -3219,7 +3351,7 @@ class _RobotDiedState extends State<RobotDied> {
                     setState(() {
                       isChecked = value!;
                       isDefault =
-                      false; // No longer the default if it got updated
+                          false; // No longer the default if it got updated
                       scoutProvider.updateData(
                         widget.column,
                         boolToInt(value),
@@ -3240,6 +3372,7 @@ class _RobotDiedState extends State<RobotDied> {
     );
   } // build
 } // _RobotDiedState
+
 class Beached extends StatefulWidget {
   final String? title;
   final Color? checkColor;
@@ -3320,9 +3453,9 @@ class _BeachedState extends State<Beached> {
 
       decoration: BoxDecoration(
         color:
-        isDefault
-            ? Colors.red
-            : null, // If it is the default, it will have a red highlight
+            isDefault
+                ? Colors.red
+                : null, // If it is the default, it will have a red highlight
         borderRadius: BorderRadius.circular(
           10.0,
         ), // Rounding the corners (for if it is highlighted)
@@ -3330,8 +3463,8 @@ class _BeachedState extends State<Beached> {
 
       child: Column(
         mainAxisAlignment:
-        MainAxisAlignment
-            .center, // Squish everything into the center vertically
+            MainAxisAlignment
+                .center, // Squish everything into the center vertically
         children: <Widget>[
           // Display the title only if there is a title
           if (widget.title != null)
@@ -3359,7 +3492,7 @@ class _BeachedState extends State<Beached> {
                     setState(() {
                       isChecked = value!;
                       isDefault =
-                      false; // No longer the default if it got updated
+                          false; // No longer the default if it got updated
                       scoutProvider.updateData(
                         widget.column,
                         boolToInt(value),
@@ -3380,6 +3513,7 @@ class _BeachedState extends State<Beached> {
     );
   } // build
 } // _BeachedState
+
 class FuelJammed extends StatefulWidget {
   final String? title;
   final Color? checkColor;
@@ -3460,9 +3594,9 @@ class _FuelJammedState extends State<FuelJammed> {
 
       decoration: BoxDecoration(
         color:
-        isDefault
-            ? Colors.red
-            : null, // If it is the default, it will have a red highlight
+            isDefault
+                ? Colors.red
+                : null, // If it is the default, it will have a red highlight
         borderRadius: BorderRadius.circular(
           10.0,
         ), // Rounding the corners (for if it is highlighted)
@@ -3470,8 +3604,8 @@ class _FuelJammedState extends State<FuelJammed> {
 
       child: Column(
         mainAxisAlignment:
-        MainAxisAlignment
-            .center, // Squish everything into the center vertically
+            MainAxisAlignment
+                .center, // Squish everything into the center vertically
         children: <Widget>[
           // Display the title only if there is a title
           if (widget.title != null)
@@ -3499,7 +3633,7 @@ class _FuelJammedState extends State<FuelJammed> {
                     setState(() {
                       isChecked = value!;
                       isDefault =
-                      false; // No longer the default if it got updated
+                          false; // No longer the default if it got updated
                       scoutProvider.updateData(
                         widget.column,
                         boolToInt(value),
@@ -3520,3 +3654,16 @@ class _FuelJammedState extends State<FuelJammed> {
     );
   } // build
 } // _FuelJammedState
+
+/*
+class StartPosWidget extends StatefulWidget {
+  final Color UICol;
+
+  const StartPosWidget({
+    required this.UICol,
+    super.key,
+  });
+
+  @override
+  State<StartPosWidget> createState() => _StartPosState();
+}*/

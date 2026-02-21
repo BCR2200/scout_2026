@@ -14,6 +14,9 @@ class ScoutProvider extends ChangeNotifier {
   String _currentMatch = '';
   String get currentMatch => _currentMatch;
 
+  String _nextUntitled = '';
+  String get nextUntitled => _nextUntitled;
+
   // Set a private and public teamNum
   int _teamNum = 0;
   int get teamNum => _teamNum;
@@ -84,11 +87,19 @@ class ScoutProvider extends ChangeNotifier {
   }
 
   // Insert a match into the database, using the match name in this class
-  Future insertMatch() async {
-    final newMatch = ScoutModel(match_name: currentMatch);
+  Future insertMatch(String matchname) async {
+    if (matchname == '') matchname = currentMatch;
+    else matchname = await getNextUntitled();
+
+    final newMatch = ScoutModel(match_name: matchname);
 
     // Adding the match to database using the ScoutModel
     ScoutDatabase.insertMatch(ScoutDatabase.tableName, newMatch.toMap());
+
+    _nextUntitled = await getNextUntitled();
+
+    // Adding the match to the list
+    scoutItem.add(newMatch);
 
     notifyListeners(); // Notify listeners to rebuild when the function runs
   } // insertMatch
@@ -103,19 +114,27 @@ class ScoutProvider extends ChangeNotifier {
       _teamNum = value;
     }
 
+    _nextUntitled = await getNextUntitled();
+
     notifyListeners(); // Notify listeners to rebuild when the function runs
   }
 
   // Change the match name with an input of the initial name and the new name
-  void changeMatch(String initialName, newName) {
+  Future<void> changeMatch(String initialName, String newName) async {
     // Check if the current match is being changed, and update it if so
-    if (initialName == currentMatch) {
+    if (initialName == _currentMatch) {
       _currentMatch = newName;
     }
 
     // Change the match name in the database
-    ScoutDatabase.updateData(
+    await ScoutDatabase.updateData(
         ScoutDatabase.tableName, initialName, 'match_name', newName);
+
+    // Update the item in the list if it exists
+    final index = scoutItem.indexWhere((item) => item.match_name == initialName);
+    if (index != -1) {
+      scoutItem[index].match_name = newName;
+    }
 
     notifyListeners(); // Notify listeners to rebuild when the function runs
   }
@@ -128,7 +147,8 @@ class ScoutProvider extends ChangeNotifier {
       _teamNum = await ScoutDatabase.getIntData(
           ScoutDatabase.tableName, _currentMatch, 'team');
     }
-    ScoutDatabase.deleteMatch(ScoutDatabase.tableName, matchName);
+    await ScoutDatabase.deleteMatch(ScoutDatabase.tableName, matchName);
+    scoutItem.removeWhere((item) => item.match_name == matchName);
     notifyListeners(); // Notify listeners to rebuild when the function runs
   }
 
@@ -150,6 +170,20 @@ class ScoutProvider extends ChangeNotifier {
 
     return value;
   }
+
+  Future<String> getNextUntitled() async {
+    int earliest = 1;
+    int matches = await ScoutDatabase.getMatchCount(ScoutDatabase.tableName);
+    for (int i = 0; i < matches; i++) {
+      if (await ScoutDatabase.hasMatch(
+          ScoutDatabase.tableName, 'Untitled $earliest')) {
+        earliest++;
+      } else break;
+    }
+
+    return 'Untitled $earliest';
+  }
+
 
   // Set the match and team number based on the input match name
   void setMatch(String matchName) async {

@@ -122,7 +122,9 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
 
         // Creating the menu button
         leading: IconButton(
-          icon: Icon(Icons.menu, size: 50,),
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
+          icon: Icon(Icons.menu, size: 30,),
           onPressed: () => _scaffoldKey.currentState!.openDrawer(), // When pressed, it will open the drawer (menu)
         ),
 
@@ -131,7 +133,7 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
           children: <Widget>[
 
             // Putting a const divider to add some space
-            SizedBox(width:10),
+            VerticalDivider(),
 
             // Wrapping MatchSelector with expanded to fill up maximum space
             Expanded(
@@ -140,8 +142,6 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
 
             // Putting a const divider to add some space
             const VerticalDivider(
-              color: Colors.black,
-              width: 5.0,
             ),
 
             TeamSelector(), // This custom widget is in shell_library

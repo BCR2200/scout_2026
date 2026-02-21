@@ -207,4 +207,17 @@ class ScoutDatabase {
     int data = Sqflite.firstIntValue(result) ?? 0; // If null, just set it to be 0 (the usual default)
     return data;
   }
+
+  static Future<bool> hasMatch(String table, String matchName) async {
+    final db = await ScoutDatabase.scoutDatabase();
+    final result = await db.rawQuery('SELECT COUNT(*) FROM $table WHERE match_name = ?', [matchName]);
+    final count = Sqflite.firstIntValue(result);
+    return count != null && count > 0;
+  }
+
+  static Future<int> getMatchCount(String table) async {
+    final db = await ScoutDatabase.scoutDatabase();
+    final result = await db.rawQuery('SELECT COUNT(*) FROM $table WHERE NOT match_name = ?', ['']);
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
 }
