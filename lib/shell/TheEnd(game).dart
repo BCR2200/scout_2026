@@ -63,49 +63,49 @@ class _TheEndPageState extends State<TheEndPage> {
 
     return Container(
       color: pageColor, // Setting the background colour
-      child: Column(
-        children: [
-          WhoScoutedWidget(UIcol: UIcol, margin: EdgeInsets.symmetric(vertical: 10, horizontal: 25), ),
-          ClimbWidget(isAuto: false, pageColor: UIcol, margin: EdgeInsets.only(left: 25, right: 25, bottom: 10), ),
-            CustomContainer(
-              color: Colors.white,
-              margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
-              padding: EdgeInsets.all(15),
-              child: NotesWidget(UIcol: UIcol,),
-            ),
-          CustomContainer(
-              margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
-              color: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  RobotDied(
-                    title: "Robot Died",
-                    column: 'died',
-                    scale: 1.5,
-                    fontSize: 20,
-                    checkColor: randPrimary(),
-                  ),
-                  Beached(
-                    title: "Robot Beached",
-                    column: 'beached',
-                    scale: 1.5,
-                    fontSize: 20,
-                    checkColor: randPrimary(),
-                  ),
-                  FuelJammed(
-                    title: "Fuel Jammed",
-                    column: 'jammed',
-                    scale: 1.5,
-                    fontSize: 20,
-                    checkColor: randPrimary(),
-                  ),
-                ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            WhoScoutedWidget(UIcol: UIcol, margin: EdgeInsets.symmetric(vertical: 10, horizontal: 25), ),
+            ClimbWidget(isAuto: false, pageColor: UIcol, margin: EdgeInsets.only(left: 25, right: 25, bottom: 10), ),
+              CustomContainer(
+                color: Colors.white,
+                margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
+                padding: EdgeInsets.all(15),
+                child: NotesWidget(UIcol: UIcol,),
               ),
-            ),
-          Expanded(
-            child: CustomContainer(
+            CustomContainer(
+                margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
+                color: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    RobotDied(
+                      title: "Robot Died",
+                      column: 'died',
+                      scale: 1.5,
+                      fontSize: 20,
+                      checkColor: randPrimary(),
+                    ),
+                    Beached(
+                      title: "Robot Beached",
+                      column: 'beached',
+                      scale: 1.5,
+                      fontSize: 20,
+                      checkColor: randPrimary(),
+                    ),
+                    FuelJammed(
+                      title: "Fuel Jammed",
+                      column: 'jammed',
+                      scale: 1.5,
+                      fontSize: 20,
+                      checkColor: randPrimary(),
+                    ),
+                  ],
+                ),
+              ),
+            CustomContainer(
               margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
               color: Colors.white,
               child: Column(
@@ -118,9 +118,9 @@ class _TheEndPageState extends State<TheEndPage> {
                 ],
               ),
             ),
-          ),
-      ],
-    ),
+          ],
+        ),
+      ),
     );
   } // Widget build
 } // _TheEndPageState

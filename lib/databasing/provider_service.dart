@@ -284,7 +284,9 @@ class ScoutProvider extends ChangeNotifier {
             dataList.add(volleyString);
           }
         } else {
-          dataList.add(volleyString);
+          for (int i = 0; i < 7; i++) {
+            dataList.add('');
+          }
         }
       } else if (value.toString() == '-1') {
         dataList.add('');

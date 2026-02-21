@@ -133,7 +133,6 @@ class ScoutDatabase {
         jammed INTEGER NOT NULL,
         notes TEXT,
         who_scouted TEXT NOT NULL,
-        placeholder TEXT
         )
         ''');
       },
