@@ -33,7 +33,7 @@ class ScoutModel {
       climb_position,
       offense;
 
-   String match_name, notes, placeholder, auto_volleys, volleys, main_role, who_scouted;
+   String match_name, notes, auto_volleys, volleys, main_role, who_scouted;
 
   ScoutModel({
     this.team = 0,
@@ -50,7 +50,6 @@ class ScoutModel {
     this.climb_position = 1,
     this.auto_volleys = '',
     this.volleys = '',
-    this.placeholder = '',
     this.notes = ' ',
     this.main_role = 'Defence',
     this.offense = 0,
@@ -71,7 +70,6 @@ class ScoutModel {
       'auto_climb_position': auto_climb_position,
       'climb_level': climb_level,
       'climb_position': climb_position,
-      'placeholder': placeholder,
       'notes': notes,
       'auto_volleys': auto_volleys,
       'volleys': volleys,
@@ -132,7 +130,7 @@ class ScoutDatabase {
         beached INTEGER NOT NULL,
         jammed INTEGER NOT NULL,
         notes TEXT,
-        who_scouted TEXT NOT NULL,
+        who_scouted TEXT NOT NULL
         )
         ''');
       },

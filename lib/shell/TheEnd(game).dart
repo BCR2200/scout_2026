@@ -16,7 +16,7 @@ class TheEndTab extends StatelessWidget {
         return Tab(
           child: ColouredTab(
             color: Color(colorProvider.endCol),
-            text: 'post mortem'
+            text: 'Post match'
           )
         );
       },

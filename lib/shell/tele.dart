@@ -18,7 +18,7 @@ class TeleTab extends StatelessWidget {
         return Tab(
           child: ColouredTab(
             color: Color(colorProvider.teleCol), 
-            text: 'Human(s) that \ndoes stuff\'s'
+            text: 'Teleop'
           )
         );
       },

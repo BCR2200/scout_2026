@@ -59,7 +59,6 @@ class ScoutProvider extends ChangeNotifier {
             auto_climb_position: e['auto_climb_position'] as int,
             climb_level: e['climb_level'] as int,
             climb_position: e['climb_position'] as int,
-            placeholder: e['placeholder'] as String,
             notes: e['notes'] as String,
             auto_volleys: e['auto_volleys'] as String,
             volleys: e['volleys'] as String,
