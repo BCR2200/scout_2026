@@ -219,11 +219,11 @@ class ScoutProvider extends ChangeNotifier {
 
         // Adding the match number to the list<String> for QR
         dataList.add(matchNum?.group(0) ?? '0');
-      } else if (key == 'climb_position' || key == 'auto_climb_position') {
+      } else if (key == 'climb_position' || key == 'auto_climb_position');
         else if (value.toString() == '0') dataList.add('Left');
         else if (value.toString() == '1') dataList.add('Middle');
-        else dataList.add('Right');
-      }
+        else if (value.toString() == 'null') dataList.add('Right');
+
       else if (key == 'volleys' || key == 'auto_volleys') {
         String volleyString = value.toString();
         if (volleyString.isNotEmpty && volleyString != '[]') {
