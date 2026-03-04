@@ -52,6 +52,7 @@ class ScoutProvider extends ChangeNotifier {
             team: e['team'] as int,
             match_name: e['match_name'] as String,
             defence: e['defence'] as int,
+            accuracy: e['accuracy'] as int,
             drive_rating: e['drive_rating'] as int,
             died: e['died'] as int,
             fouls: e['fouls'] as int,
@@ -63,7 +64,6 @@ class ScoutProvider extends ChangeNotifier {
             auto_volleys: e['auto_volleys'] as String,
             volleys: e['volleys'] as String,
             main_role: e['main_role'] as String,
-            offense: e['offense'] as int,
             who_scouted: e['who_scouted'] as String,
           ),
         )

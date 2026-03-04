@@ -22,6 +22,7 @@ import 'package:path/path.dart';
 class ScoutModel {
    int team,
       defence,
+      accuracy,
       drive_rating,
       died,
       beached,
@@ -30,8 +31,7 @@ class ScoutModel {
       auto_climb_level,
       auto_climb_position,
       climb_level,
-      climb_position,
-      offense;
+      climb_position;
 
    String match_name, notes, auto_volleys, volleys, main_role, who_scouted;
 
@@ -39,6 +39,7 @@ class ScoutModel {
     this.team = 0,
     required this.match_name,
     this.defence = 0,
+    this.accuracy = -1,
     this.drive_rating = -1,
     this.died = 0,
     this.beached = 0,
@@ -52,7 +53,6 @@ class ScoutModel {
     this.volleys = '',
     this.notes = ' ',
     this.main_role = 'Defence',
-    this.offense = 0,
     this.who_scouted = ' ',
   });
 
@@ -61,6 +61,7 @@ class ScoutModel {
       'team': team,
       'match_name': match_name,
       'defence': defence,
+      'accuracy': accuracy,
       'drive_rating': drive_rating,
       'died': died,
       'beached': beached,
@@ -74,7 +75,6 @@ class ScoutModel {
       'auto_volleys': auto_volleys,
       'volleys': volleys,
       'main_role': main_role,
-      'offense': offense,
       'who_scouted': who_scouted,
     };
   }
@@ -125,7 +125,7 @@ class ScoutDatabase {
         drive_rating INTEGER NOT NULL,
         main_role TEXT NOT NULL,
         defence INTEGER NOT NULL,
-        offense INTEGER NOT NULL,
+        accuracy INTEGER NOT NULL,
         died INTEGER NOT NULL,
         beached INTEGER NOT NULL,
         jammed INTEGER NOT NULL,
