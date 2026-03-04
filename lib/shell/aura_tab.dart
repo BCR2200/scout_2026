@@ -39,6 +39,7 @@ class _AuraPageState extends State<AuraPage> {
   // We no longer need pageColor as state, but we need to generate it once
   late Color initialPageColor;
   final Color initialUIcol = randHighlight();
+  String _startSide = 'Hub';
   
   @override
   void initState() {
@@ -53,7 +54,22 @@ class _AuraPageState extends State<AuraPage> {
         Color(colorProvider.qrCol),
       ]);
       colorProvider.updateColor('auraCol', initialPageColor);
+      _loadData();
     });
+  }
+
+  Future<void> _loadData() async {
+    String data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getStringData('start_side');
+
+    // If the widget is still active and the data isn't the default value (a space)
+    if (mounted && data != '') {
+      setState(() {
+        _startSide = data;
+      });
+    }
   }
 
   @override
@@ -71,15 +87,65 @@ class _AuraPageState extends State<AuraPage> {
       color: pageColor, // Setting the background colour
       child: Column(
         children: [
+          CustomContainer(
+            color: Colors.white,
+            margin: EdgeInsets.fromLTRB(25, 25, 25, 0),
+            padding: EdgeInsets.all(15),
+            child: Column(
+              children: [
+                BoldText(text: "Start Position (Driver Perspective):", fontSize: 20,),
+                SegmentedButton<String>(
+                  showSelectedIcon: false,
+                  style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor: pageColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  segments: const <ButtonSegment<String>>[
+                    ButtonSegment<String>(value: 'Left Trench', label: Text('L Trench')),
+                    ButtonSegment<String>(value: 'Left Bump', label: Text('L Bump')),
+                    ButtonSegment<String>(value: 'Hub', label: Text('Hub')),
+                    ButtonSegment<String>(value: 'Right Bump', label: Text('R Bump')),
+                    ButtonSegment<String>(value: 'Right Trench', label: Text('R Trench')),
+                  ],
+                  selected: <String>{_startSide},
+                  onSelectionChanged: (Set<String> newSelection) {
+                    if (_startSide != '') {
+                      setState(() {
+                        _startSide = newSelection.first;
+                        Provider.of<ScoutProvider>(
+                          context,
+                          listen: false,
+                        ).updateData('start_side', _startSide);
+                      });
+                    }
+                  },
+                ),
+
+                Divider(color: Colors.grey, height: 20,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Fired Preload?', style: TextStyle(fontSize: 20),),
+                    VerticalDivider(),
+                    CustomCheckBox(
+                      column: "preload",
+                    )
+                  ],
+                ),
+              ]
+            ),
+          ),
           ClimbWidget(isAuto: true, pageColor: UIcol),
-          Expanded(
+          /*Expanded(
             child: CustomContainer(
               color: Colors.white,
               margin: EdgeInsets.fromLTRB(25, 0, 25, 25),
               padding: EdgeInsets.all(15),
               child: VolleyWidget(isAuto: true, pageColor: pageColor, UIcol: UIcol),
             ),
-          ),
+          ),*/
         ],
       ),
     );

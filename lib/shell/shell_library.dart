@@ -2358,7 +2358,7 @@ class _NumberInputWidgetState extends State<NumberInputWidget> {
 
 // This widget is the fairly customizable checkbox
 // This is one of the two custom input widgets as part of this shell
-class LabelledCheckBox extends StatefulWidget {
+class CustomCheckBox extends StatefulWidget {
   final String? title;
   final Color? checkColor;
   final EdgeInsetsGeometry padding;
@@ -2370,7 +2370,7 @@ class LabelledCheckBox extends StatefulWidget {
   final String column; // Asking for the database column
 
   // Constructor (the this.[variable]s are like options for the widget)
-  const LabelledCheckBox({
+  const CustomCheckBox({
     this.title,
     this.checkColor,
     this.scale = 2.0,
@@ -2384,10 +2384,10 @@ class LabelledCheckBox extends StatefulWidget {
   });
 
   @override
-  State<LabelledCheckBox> createState() => _LabelledCheckBoxState();
+  State<CustomCheckBox> createState() => _CustomCheckBoxState();
 }
 
-class _LabelledCheckBoxState extends State<LabelledCheckBox> {
+class _CustomCheckBoxState extends State<CustomCheckBox> {
   late bool isChecked;
   late bool isDefault;
 
@@ -2498,6 +2498,8 @@ class _LabelledCheckBoxState extends State<LabelledCheckBox> {
     );
   } // build
 } // _LabelledCheckBoxState
+
+
 
 class ClimbWidget extends StatefulWidget {
   final bool isAuto;
