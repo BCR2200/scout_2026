@@ -65,6 +65,14 @@ class ScoutProvider extends ChangeNotifier {
             main_role: e['main_role'] as String,
             offense: e['offense'] as int,
             who_scouted: e['who_scouted'] as String,
+            auto_timer: e['auto_timer'] as String,
+            shoot_timer: e['shoot_timer'] as String,
+            intake_timer: e['intake_timer'] as String,
+            pass_timer: e['pass_timer'] as String,
+            defence_timer: e['defence_timer'] as String,
+            preload: e['preload'] as int,
+            intake_spots: e['intake_spots'] as String,
+            start_side: e['start_side'] as String,
           ),
         )
         .toList();

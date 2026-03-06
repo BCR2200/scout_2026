@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
@@ -299,6 +300,7 @@ class CustomContainer extends StatelessWidget {
   final double borderRadius;
   final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry padding;
+  final AlignmentGeometry? alignment;
 
   // Constructor (the this.[variable]s are like widget options)
   const CustomContainer({
@@ -309,6 +311,7 @@ class CustomContainer extends StatelessWidget {
     this.borderRadius = 20.0, // Default
     this.margin = const EdgeInsets.all(10.0), // Default
     this.padding = const EdgeInsets.symmetric(vertical: 10.0), // Default
+    this.alignment,
     super.key,
   });
 
@@ -318,6 +321,7 @@ class CustomContainer extends StatelessWidget {
     return Container(
       margin: margin,
       padding: padding,
+      alignment: alignment,
       width: width, // If height is needed, it is here, but default of null
       height: height, // If height is needed, it is here, but default of null
       decoration: BoxDecoration(
@@ -1879,7 +1883,9 @@ class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
                                         context,
                                         listen: false,
                                       ).setMatch(
-                                        scoutProvider.scoutItem[index].match_name,
+                                        scoutProvider
+                                            .scoutItem[index]
+                                            .match_name,
                                       );
                                       Navigator.pop(context);
                                     },
@@ -2499,7 +2505,129 @@ class _CustomCheckBoxState extends State<CustomCheckBox> {
   } // build
 } // _LabelledCheckBoxState
 
+class TimerButton extends StatefulWidget {
+  final Color color;
+  final Color? activeColor;
+  final String text;
+  final TextStyle? style;
+  final String column;
+  final EdgeInsets padding;
+  final EdgeInsets margin;
 
+
+  const TimerButton({
+    required this.color,
+    this.activeColor,
+    required this.text,
+    this.style,
+    required this.column,
+    this.padding = const EdgeInsets.all(10),
+    this.margin = const EdgeInsets.all(10),
+    super.key,
+  });
+
+  @override
+  State<TimerButton> createState() => _TimerButtonState();
+}
+
+class _TimerButtonState extends State<TimerButton> {
+  final _stopwatch = Stopwatch();
+  Timer? _timer;
+  late Color _activeColor;
+  bool _down = false;
+  double _elapsed = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _activeColor = widget.activeColor ?? Color.alphaBlend(Colors.black.withOpacity(0.3), widget.color);
+
+    // After initialization, get and set from database using _loadData method
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  // This method gets and sets the checkbox state from the data in the database
+  Future<void> _loadData() async {
+    String data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getStringData(widget.column);
+
+    // Reload the widget to display data only if it the widget is still displayed (due to async)
+    if (mounted) {
+      setState(() {
+        final parsed = double.tryParse(data);
+        if (parsed != null) {
+          _elapsed = parsed;
+        }
+      });
+    }
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    double displayedTime = _elapsed;
+    if (_down) {
+      displayedTime += _stopwatch.elapsedMilliseconds / 1000.0;
+    }
+
+    return Listener(
+      onPointerDown: (_) {
+        _stopwatch.reset();
+        _stopwatch.start();
+        _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+          setState(() {});
+        });
+        setState(() {
+          _down = true;
+        });
+      },
+      onPointerUp: (_) {
+        _timer?.cancel();
+        _stopwatch.stop();
+        setState(() {
+          _down = false;
+          _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
+          _elapsed = (_elapsed * 10).round() / 10.0;
+          Provider.of<ScoutProvider>(context, listen: false).updateData(
+            widget.column,
+            _elapsed.toString(),
+          );
+          _stopwatch.reset();
+        });
+      },
+      child: CustomContainer(
+        color: _down ? _activeColor : widget.color,
+        padding: widget.padding,
+        margin: widget.margin,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              widget.text,
+              style: widget.style,
+            ),
+            Text(
+              '${displayedTime.toStringAsFixed(1)}s',
+              style: TextStyle(fontSize: 20),
+            ),
+          ],
+        )
+      ),
+    );
+  }
+}
 
 class ClimbWidget extends StatefulWidget {
   final bool isAuto;
@@ -2908,7 +3036,10 @@ class _VolleyListItem extends State<VolleyListItem> {
                                 ),
                                 segments: [
                                   ButtonSegment(value: 0, label: Text('Home')),
-                                  ButtonSegment(value: 1, label: Text('Neutral')),
+                                  ButtonSegment(
+                                    value: 1,
+                                    label: Text('Neutral'),
+                                  ),
                                   ButtonSegment(
                                     value: 2,
                                     label: Text('Opponent'),

@@ -21,19 +21,9 @@ import 'package:path/path.dart';
 // ATTENTION in the database below and the provider_service file
 class ScoutModel {
    int team,
-      defence,
-      drive_rating,
-      died,
-      beached,
-      jammed,
-      fouls,
-      auto_climb_level,
-      auto_climb_position,
-      climb_level,
-      climb_position,
-      offense;
+      defence, drive_rating, died, beached, jammed, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, offense, preload;
 
-   String match_name, notes, auto_volleys, volleys, main_role, who_scouted;
+   String match_name, notes, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, auto_volleys, volleys, main_role, who_scouted, intake_spots, start_side;
 
   ScoutModel({
     this.team = 0,
@@ -50,10 +40,18 @@ class ScoutModel {
     this.climb_position = 1,
     this.auto_volleys = '',
     this.volleys = '',
-    this.notes = ' ',
+    this.notes = '',
     this.main_role = 'Defence',
     this.offense = 0,
-    this.who_scouted = ' ',
+    this.who_scouted = '',
+    this.auto_timer = '',
+    this.shoot_timer = '',
+    this.intake_timer = '',
+    this.pass_timer = '',
+    this.defence_timer = '',
+    this.preload = 0,
+    this.intake_spots = '',
+    this.start_side = '',
   });
 
   Map<String, Object> toMap() {
@@ -76,6 +74,14 @@ class ScoutModel {
       'main_role': main_role,
       'offense': offense,
       'who_scouted': who_scouted,
+      'auto_timer': auto_timer,
+      'shoot_timer': shoot_timer,
+      'intake_timer': intake_timer,
+      'pass_timer': pass_timer,
+      'defence_timer': defence_timer,
+      'preload': preload,
+      'intake_spots': intake_spots,
+      'start_side': start_side,
     };
   }
 }
@@ -93,19 +99,19 @@ class ScoutDatabase {
     // Opening or initially creating the database, labelled scout_db.db
     return await openDatabase(
       join(databaseDirPath, "scout_db.db"),
-      
+
       /* =================================*
       *             ATTENTION            *
       * =================================*
-      *  
-      * This is the location you'll have to manually change the database tables 
+      *
+      * This is the location you'll have to manually change the database tables
       * If you see below, there is a large block of text
       * Just simply follow the same logical flow as the elements already there
       * but with the elements you want to add, and it should work just fine
       * Oh, and make sure their order is the same as what's on the spreadsheets
       * And double check deleting the ones I already provided,
       * most of them are used in the shell
-      * 
+      *
       **/
 
       // Creating the database
@@ -115,9 +121,17 @@ class ScoutDatabase {
         CREATE TABLE $tableName (
         team INTEGER NOT NULL,
         match_name TEXT NOT NULL PRIMARY KEY,
+        start_side TEXT,
+        preload INTEGER NOT NULL,
+        intake_spots TEXT,
         auto_climb_level INTEGER NOT NULL,
         auto_climb_position INTEGER NOT NULL,
+        auto_timer TEXT NOT NULL,
         auto_volleys TEXT,
+        shoot_timer TEXT NOT NULL,
+        intake_timer TEXT NOT NULL,
+        pass_timer TEXT NOT NULL,
+        defence_timer TEXT NOT NULL,
         volleys TEXT,
         climb_level INTEGER NOT NULL,
         climb_position INTEGER NOT NULL,
