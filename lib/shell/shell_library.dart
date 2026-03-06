@@ -791,7 +791,7 @@ class _DriverSliderState extends State<DriverSlider> {
   } // build
 } // _DriverSliderState
 
-// This widget is the slider for the driver rating
+// This widget is the slider for the Accuracy
 class AccuracySlider extends StatefulWidget {
   const AccuracySlider({super.key});
 
@@ -889,9 +889,9 @@ class _AccuracySliderState extends State<AccuracySlider> {
                     activeColor: Colors.grey[700],
 
                     // Making it on a scale from 1–10
-                    divisions: 9,
+                    divisions: 3,
                     min: 1.0,
-                    max: 10.0,
+                    max: 4.0,
 
                     value: _currentSliderValue,
 
