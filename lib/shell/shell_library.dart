@@ -932,15 +932,16 @@ class _AccuracySliderState extends State<AccuracySlider> {
   } // build
 } // _AccuracySliderState
 
-class IntakeRating extends StatefulWidget {
-  const IntakeRating({super.key});
+// This widget is the slider for the driver rating
+class VibesSlider extends StatefulWidget {
+  const VibesSlider({super.key});
 
   @override
-  State<IntakeRating> createState() => _IntakeRatingState();
+  State<VibesSlider> createState() => _VibesSliderState();
 }
 
-class _IntakeRatingState extends State<IntakeRating> {
-  final String column = 'drive_rating';
+class _VibesSliderState extends State<VibesSlider> {
+  final String column = 'vibes';
   late double _currentSliderValue;
   late bool isDefault;
 
@@ -984,12 +985,12 @@ class _IntakeRatingState extends State<IntakeRating> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment:
-          MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
+      MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
       children: <Widget>[
         // Widget title
         Container(
           margin: const EdgeInsets.only(left: 5.0, top: 10.0, right: 5.0),
-          child: const BoldText(text: 'Intake Consistency', fontSize: 20.0),
+          child: const BoldText(text: 'Vibes (whatever that means)', fontSize: 20.0),
         ),
 
         // Slider (and labels)
@@ -1001,8 +1002,8 @@ class _IntakeRatingState extends State<IntakeRating> {
           padding: EdgeInsets.zero, // Vertically ensuring it is squished
           child: Row(
             mainAxisAlignment:
-                MainAxisAlignment
-                    .spaceEvenly, // Use up all the horizontal space nicely
+            MainAxisAlignment
+                .spaceEvenly, // Use up all the horizontal space nicely
             children: [
               // Left label
               const BoldText(text: 'Bad', fontSize: 25.0),
@@ -1018,9 +1019,9 @@ class _IntakeRatingState extends State<IntakeRating> {
                       10.0,
                     ), // Rounding the corners (for the red)
                     color:
-                        isDefault
-                            ? Colors.red
-                            : null, // If it is the default, display as red
+                    isDefault
+                        ? Colors.red
+                        : null, // If it is the default, display as red
                   ),
                   child: Slider(
                     // Displaying the current value to user in a friendly fashion
@@ -1070,7 +1071,8 @@ class _IntakeRatingState extends State<IntakeRating> {
       ],
     );
   } // build
-} // _IntakeratingState
+} // _VibesSliderState
+
 
 // This widget is the slider for the defence rating
 class MainRoleSlider extends StatefulWidget {

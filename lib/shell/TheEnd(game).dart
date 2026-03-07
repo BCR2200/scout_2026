@@ -111,10 +111,11 @@ class _TheEndPageState extends State<TheEndPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  DriverSlider(),
                   //IntakeRating(),
                   MainRoleSlider(),
                   AccuracySlider(),
+                  DriverSlider(),
+                  VibesSlider(),
                 ],
               ),
             ),
