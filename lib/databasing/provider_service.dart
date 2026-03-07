@@ -63,7 +63,6 @@ class ScoutProvider extends ChangeNotifier {
             auto_volleys: e['auto_volleys'] as String,
             volleys: e['volleys'] as String,
             main_role: e['main_role'] as String,
-            offense: e['offense'] as int,
             who_scouted: e['who_scouted'] as String,
             auto_timer: e['auto_timer'] as String,
             shoot_timer: e['shoot_timer'] as String,
@@ -73,6 +72,8 @@ class ScoutProvider extends ChangeNotifier {
             preload: e['preload'] as int,
             intake_spots: e['intake_spots'] as String,
             start_side: e['start_side'] as String,
+            accuracy: e['accuracy'] as int,
+            vibes: e['vibes'] as int,
           ),
         )
         .toList();
@@ -101,7 +102,7 @@ class ScoutProvider extends ChangeNotifier {
     final newMatch = ScoutModel(match_name: matchname);
 
     // Adding the match to database using the ScoutModel
-    ScoutDatabase.insertMatch(ScoutDatabase.tableName, newMatch.toMap());
+    await ScoutDatabase.insertMatch(ScoutDatabase.tableName, newMatch.toMap());
 
     _nextUntitled = await getNextUntitled();
 

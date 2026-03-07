@@ -21,7 +21,7 @@ import 'package:path/path.dart';
 // ATTENTION in the database below and the provider_service file
 class ScoutModel {
    int team,
-      defence, drive_rating, died, beached, jammed, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, offense, preload;
+      defence, drive_rating, died, beached, jammed, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
 
    String match_name, notes, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, auto_volleys, volleys, main_role, who_scouted, intake_spots, start_side;
 
@@ -42,7 +42,6 @@ class ScoutModel {
     this.volleys = '',
     this.notes = '',
     this.main_role = 'Defence',
-    this.offense = 0,
     this.who_scouted = '',
     this.auto_timer = '',
     this.shoot_timer = '',
@@ -52,6 +51,8 @@ class ScoutModel {
     this.preload = 0,
     this.intake_spots = '',
     this.start_side = '',
+    this.accuracy = -1,
+    this.vibes = -1,
   });
 
   Map<String, Object> toMap() {
@@ -72,7 +73,6 @@ class ScoutModel {
       'auto_volleys': auto_volleys,
       'volleys': volleys,
       'main_role': main_role,
-      'offense': offense,
       'who_scouted': who_scouted,
       'auto_timer': auto_timer,
       'shoot_timer': shoot_timer,
@@ -82,6 +82,8 @@ class ScoutModel {
       'preload': preload,
       'intake_spots': intake_spots,
       'start_side': start_side,
+      'accuracy': accuracy,
+      'vibes': vibes,
     };
   }
 }
@@ -138,8 +140,8 @@ class ScoutDatabase {
         fouls INTEGER NOT NULL,
         drive_rating INTEGER NOT NULL,
         main_role TEXT NOT NULL,
-        defence INTEGER NOT NULL,
-        offense INTEGER NOT NULL,
+        accuracy INTEGER NOT NULL,
+        vibes INTEGER NOT NULL,
         died INTEGER NOT NULL,
         beached INTEGER NOT NULL,
         jammed INTEGER NOT NULL,

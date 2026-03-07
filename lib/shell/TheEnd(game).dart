@@ -112,9 +112,9 @@ class _TheEndPageState extends State<TheEndPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   DriverSlider(),
-                  //IntakeRating(),
+                  VibesRating(),
                   MainRoleSlider(),
-                  OffenceSlider(),
+                  AccuracySlider(),
                 ],
               ),
             ),
