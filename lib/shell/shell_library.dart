@@ -2529,16 +2529,17 @@ class TimerButton extends StatefulWidget {
   final String column;
   final EdgeInsets padding;
   final EdgeInsets margin;
-
+  final bool isToggle;
 
   const TimerButton({
     required this.color,
     this.activeColor,
     required this.text,
-    this.style,
+    this.style = const TextStyle(fontSize: 20),
     required this.column,
     this.padding = const EdgeInsets.all(10),
     this.margin = const EdgeInsets.all(10),
+    this.isToggle = false,
     super.key,
   });
 
@@ -2609,30 +2610,36 @@ class _TimerButtonState extends State<TimerButton> {
 
     return Listener(
       onPointerDown: (_) {
-        _timerStateProvider?.increment();
-        _stopwatch.reset();
-        _stopwatch.start();
-        _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-          setState(() {});
-        });
-        setState(() {
-          _down = true;
-        });
+        if (!widget.isToggle) {
+          _timerStateProvider?.increment();
+          _stopwatch.reset();
+          _stopwatch.start();
+          _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+            setState(() {});
+          });
+          setState(() {
+            _down = true;
+          });
+        } else {
+
+        }
       },
       onPointerUp: (_) {
-        _timerStateProvider?.decrement();
-        _timer?.cancel();
-        _stopwatch.stop();
-        setState(() {
-          _down = false;
-          _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
-          _elapsed = (_elapsed * 10).round() / 10.0;
-          Provider.of<ScoutProvider>(context, listen: false).updateData(
-            widget.column,
-            _elapsed.toString(),
-          );
-          _stopwatch.reset();
-        });
+        if (!widget.isToggle) {
+          _timerStateProvider?.decrement();
+          _timer?.cancel();
+          _stopwatch.stop();
+          setState(() {
+            _down = false;
+            _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
+            _elapsed = (_elapsed * 10).round() / 10.0;
+            Provider.of<ScoutProvider>(context, listen: false).updateData(
+              widget.column,
+              _elapsed.toString(),
+            );
+            _stopwatch.reset();
+          });
+        }
       },
       child: CustomContainer(
         color: _down ? _activeColor : widget.color,

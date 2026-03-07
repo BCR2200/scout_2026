@@ -21,25 +21,20 @@ import 'package:path/path.dart';
 // ATTENTION in the database below and the provider_service file
 class ScoutModel {
    int team,
-      defence, drive_rating, died, beached, jammed, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
+      defence, drive_rating, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
 
-   String match_name, notes, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, auto_volleys, volleys, main_role, who_scouted, intake_spots, start_side;
+   String match_name, notes, dead_timer, beached_timer, inop_timer, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, main_role, who_scouted, intake_spots, start_side;
 
   ScoutModel({
     this.team = 0,
     required this.match_name,
     this.defence = 0,
     this.drive_rating = -1,
-    this.died = 0,
-    this.beached = 0,
-    this.jammed = 0,
     this.fouls = 0,
     this.auto_climb_level = 0,
     this.auto_climb_position = 1,
     this.climb_level = 0,
     this.climb_position = 1,
-    this.auto_volleys = '',
-    this.volleys = '',
     this.notes = '',
     this.main_role = 'Defence',
     this.who_scouted = '',
@@ -53,6 +48,9 @@ class ScoutModel {
     this.start_side = '',
     this.accuracy = -1,
     this.vibes = -1,
+    this.dead_timer = '',
+    this.beached_timer = '',
+    this.inop_timer = '',
   });
 
   Map<String, Object> toMap() {
@@ -61,17 +59,12 @@ class ScoutModel {
       'match_name': match_name,
       'defence': defence,
       'drive_rating': drive_rating,
-      'died': died,
-      'beached': beached,
-      'jammed': jammed,
       'fouls': fouls,
       'auto_climb_level': auto_climb_level,
       'auto_climb_position': auto_climb_position,
       'climb_level': climb_level,
       'climb_position': climb_position,
       'notes': notes,
-      'auto_volleys': auto_volleys,
-      'volleys': volleys,
       'main_role': main_role,
       'who_scouted': who_scouted,
       'auto_timer': auto_timer,
@@ -84,6 +77,9 @@ class ScoutModel {
       'start_side': start_side,
       'accuracy': accuracy,
       'vibes': vibes,
+      'dead_timer': dead_timer,
+      'beached_timer': beached_timer,
+      'inop_timer': inop_timer,
     };
   }
 }
@@ -129,12 +125,10 @@ class ScoutDatabase {
         auto_climb_level INTEGER NOT NULL,
         auto_climb_position INTEGER NOT NULL,
         auto_timer TEXT NOT NULL,
-        auto_volleys TEXT,
         shoot_timer TEXT NOT NULL,
         intake_timer TEXT NOT NULL,
         pass_timer TEXT NOT NULL,
         defence_timer TEXT NOT NULL,
-        volleys TEXT,
         climb_level INTEGER NOT NULL,
         climb_position INTEGER NOT NULL,
         fouls INTEGER NOT NULL,
@@ -143,9 +137,9 @@ class ScoutDatabase {
         defence INTEGER NOT NULL,
         accuracy INTEGER NOT NULL,
         vibes INTEGER NOT NULL,
-        died INTEGER NOT NULL,
-        beached INTEGER NOT NULL,
-        jammed INTEGER NOT NULL,
+        dead_timer TEXT NOT NULL,
+        beached_timer TEXT NOT NULL,
+        inop_timer TEXT NOT NULL,
         notes TEXT,
         who_scouted TEXT NOT NULL
         )

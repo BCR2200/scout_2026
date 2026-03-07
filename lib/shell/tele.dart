@@ -104,7 +104,7 @@ class _TelePageState extends State<TelePage> {
               children: [
                 Expanded(
                   child: TimerButton(
-                    margin: EdgeInsets.fromLTRB(25, 12.5, 12.5, 25),
+                    margin: EdgeInsets.fromLTRB(25, 12.5, 12.5, 20),
                     color: UIcol3,
                     text: 'Pass',
                     style: TextStyle(
@@ -115,7 +115,7 @@ class _TelePageState extends State<TelePage> {
                 ),
                 Expanded(
                   child: TimerButton(
-                    margin: EdgeInsets.fromLTRB(12.5, 12.5, 25, 25),
+                    margin: EdgeInsets.fromLTRB(12.5, 12.5, 25, 20),
                     color: UIcol4,
                     text: 'Defend',
                     style: TextStyle(
@@ -134,6 +134,31 @@ class _TelePageState extends State<TelePage> {
             fontSize: 30.0,
           ),
           SizedBox(height:25),
+          CustomContainer(
+            margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
+            color: Colors.white,
+            padding: EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: TimerButton(
+                    color: pageColor, text: 'Dead', column: 'dead_timer',
+                  ),
+                ),
+                Expanded(
+                  child: TimerButton(
+                    color: pageColor, text: 'Beached', column: 'beached_timer',
+                  ),
+                ),
+                Expanded(
+                  child: TimerButton(
+                    color: pageColor, text: 'Jammed', column: 'jammed_timer',
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
