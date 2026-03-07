@@ -16,7 +16,7 @@ class TheEndTab extends StatelessWidget {
         return Tab(
           child: ColouredTab(
             color: Color(colorProvider.endCol),
-            text: 'Post Mortom'
+            text: 'Post match'
           )
         );
       },
@@ -111,11 +111,10 @@ class _TheEndPageState extends State<TheEndPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  DriverSlider(),
                   //IntakeRating(),
                   MainRoleSlider(),
-                  AccuracySlider(),
-                  DriverSlider(),
-                  VibesSlider(),
+                  OffenceSlider(),
                 ],
               ),
             ),
