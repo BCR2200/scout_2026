@@ -127,6 +127,13 @@ class _TelePageState extends State<TelePage> {
               ],
             ),
           ),
+          NumberInputWidget(
+            column: 'fouls', // Setting the column for the database
+            scale: 1.25,
+            title: 'Fouls',
+            fontSize: 30.0,
+          ),
+          SizedBox(height:25),
         ],
       ),
     );

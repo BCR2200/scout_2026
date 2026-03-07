@@ -178,7 +178,7 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
       ),
 
       drawerEnableOpenDragGesture: false, // Prevent swiping from opening the menu since swiping changes tabs
-
+/*
       // This button make the fouls pop-up when pressed
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: colourOfTeam,
@@ -201,7 +201,7 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
             } // builder
         ), // onPressed
         label: const BoldText(text: 'Fouls', fontSize: 20), // Button label
-      ),
+      ),*/
     );
   } // Widget build
 } // _ScoutHomePageState
