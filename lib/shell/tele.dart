@@ -7,8 +7,7 @@ import 'package:rescout_2026/shell/shell_library.dart';
 import 'package:rescout_2026/databasing/provider_service.dart';
 
 class TeleTab extends StatelessWidget {
-
-  const TeleTab({ super.key});
+  const TeleTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +16,9 @@ class TeleTab extends StatelessWidget {
       builder: (context, colorProvider, child) {
         return Tab(
           child: ColouredTab(
-            color: Color(colorProvider.teleCol), 
-            text: 'Teleop'
-          )
+            color: Color(colorProvider.teleCol),
+            text: 'Teleop',
+          ),
         );
       },
     );
@@ -37,21 +36,23 @@ class TelePage extends StatefulWidget {
 
 class _TelePageState extends State<TelePage> {
   late Color initialPageColor;
-  late Color initialUIcol;
+  late Color UIcol1, UIcol2, UIcol3, UIcol4;
 
   @override
   void initState() {
     super.initState();
-    initialUIcol = randHighlight();
+
 
     // Defer color update until after build to avoid assertion error
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final colorProvider = Provider.of<ColorProvider>(context, listen: false);
-      initialPageColor = randPrimary(exclude: [
-        Color(colorProvider.auraCol),
-        Color(colorProvider.endCol),
-        Color(colorProvider.qrCol),
-      ]);
+      initialPageColor = randPrimary(
+        exclude: [
+          Color(colorProvider.auraCol),
+          Color(colorProvider.endCol),
+          Color(colorProvider.qrCol),
+        ],
+      );
       colorProvider.updateColor('teleCol', initialPageColor);
     });
   }
@@ -61,19 +62,69 @@ class _TelePageState extends State<TelePage> {
     // Read color from provider to ensure page color updates reactively
     final colorProvider = Provider.of<ColorProvider>(context);
     final pageColor = Color(colorProvider.teleCol);
-    final UIcol = initialUIcol; // Assuming UIcol uses the initial accent color
+    UIcol1 = randHighlight();
+    UIcol2 = randHighlight(exclude: [UIcol1]);
+    UIcol3 = randHighlight(exclude: [UIcol1, UIcol2]);
+    UIcol4 = randHighlight(exclude: [UIcol1, UIcol2, UIcol3]);
 
     return Container(
       color: pageColor, // Setting the background colour
       child: Column(
         children: [
           Expanded(
-            flex: 3,
-            child: CustomContainer(
-              color: Colors.white,
-              margin: EdgeInsets.fromLTRB(25, 25, 25, 25),
-              padding: EdgeInsets.all(25),
-              child: VolleyWidget(isAuto: false, pageColor: pageColor, UIcol: UIcol),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TimerButton(
+                    margin: EdgeInsets.fromLTRB(25, 25, 12.5, 12.5),
+                    color: UIcol1,
+                    text: 'Shoot',
+                    style: TextStyle(
+                      fontSize: 30,
+                    ),
+                    column: 'shoot_timer',
+                  ),
+                ),
+                Expanded(
+                  child: TimerButton(
+                    margin: EdgeInsets.fromLTRB(12.5, 25, 25, 12.5),
+                    color: UIcol2,
+                    text: 'Intake',
+                    style: TextStyle(
+                      fontSize: 30,
+                      ),
+                    column: 'intake_timer',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: TimerButton(
+                    margin: EdgeInsets.fromLTRB(25, 12.5, 12.5, 25),
+                    color: UIcol3,
+                    text: 'Pass',
+                    style: TextStyle(
+                      fontSize: 30,
+                      ),
+                    column: 'pass_timer',
+                  ),
+                ),
+                Expanded(
+                  child: TimerButton(
+                    margin: EdgeInsets.fromLTRB(12.5, 12.5, 25, 25),
+                    color: UIcol4,
+                    text: 'Defend',
+                    style: TextStyle(
+                      fontSize: 30,
+                      ),
+                    column: 'defence_timer',
+                  ),
+                ),
+              ],
             ),
           ),
         ],

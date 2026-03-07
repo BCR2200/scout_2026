@@ -307,3 +307,25 @@ class ScoutProvider extends ChangeNotifier {
     return dataList;
   }
 }
+
+class TimerStateProvider extends ChangeNotifier {
+  int _runningTimers = 0;
+
+  bool get isTimerRunning => _runningTimers > 0;
+
+  void increment() {
+    _runningTimers++;
+    if (_runningTimers == 1) {
+      notifyListeners();
+    }
+  }
+
+  void decrement() {
+    if (_runningTimers > 0) {
+      _runningTimers--;
+      if (_runningTimers == 0) {
+        notifyListeners();
+      }
+    }
+  }
+}

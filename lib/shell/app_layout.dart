@@ -32,6 +32,7 @@ class ScoutApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => ScoutProvider()),
         ChangeNotifierProvider(create: (context) => ColorProvider()..loadSettings()),
+        ChangeNotifierProvider(create: (context) => TimerStateProvider()),
       ],
       builder: (context, child) => MaterialApp(
         debugShowCheckedModeBanner: false, // Get rid of debug banner
@@ -159,9 +160,16 @@ class _ScoutHomePageState extends State<ScoutHomePage> with TickerProviderStateM
       ),
 
       // Creating the body/pages of each tab
-      body: TabBarView(
-        controller: _tabController, // Setting the controller
-        children: pageList, // Getting the pages from the constructor
+      body: Consumer<TimerStateProvider>(
+        builder: (context, timerState, child) {
+          return TabBarView(
+            controller: _tabController, // Setting the controller
+            physics: timerState.isTimerRunning
+                ? const NeverScrollableScrollPhysics()
+                : null,
+            children: pageList, // Getting the pages from the constructor
+          );
+        },
       ),
 
       drawer: SettingsWidget(

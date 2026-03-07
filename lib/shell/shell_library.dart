@@ -210,9 +210,15 @@ Color randPrimary({List<Color> exclude = const []}) {
   return color;
 }
 
-Color randHighlight() {
+Color randHighlight({List<Color> exclude = const []}) {
   var random = Random();
-  var color = Colors.accents[random.nextInt(Colors.accents.length)];
+  Color color;
+  if (Colors.accents.length <= exclude.length) {
+    return Colors.accents[random.nextInt(Colors.accents.length)];
+  }
+  do {
+    color = Colors.accents[random.nextInt(Colors.accents.length)];
+  } while (exclude.any((c) => c.value == color.value));
   return color;
 }
 
@@ -2536,6 +2542,7 @@ class _TimerButtonState extends State<TimerButton> {
   late Color _activeColor;
   bool _down = false;
   double _elapsed = 0;
+  TimerStateProvider? _timerStateProvider;
 
   @override
   void initState() {
@@ -2550,7 +2557,16 @@ class _TimerButtonState extends State<TimerButton> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _timerStateProvider ??= Provider.of<TimerStateProvider>(context, listen: false);
+  }
+
+  @override
   void dispose() {
+    if (_down) {
+      _timerStateProvider?.decrement();
+    }
     _timer?.cancel();
     super.dispose();
   }
@@ -2583,6 +2599,7 @@ class _TimerButtonState extends State<TimerButton> {
 
     return Listener(
       onPointerDown: (_) {
+        _timerStateProvider?.increment();
         _stopwatch.reset();
         _stopwatch.start();
         _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
@@ -2593,6 +2610,7 @@ class _TimerButtonState extends State<TimerButton> {
         });
       },
       onPointerUp: (_) {
+        _timerStateProvider?.decrement();
         _timer?.cancel();
         _stopwatch.stop();
         setState(() {
