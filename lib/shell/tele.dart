@@ -62,10 +62,17 @@ class _TelePageState extends State<TelePage> {
     // Read color from provider to ensure page color updates reactively
     final colorProvider = Provider.of<ColorProvider>(context);
     final pageColor = Color(colorProvider.teleCol);
-    UIcol1 = randHighlight();
-    UIcol2 = randHighlight(exclude: [UIcol1]);
-    UIcol3 = randHighlight(exclude: [UIcol1, UIcol2]);
-    UIcol4 = randHighlight(exclude: [UIcol1, UIcol2, UIcol3]);
+    if (colorProvider.isRandom) {
+      UIcol1 = randHighlight();
+      UIcol2 = randHighlight(exclude: [UIcol1]);
+      UIcol3 = randHighlight(exclude: [UIcol1, UIcol2]);
+      UIcol4 = randHighlight(exclude: [UIcol1, UIcol2, UIcol3]);
+    } else {
+      UIcol1 = Colors.red;
+      UIcol2 = Colors.yellow;
+      UIcol3 = Colors.green;
+      UIcol4 = Colors.blue;
+    }
 
     return Container(
       color: pageColor, // Setting the background colour
@@ -143,17 +150,17 @@ class _TelePageState extends State<TelePage> {
               children: [
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Dead', column: 'dead_timer',
+                    color: pageColor, text: 'Dead', column: 'dead_timer', isToggle: true,
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Beached', column: 'beached_timer',
+                    color: pageColor, text: 'Beached', column: 'beached_timer', isToggle: true,
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Jammed', column: 'jammed_timer',
+                    color: pageColor, text: 'Jammed', column: 'jammed_timer', isToggle: true,
                   ),
                 ),
               ],

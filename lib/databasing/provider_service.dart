@@ -98,6 +98,13 @@ class ScoutProvider extends ChangeNotifier {
     if (matchname == '') matchname = currentMatch;
     else matchname = await getNextUntitled();
 
+    if (matchname.trim().isEmpty) {
+      matchname = await getNextUntitled();
+      if (_currentMatch.trim().isEmpty) {
+         _currentMatch = matchname;
+      }
+    }
+
     final newMatch = ScoutModel(match_name: matchname);
 
     // Adding the match to database using the ScoutModel
@@ -128,6 +135,10 @@ class ScoutProvider extends ChangeNotifier {
 
   // Change the match name with an input of the initial name and the new name
   Future<void> changeMatch(String initialName, String newName) async {
+    if (newName.trim().isEmpty) {
+      newName = await getNextUntitled();
+    }
+
     // Check if the current match is being changed, and update it if so
     if (initialName == _currentMatch) {
       _currentMatch = newName;
@@ -142,6 +153,8 @@ class ScoutProvider extends ChangeNotifier {
     if (index != -1) {
       scoutItem[index].match_name = newName;
     }
+
+    _nextUntitled = await getNextUntitled();
 
     notifyListeners(); // Notify listeners to rebuild when the function runs
   }
@@ -194,6 +207,8 @@ class ScoutProvider extends ChangeNotifier {
 
   // Set the match and team number based on the input match name
   void setMatch(String matchName) async {
+    if (matchName.trim().isEmpty && _currentMatch.isNotEmpty) return;
+    if (matchName.trim().isEmpty) matchName = await getNextUntitled();
     _currentMatch = matchName;
 
     // Updating the team number
@@ -231,71 +246,6 @@ class ScoutProvider extends ChangeNotifier {
         if (value.toString() == '0') dataList.add('Left');
         else if (value.toString() == '1') dataList.add('Middle');
         else dataList.add('Right');
-      }
-      else if (key == 'volleys' || key == 'auto_volleys') {
-        String volleyString = value.toString();
-        if (volleyString.isNotEmpty && volleyString != '[]') {
-          try {
-            List<dynamic> volleys = jsonDecode(volleyString);
-            if (volleys.isNotEmpty &&
-                volleys[0] is List &&
-                (volleys[0] as List).isNotEmpty &&
-                volleys[0][0] is String) {
-              List<List<dynamic>> convertedVolleys = volleys.map((v) {
-                int typeAsInt;
-                switch (v[0]) {
-                  case 'volley':
-                    typeAsInt = 0;
-                    break;
-                  case 'harvest':
-                    typeAsInt = 2;
-                    break;
-                  case 'pass':
-                    typeAsInt = 1;
-                    break;
-                  default:
-                    typeAsInt = -1; // Or some other default
-                }
-                return [typeAsInt, v[1], v[2], v[3]];
-              }).toList();
-              List<int> vData = [
-                0,
-                0,
-                0,
-                0
-              ]; // 0: home count, 1: neutral count, 2: opp count, 3: total hopper %
-              double totalAcc = 0.0;
-              double totalIn = 0.0;
-              int numVolleys = 0;
-              for (List<dynamic> v in volleys) {
-                if (v[0] != 'volley') vData[v[3]]++;
-                if (v[0] == 'volley') {
-                  numVolleys++;
-                  vData[3] += (v[1] as num).toInt();
-                  totalAcc += (v[2] as num).toDouble();
-                  totalIn +=
-                      (v[1] as num).toDouble() * (v[2] as num).toDouble() * 0.01;
-                }
-              }
-              totalAcc /= numVolleys;
-              dataList.add(jsonEncode(convertedVolleys));
-              dataList.add(vData[0].toString());
-              dataList.add(vData[1].toString());
-              dataList.add(vData[2].toString());
-              dataList.add("${vData[3]}%");
-              dataList.add("${((totalAcc*10).round()/10)}%");
-              dataList.add("${((totalIn*10).round()/10)}%");
-            } else {
-              dataList.add(volleyString);
-            }
-          } catch (e) {
-            dataList.add(volleyString);
-          }
-        } else {
-          for (int i = 0; i < 7; i++) {
-            dataList.add('');
-          }
-        }
       } else if (value.toString() == '-1') {
         dataList.add('');
       } else {

@@ -16,7 +16,7 @@ class TheEndTab extends StatelessWidget {
         return Tab(
           child: ColouredTab(
             color: Color(colorProvider.endCol),
-            text: 'Post mortem'
+            text: 'Post Match'
           )
         );
       },
@@ -36,6 +36,9 @@ class TheEndPage extends StatefulWidget {
 class _TheEndPageState extends State<TheEndPage> {
   // Use a nullable Color here, but it will be guaranteed to be initialized before use in build via load.
   late Color initialPageColor;
+  final List<String> list = <String>['Defence', 'Passing', 'Scoring'];
+  static late List<MenuEntry> menuEntries;
+  late String _mainRole;
 
   @override
   void initState() {
@@ -60,35 +63,43 @@ class _TheEndPageState extends State<TheEndPage> {
     final colorProvider = Provider.of<ColorProvider>(context);
     final pageColor = Color(colorProvider.endCol);
     final UIcol = randHighlight();
+    final roleColumn = "main_role";
 
     return Container(
       color: pageColor, // Setting the background colour
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            WhoScoutedWidget(UIcol: UIcol, margin: EdgeInsets.symmetric(vertical: 10, horizontal: 25), ),
-            ClimbWidget(isAuto: false, pageColor: UIcol, margin: EdgeInsets.only(left: 25, right: 25, bottom: 10), ),
-              CustomContainer(
-                color: Colors.white,
-                margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
-                padding: EdgeInsets.all(15),
-                child: NotesWidget(UIcol: UIcol,),
-              ),
+      child: Column(
+        children: [
+          WhoScoutedWidget(UIcol: UIcol, margin: EdgeInsets.symmetric(vertical: 10, horizontal: 25), ),
+          ClimbWidget(isAuto: false, pageColor: UIcol, margin: EdgeInsets.only(left: 25, right: 25, bottom: 10), ),
             CustomContainer(
+              color: Colors.white,
+              margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
+              padding: EdgeInsets.all(15),
+              child: NotesWidget(UIcol: UIcol,),
+            ),
+          Expanded(
+            child: CustomContainer(
               margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
               color: Colors.white,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  DriverSlider(),
-                  VibesRating(),
-                  MainRoleSlider(),
-                  AccuracySlider(),
+                  //DriverSlider(),
+                  LabelledSlider(column: 'drive_rating', leftText: 'Bad', rightText: 'Good', title: 'Driver Rating', color: UIcol, max: 4.0, divisions: 3),
+                  LabelledSlider(column: 'vibes', leftText: 'Bad', rightText: 'Good', title: 'Team Vibes',color: UIcol, max: 4.0, divisions: 3),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      MainRoleDropdown(),
+                      LabelledSlider(column: 'defence', leftText: 'Bad', rightText: 'Good', color: UIcol),
+                    ],
+                  ),
+                  LabelledSlider(column: 'accuracy', leftText: '< 50%', rightText: '> 90%', title: 'Accuracy', max: 4.0, divisions: 3, indicators: ['', '< 50%', '50-70%', '70-90%', '> 90%'], color: UIcol),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   } // Widget build

@@ -76,6 +76,56 @@ class RoundedSquareThumbShape extends SliderComponentShape {
   }
 }
 
+class VerticalLineTickMarkShape extends SliderTickMarkShape {
+  final double tickWidth;
+  final double tickHeight;
+
+  const VerticalLineTickMarkShape({
+    this.tickWidth = 2.0,
+    this.tickHeight = 10.0,
+  });
+
+  @override
+  Size getPreferredSize({
+    required SliderThemeData sliderTheme,
+    required bool isEnabled,
+  }) {
+    return Size(tickWidth, tickHeight);
+  }
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required Animation<double> enableAnimation,
+    required Offset thumbCenter,
+    required bool isEnabled,
+    required TextDirection textDirection,
+  }) {
+    final Canvas canvas = context.canvas;
+
+    final bool isTickActive = textDirection == TextDirection.ltr
+        ? center.dx <= thumbCenter.dx
+        : center.dx >= thumbCenter.dx;
+
+    final Paint paint = Paint()
+      ..color = isTickActive
+          ? (sliderTheme.activeTickMarkColor ?? Colors.black)
+          : (sliderTheme.inactiveTickMarkColor ?? Colors.grey)
+      ..style = PaintingStyle.fill;
+
+    final Rect rect = Rect.fromCenter(
+      center: center,
+      width: tickWidth,
+      height: tickHeight,
+    );
+
+    canvas.drawRect(rect, paint);
+  }
+}
+
 class ColorProvider extends ChangeNotifier {
   final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
 
@@ -661,6 +711,183 @@ class _TeamSelectorState extends State<TeamSelector> {
 } // _TeamSelectorState
 
 // This widget is the slider for the driver rating
+
+class LabelledSlider extends StatefulWidget {
+  final String column;
+  final String leftText;
+  final String rightText;
+  final double min;
+  final double max;
+  final int divisions;
+  final String? title;
+  final List<String> indicators;
+  final Color color;
+
+  const LabelledSlider({
+    required this.column,
+    required this.leftText,
+    required this.rightText,
+    required this.color,
+    this.min = 1.0,
+    this.max = 10.0,
+    this.divisions = 9,
+    this.title,
+    this.indicators = const [],
+    super.key
+  });
+
+  @override
+  State<LabelledSlider> createState() => _LabelledSliderState();
+}
+
+class _LabelledSliderState extends State<LabelledSlider> {
+  late String column;
+  late double _currentSliderValue;
+  late bool isDefault;
+
+  // This runs once when the widget is initialized
+  @override
+  void initState() {
+    super.initState();
+
+    // When this widget is loaded in, the slider value is 1.0 by default,
+    // but it will try to get then set the value with the _loadData() method
+    _currentSliderValue = 1.0;
+    isDefault = false;
+    column = widget.column;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  // This method gets then sets the slider value from the database
+  Future<void> _loadData() async {
+    int data = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getIntData(column);
+
+    // If the widget is still active and the data isn't the default value (-1)
+    if (mounted && data != -1 && data != 0) {
+      setState(() {
+        _currentSliderValue = data.toDouble(); // Slider needs it to be a double
+      });
+    }
+    // If the widget is still active and the data is the default value (-1)
+    else if (mounted && data == -1) {
+      setState(() {
+        isDefault = true; // Set it to display as the default
+      });
+    }
+  }
+
+  // Building the widget tree
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment:
+      MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
+      children: <Widget>[
+        // Widget title
+        Visibility(
+          visible: widget.title != null,
+          child: Container(
+            margin: const EdgeInsets.only(left: 5.0, top: 10.0, right: 5.0),
+            child: BoldText(text: widget.title ?? '', fontSize: 20.0),
+          ),
+        ),
+
+        // Slider (and labels)
+        Container(
+          margin: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 50.0,
+          ), // Spacing at edges
+          padding: EdgeInsets.zero, // Vertically ensuring it is squished
+          child: Row(
+            mainAxisAlignment:
+            MainAxisAlignment
+                .spaceEvenly, // Use up all the horizontal space nicely
+            children: [
+              // Left label
+              BoldText(text: widget.leftText, fontSize: 25.0),
+
+              // Fill up all available space with Expanded slider
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.symmetric(
+                    horizontal: 15.0,
+                  ), // Ensure spacing between labels
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      10.0,
+                    ), // Rounding the corners (for the red)
+                    color:
+                    isDefault
+                        ? Colors.red
+                        : null, // If it is the default, display as red
+                  ),
+                  child: SliderTheme(
+                    data: SliderThemeData(
+                      tickMarkShape: const VerticalLineTickMarkShape(
+                        tickWidth: 2.0,
+                        tickHeight: 8.0,
+                      ),
+                      activeTickMarkColor: widget.color,
+                      inactiveTickMarkColor: Colors.transparent,
+                      valueIndicatorTextStyle: TextStyle(color: Colors.black),
+                    ),
+                    child: Slider(
+                      // Displaying the current value to user in a friendly fashion
+                      label: widget.indicators.isNotEmpty ? widget.indicators[_currentSliderValue.toInt()] : _currentSliderValue.toInt().toString(),
+                      inactiveColor: widget.color.withOpacity(0.5),
+                      activeColor: widget.color,
+
+                      // Making it on a scale from 1–10
+                      divisions: widget.divisions,
+                      min: widget.min,
+                      max: widget.max,
+
+                      value: _currentSliderValue,
+
+                      // When it is first changed, send the value to the database
+                      // and change it to not display as the default
+                      onChangeStart: (value) {
+                        setState(() {
+                          _currentSliderValue = value;
+                          Provider.of<ScoutProvider>(
+                            context,
+                            listen: false,
+                          ).updateData(column, _currentSliderValue.toInt());
+                          isDefault = false;
+                        });
+                      },
+
+                      // Sending the current value to the database when changed
+                      onChanged: (double value) {
+                        setState(() {
+                          _currentSliderValue = value;
+                          Provider.of<ScoutProvider>(
+                            context,
+                            listen: false,
+                          ).updateData(column, _currentSliderValue.toInt());
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+
+              // Right label
+              BoldText(text: widget.rightText, fontSize: 25.0),
+            ], // children:
+          ),
+        ),
+      ],
+    );
+  } // build
+}
+
 class DriverSlider extends StatefulWidget {
   const DriverSlider({super.key});
 
@@ -1082,23 +1309,21 @@ class _VibesRatingState extends State<VibesRating> {
 } // _IntakeratingState
 
 // This widget is the slider for the defence rating
-class MainRoleSlider extends StatefulWidget {
-  const MainRoleSlider({super.key});
+class MainRoleDropdown extends StatefulWidget {
+  const MainRoleDropdown({super.key});
 
   @override
-  State<MainRoleSlider> createState() => _MainRoleSliderState();
+  State<MainRoleDropdown> createState() => _MainRoleDropdownState();
 }
 
 typedef MenuEntry = DropdownMenuEntry<String>;
 
-class _MainRoleSliderState extends State<MainRoleSlider> {
-  final String column = 'defence';
+class _MainRoleDropdownState extends State<MainRoleDropdown> {
   final String roleColumn = 'main_role';
   final List<String> list = <String>['Defence', 'Passing', 'Scoring'];
   static late List<MenuEntry> menuEntries;
   late double _currentSliderValue;
   late String _mainRole;
-  late bool defencePlayed;
 
   // This runs once when the widget is initialized
   @override
@@ -1112,7 +1337,6 @@ class _MainRoleSliderState extends State<MainRoleSlider> {
     menuEntries = UnmodifiableListView<MenuEntry>(
       list.map<MenuEntry>((String name) => MenuEntry(value: name, label: name)),
     );
-    defencePlayed = false;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -1121,19 +1345,11 @@ class _MainRoleSliderState extends State<MainRoleSlider> {
   // This method gets then sets the slider value from the database
   Future<void> _loadData() async {
     final provider = Provider.of<ScoutProvider>(context, listen: false);
-    int data = await provider.getIntData(column);
     String roleData = await provider.getStringData(roleColumn);
 
     // If the widget is still active and the data isn't the default value (-1)
     if (mounted) {
       setState(() {
-        if (data != -1) {
-          _currentSliderValue =
-              data.toDouble(); // Slider needs it to be a double
-        }
-        if (data > 0) {
-          defencePlayed = true; // Set it to display as there being defence
-        }
         if (roleData.isNotEmpty) {
           _mainRole = roleData;
         }
@@ -1144,99 +1360,29 @@ class _MainRoleSliderState extends State<MainRoleSlider> {
   // Building the widget tree
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceEvenly, // Use up all vertical the space nicely
-      children: <Widget>[
-        // Widget title
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const BoldText(text: 'Main Role:    ', fontSize: 20.0),
-            DropdownMenu<String>(
-              initialSelection: _mainRole,
-              onSelected: (String? value) {
-                // This is called when the user selects an item.
-                setState(() {
-                  _mainRole = value!;
-                  Provider.of<ScoutProvider>(
-                    context,
-                    listen: false,
-                  ).updateData(roleColumn, _mainRole);
-                  if (_mainRole != 'Defence') {
-                    Provider.of<ScoutProvider>(
-                      context,
-                      listen: false,
-                    ).updateData(column, _currentSliderValue.toInt());
-                    defencePlayed = false;
-                  }
-                });
-              },
-              dropdownMenuEntries: menuEntries,
-            ),
-          ],
-        ),
-
-        // Slider (and labels)
-        Container(
-          margin: const EdgeInsets.symmetric(
-            vertical: 0,
-            horizontal: 50.0,
-          ), // Spacing at edges
-          padding: EdgeInsets.zero, // Vertically ensuring it is squished
-          child: Row(
-            mainAxisAlignment:
-                MainAxisAlignment
-                    .spaceEvenly, // Use up all the horizontal space nicely
-            children: [
-              // Left label
-              const BoldText(text: 'Bad', fontSize: 25.0),
-
-              // Fill up all available space with Expanded slider
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 15.0,
-                  ), // Ensure spacing between labels
-                  child: Slider(
-                    // Displaying the current value to user in a friendly fashion
-                    label:
-                        _currentSliderValue
-                            .toInt()
-                            .toString(), // Otherwise show the value
-                    inactiveColor: Colors.white,
-                    activeColor:
-                        defencePlayed
-                            ? Colors.grey[700]
-                            : Colors.grey[500], // Lighter to show no defence
-                    // Making it on a scale from 1–10, and an option of no defence
-                    divisions: 10,
-                    min: 0.0,
-                    max: 10.0,
-                    value: _currentSliderValue,
-
-                    // Sending the current value to the database when changed,
-                    // and updating whether or not to show "no defence"
-                    onChanged: (double value) {
-                      setState(() {
-                        value == 0.0
-                            ? defencePlayed = false
-                            : defencePlayed = true;
-                        _currentSliderValue = value;
-                        Provider.of<ScoutProvider>(
-                          context,
-                          listen: false,
-                        ).updateData(column, _currentSliderValue.toInt());
-                      });
-                    },
-                  ),
-                ),
-              ),
-
-              // Right label
-              const BoldText(text: 'Good', fontSize: 25.0),
-            ], // children:
-          ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const BoldText(text: 'Main Role:    ', fontSize: 20.0),
+        DropdownMenu<String>(
+          initialSelection: _mainRole,
+          onSelected: (String? value) {
+            // This is called when the user selects an item.
+            setState(() {
+              _mainRole = value!;
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData(roleColumn, _mainRole);
+              if (_mainRole != 'Defence') {
+                Provider.of<ScoutProvider>(
+                  context,
+                  listen: false,
+                ).updateData('defence', _currentSliderValue.toInt());
+              }
+            });
+          },
+          dropdownMenuEntries: menuEntries,
         ),
       ],
     );
@@ -2620,8 +2766,6 @@ class _TimerButtonState extends State<TimerButton> {
           setState(() {
             _down = true;
           });
-        } else {
-
         }
       },
       onPointerUp: (_) {
@@ -2639,6 +2783,32 @@ class _TimerButtonState extends State<TimerButton> {
             );
             _stopwatch.reset();
           });
+        } else {
+          if (_down) {
+            _timerStateProvider?.decrement();
+            _timer?.cancel();
+            _stopwatch.stop();
+            setState(() {
+              _down = false;
+              _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
+              _elapsed = (_elapsed * 10).round() / 10.0;
+              Provider.of<ScoutProvider>(context, listen: false).updateData(
+                widget.column,
+                _elapsed.toString(),
+              );
+              _stopwatch.reset();
+            });
+          } else {
+            _timerStateProvider?.increment();
+            _stopwatch.reset();
+            _stopwatch.start();
+            _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+              setState(() {});
+            });
+            setState(() {
+              _down = true;
+            });
+          }
         }
       },
       child: CustomContainer(
@@ -2744,42 +2914,48 @@ class _ClimbWidgetState extends State<ClimbWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const BoldText(text: 'Climb Level'),
-                SliderTheme(
-                  data: SliderThemeData(
-                    trackHeight: 10,
-                    thumbShape: const RoundedSquareThumbShape(),
-                    overlayColor: Colors.transparent,
-                    overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 20,
+                Visibility(
+                  visible: !widget.isAuto,
+                  child: Column(
+                    children:
+                  [const BoldText(text: 'Climb Level'),
+                  SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 10,
+                      thumbShape: const RoundedSquareThumbShape(),
+                      overlayColor: Colors.transparent,
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 20,
+                      ),
+                      activeTickMarkColor: Colors.transparent,
+                      inactiveTickMarkColor: Colors.transparent,
+                      valueIndicatorShape: RoundedRectSliderValueIndicatorShape(),
+                      thumbColor: widget.pageColor,
+                      valueIndicatorColor: widget.pageColor,
+                      activeTrackColor: widget.pageColor.withOpacity(0.5),
+                      inactiveTrackColor: widget.pageColor.withOpacity(0.5),
+                      valueIndicatorTextStyle: TextStyle(color: Colors.black),
                     ),
-                    activeTickMarkColor: Colors.transparent,
-                    inactiveTickMarkColor: Colors.transparent,
-                    valueIndicatorShape: RoundedRectSliderValueIndicatorShape(),
-                    thumbColor: widget.pageColor,
-                    valueIndicatorColor: widget.pageColor,
-                    activeTrackColor: widget.pageColor.withOpacity(0.5),
-                    inactiveTrackColor: widget.pageColor.withOpacity(0.5),
-                    valueIndicatorTextStyle: TextStyle(color: Colors.black),
-                  ),
-                  child: Slider(
-                    label:
-                        _climbLevel == 0
-                            ? "No Climb"
-                            : _climbLevel.toInt().toString(),
-                    divisions: 3,
-                    min: 0.0,
-                    max: 3.0,
-                    value: _climbLevel,
-                    onChanged: (double value) {
-                      setState(() {
-                        _climbLevel = value;
-                        Provider.of<ScoutProvider>(
-                          context,
-                          listen: false,
-                        ).updateData(_levelColumn, _climbLevel.toInt());
-                      });
-                    },
+                    child: Slider(
+                      label:
+                          _climbLevel == 0
+                              ? "No Climb"
+                              : _climbLevel.toInt().toString(),
+                      divisions: 3,
+                      min: 0.0,
+                      max: 3.0,
+                      value: _climbLevel,
+                      onChanged: (double value) {
+                        setState(() {
+                          _climbLevel = value;
+                          Provider.of<ScoutProvider>(
+                            context,
+                            listen: false,
+                          ).updateData(_levelColumn, _climbLevel.toInt());
+                        });
+                      },
+                    ),
+                  ),]
                   ),
                 ),
                 const BoldText(text: "Climb Side"),
