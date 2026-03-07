@@ -140,6 +140,7 @@ class ScoutDatabase {
         fouls INTEGER NOT NULL,
         drive_rating INTEGER NOT NULL,
         main_role TEXT NOT NULL,
+        defence INTEGER NOT NULL,
         accuracy INTEGER NOT NULL,
         vibes INTEGER NOT NULL,
         died INTEGER NOT NULL,
