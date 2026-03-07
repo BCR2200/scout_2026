@@ -16,7 +16,7 @@ class TheEndTab extends StatelessWidget {
         return Tab(
           child: ColouredTab(
             color: Color(colorProvider.endCol),
-            text: 'Post match'
+            text: 'Post mortem'
           )
         );
       },
@@ -73,37 +73,6 @@ class _TheEndPageState extends State<TheEndPage> {
                 margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
                 padding: EdgeInsets.all(15),
                 child: NotesWidget(UIcol: UIcol,),
-              ),
-            CustomContainer(
-                margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
-                color: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    RobotDied(
-                      title: "Robot Died",
-                      column: 'died',
-                      scale: 1.5,
-                      fontSize: 20,
-                      checkColor: randPrimary(),
-                    ),
-                    Beached(
-                      title: "Robot Beached",
-                      column: 'beached',
-                      scale: 1.5,
-                      fontSize: 20,
-                      checkColor: randPrimary(),
-                    ),
-                    FuelJammed(
-                      title: "Fuel Jammed",
-                      column: 'jammed',
-                      scale: 1.5,
-                      fontSize: 20,
-                      checkColor: randPrimary(),
-                    ),
-                  ],
-                ),
               ),
             CustomContainer(
               margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),

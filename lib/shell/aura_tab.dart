@@ -16,7 +16,7 @@ class AuraTab extends StatelessWidget {
     return Consumer<ColorProvider>(
       builder: (context, colorProvider, child) {
         return Tab(
-          child: ColouredTab(color: Color(colorProvider.auraCol), text: 'Auto'),
+          child: ColouredTab(color: Color(colorProvider.auraCol), text: 'Aura'),
         );
       },
     );

@@ -67,7 +67,7 @@ class _TelePageState extends State<TelePage> {
     UIcol3 = randHighlight(exclude: [UIcol1, UIcol2]);
     UIcol4 = randHighlight(exclude: [UIcol1, UIcol2, UIcol3]);
 
-    return Container(
+    return CustomContainer(
       color: pageColor, // Setting the background colour
       child: Column(
         children: [
@@ -123,6 +123,37 @@ class _TelePageState extends State<TelePage> {
                       ),
                     column: 'defence_timer',
                   ),
+                ),
+              ],
+            ),
+          ),
+          CustomContainer(
+            margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
+            color: Colors.white,
+            padding: EdgeInsets.symmetric(vertical: 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                RobotDied(
+                  title: "Robot Died",
+                  column: 'died',
+                  scale: 1.5,
+                  fontSize: 20,
+                  checkColor: randPrimary(),
+                ),
+                Beached(
+                  title: "Robot Beached",
+                  column: 'beached',
+                  scale: 1.5,
+                  fontSize: 20,
+                  checkColor: randPrimary(),
+                ),
+                FuelJammed(
+                  title: "Fuel Jammed",
+                  column: 'jammed',
+                  scale: 1.5,
+                  fontSize: 20,
+                  checkColor: randPrimary(),
                 ),
               ],
             ),
