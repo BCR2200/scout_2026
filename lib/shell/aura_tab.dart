@@ -214,14 +214,6 @@ class _AuraPageState extends State<AuraPage> {
             ),
           ),
           ClimbWidget(isAuto: true, pageColor: UIcol),
-          /*Expanded(
-            child: CustomContainer(
-              color: Colors.white,
-              margin: EdgeInsets.fromLTRB(25, 0, 25, 25),
-              padding: EdgeInsets.all(15),
-              child: VolleyWidget(isAuto: true, pageColor: pageColor, UIcol: UIcol),
-            ),
-          ),*/
         ],
       ),
     );
