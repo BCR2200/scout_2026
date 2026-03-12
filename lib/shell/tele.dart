@@ -150,17 +150,17 @@ class _TelePageState extends State<TelePage> {
               children: [
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Dead', column: 'dead_timer', isToggle: true,
+                    color: pageColor, text: 'Dead', column: 'dead_timer',
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Beached', column: 'beached_timer', isToggle: true,
+                    color: pageColor, text: 'Beached', column: 'beached_timer',
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Jammed', column: 'jammed_timer', isToggle: true,
+                    color: pageColor, text: 'Inoperable', column: 'inop_timer',
                   ),
                 ),
               ],

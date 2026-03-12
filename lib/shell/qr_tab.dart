@@ -80,13 +80,15 @@ class _QRPageState extends State<QRPage> {
                   borderRadius: BorderRadius.circular(25.0), // Rounding the corners
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // Align to squish into the center
+
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly
+                  , // Align to squish into the center
                   children: [
                     QrImageView(
                       // The QR data is joined with tab to make it tab between each entry in the QR code 
                       data: snapShot.data!.join("\t").toString(),
                       version: QrVersions.auto,
-                      size: 500, // QR code size
+                      size: 450, // QR code size
                       backgroundColor: Colors.white,
                     ),
                     NextMatchWidget(callback: widget.callback, color: primaryColor,) // Button to move on to the next match

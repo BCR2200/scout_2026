@@ -86,12 +86,12 @@ class _TheEndPageState extends State<TheEndPage> {
                 children: [
                   //DriverSlider(),
                   LabelledSlider(column: 'drive_rating', leftText: 'Bad', rightText: 'Good', title: 'Driver Rating', color: UIcol, max: 4.0, divisions: 3),
-                  LabelledSlider(column: 'vibes', leftText: 'Bad', rightText: 'Good', title: 'Team Vibes',color: UIcol, max: 4.0, divisions: 3),
+                  LabelledSlider(column: 'vibes', leftText: 'Bad', rightText: 'Good', title: 'Team Vibes',color: UIcol),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       MainRoleDropdown(),
-                      LabelledSlider(column: 'defence', leftText: 'Bad', rightText: 'Good', color: UIcol),
+                      LabelledSlider(column: 'defence', leftText: 'Bad', rightText: 'Good', color: UIcol, max: 4.0, divisions: 3,),
                     ],
                   ),
                   LabelledSlider(column: 'accuracy', leftText: '< 50%', rightText: '> 90%', title: 'Accuracy', max: 4.0, divisions: 3, indicators: ['', '< 50%', '50-70%', '70-90%', '> 90%'], color: UIcol),

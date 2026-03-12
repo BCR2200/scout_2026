@@ -106,15 +106,18 @@ class VerticalLineTickMarkShape extends SliderTickMarkShape {
   }) {
     final Canvas canvas = context.canvas;
 
-    final bool isTickActive = textDirection == TextDirection.ltr
-        ? center.dx <= thumbCenter.dx
-        : center.dx >= thumbCenter.dx;
+    final bool isTickActive =
+        textDirection == TextDirection.ltr
+            ? center.dx <= thumbCenter.dx
+            : center.dx >= thumbCenter.dx;
 
-    final Paint paint = Paint()
-      ..color = isTickActive
-          ? (sliderTheme.activeTickMarkColor ?? Colors.black)
-          : (sliderTheme.inactiveTickMarkColor ?? Colors.grey)
-      ..style = PaintingStyle.fill;
+    final Paint paint =
+        Paint()
+          ..color =
+              isTickActive
+                  ? (sliderTheme.activeTickMarkColor ?? Colors.black)
+                  : (sliderTheme.inactiveTickMarkColor ?? Colors.grey)
+          ..style = PaintingStyle.fill;
 
     final Rect rect = Rect.fromCenter(
       center: center,
@@ -632,7 +635,7 @@ class _TeamSelectorState extends State<TeamSelector> {
       child: Row(
         mainAxisAlignment:
             MainAxisAlignment
-                .center, // Keeping all the widgets squished in the center
+                .end, // Keeping all the widgets squished in the center
         children: [
           // Widget title
           const BoldText(text: 'Team:  ', fontSize: 30),
@@ -733,7 +736,7 @@ class LabelledSlider extends StatefulWidget {
     this.divisions = 9,
     this.title,
     this.indicators = const [],
-    super.key
+    super.key,
   });
 
   @override
@@ -786,7 +789,7 @@ class _LabelledSliderState extends State<LabelledSlider> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment:
-      MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
+          MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
       children: <Widget>[
         // Widget title
         Visibility(
@@ -806,8 +809,8 @@ class _LabelledSliderState extends State<LabelledSlider> {
           padding: EdgeInsets.zero, // Vertically ensuring it is squished
           child: Row(
             mainAxisAlignment:
-            MainAxisAlignment
-                .spaceEvenly, // Use up all the horizontal space nicely
+                MainAxisAlignment
+                    .spaceEvenly, // Use up all the horizontal space nicely
             children: [
               // Left label
               BoldText(text: widget.leftText, fontSize: 25.0),
@@ -823,9 +826,9 @@ class _LabelledSliderState extends State<LabelledSlider> {
                       10.0,
                     ), // Rounding the corners (for the red)
                     color:
-                    isDefault
-                        ? Colors.red
-                        : null, // If it is the default, display as red
+                        isDefault
+                            ? Colors.red
+                            : null, // If it is the default, display as red
                   ),
                   child: SliderTheme(
                     data: SliderThemeData(
@@ -839,7 +842,10 @@ class _LabelledSliderState extends State<LabelledSlider> {
                     ),
                     child: Slider(
                       // Displaying the current value to user in a friendly fashion
-                      label: widget.indicators.isNotEmpty ? widget.indicators[_currentSliderValue.toInt()] : _currentSliderValue.toInt().toString(),
+                      label:
+                          widget.indicators.isNotEmpty
+                              ? widget.indicators[_currentSliderValue.toInt()]
+                              : _currentSliderValue.toInt().toString(),
                       inactiveColor: widget.color.withOpacity(0.5),
                       activeColor: widget.color,
 
@@ -1080,7 +1086,7 @@ class _AccuracySliderState extends State<AccuracySlider> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment:
-      MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
+          MainAxisAlignment.spaceEvenly, // Use up all the vertical space nicely
       children: <Widget>[
         // Widget title
         Container(
@@ -1097,8 +1103,8 @@ class _AccuracySliderState extends State<AccuracySlider> {
           padding: EdgeInsets.zero, // Vertically ensuring it is squished
           child: Row(
             mainAxisAlignment:
-            MainAxisAlignment
-                .spaceEvenly, // Use up all the horizontal space nicely
+                MainAxisAlignment
+                    .spaceEvenly, // Use up all the horizontal space nicely
             children: [
               // Left label
               const BoldText(text: '0%', fontSize: 25.0),
@@ -1114,9 +1120,9 @@ class _AccuracySliderState extends State<AccuracySlider> {
                       10.0,
                     ), // Rounding the corners (for the red)
                     color:
-                    isDefault
-                        ? Colors.red
-                        : null, // If it is the default, display as red
+                        isDefault
+                            ? Colors.red
+                            : null, // If it is the default, display as red
                   ),
                   child: Slider(
                     // Displaying the current value to user in a friendly fashion
@@ -1347,7 +1353,7 @@ class _MainRoleDropdownState extends State<MainRoleDropdown> {
     final provider = Provider.of<ScoutProvider>(context, listen: false);
     String roleData = await provider.getStringData(roleColumn);
 
-    // If the widget is still active and the data isn't the default value (-1)
+    // If the widget is still active and the data isnt the default value (-1)
     if (mounted) {
       setState(() {
         if (roleData.isNotEmpty) {
@@ -1747,7 +1753,7 @@ class _MatchSelectorState extends State<MatchSelector> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         // Dropdown button to show all matches, using custom MatchPopUpWidget
         IconButton(
@@ -1766,49 +1772,52 @@ class _MatchSelectorState extends State<MatchSelector> {
 
         // Title (left side)
         const BoldText(text: 'Match:  ', fontSize: 30),
-        Consumer<ScoutProvider>(
-          builder: (context, scoutProvider, child) {
-            return Expanded(
-              child: Scrollbar(
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Text(
-                    scoutProvider.currentMatch,
-                    style: TextStyle(
-                      fontFamily: "Red_Hat_Display",
-                      fontSize: 20,
+        Flexible(
+          child: Consumer<ScoutProvider>(
+            builder: (context, scoutProvider, child) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          scoutProvider.currentMatch,
+                          style: TextStyle(
+                            fontFamily: "Red_Hat_Display",
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
-        Consumer<ScoutProvider>(
-          builder: (context, scoutProvider, child) {
-            return IconButton(
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints(),
-              iconSize: 30,
-              icon: Icon(Icons.edit),
-              onPressed:
-                  () => showDialog<void>(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return MatchRenameWidget(
-                        matchName: scoutProvider.currentMatch,
-                        onSubmit: (value) {
-                          scoutProvider.changeMatch(
-                            scoutProvider.currentMatch,
-                            value,
-                          );
-                        },
-                      );
-                    },
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                    iconSize: 30,
+                    icon: Icon(Icons.edit),
+                    onPressed:
+                        () => showDialog<void>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return MatchRenameWidget(
+                              matchName: scoutProvider.currentMatch,
+                              onSubmit: (value) {
+                                scoutProvider.changeMatch(
+                                  scoutProvider.currentMatch,
+                                  value,
+                                );
+                              },
+                            );
+                          },
+                        ),
                   ),
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
         // Rest of the space is a textfield for the match name
         /*Expanded(
@@ -2534,7 +2543,7 @@ class CustomCheckBox extends StatefulWidget {
   final double scale;
   final double? width;
   final bool redHighlight;
-  final VoidCallback? onChanged;
+  final ValueChanged<bool>? onChanged;
   final String column; // Asking for the database column
 
   // Constructor (the this.[variable]s are like options for the widget)
@@ -2653,7 +2662,7 @@ class _CustomCheckBoxState extends State<CustomCheckBox> {
 
                       // Run callback if it exists
                       if (widget.onChanged != null) {
-                        widget.onChanged!();
+                        widget.onChanged!(value);
                       }
                     });
                   }, // onChanged
@@ -2705,7 +2714,9 @@ class _TimerButtonState extends State<TimerButton> {
   void initState() {
     super.initState();
 
-    _activeColor = widget.activeColor ?? Color.alphaBlend(Colors.black.withOpacity(0.3), widget.color);
+    _activeColor =
+        widget.activeColor ??
+        Color.alphaBlend(Colors.black.withOpacity(0.3), widget.color);
 
     // After initialization, get and set from database using _loadData method
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2716,7 +2727,10 @@ class _TimerButtonState extends State<TimerButton> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _timerStateProvider ??= Provider.of<TimerStateProvider>(context, listen: false);
+    _timerStateProvider ??= Provider.of<TimerStateProvider>(
+      context,
+      listen: false,
+    );
   }
 
   @override
@@ -2777,10 +2791,10 @@ class _TimerButtonState extends State<TimerButton> {
             _down = false;
             _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
             _elapsed = (_elapsed * 10).round() / 10.0;
-            Provider.of<ScoutProvider>(context, listen: false).updateData(
-              widget.column,
-              _elapsed.toString(),
-            );
+            Provider.of<ScoutProvider>(
+              context,
+              listen: false,
+            ).updateData(widget.column, _elapsed.toString());
             _stopwatch.reset();
           });
         } else {
@@ -2792,10 +2806,10 @@ class _TimerButtonState extends State<TimerButton> {
               _down = false;
               _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
               _elapsed = (_elapsed * 10).round() / 10.0;
-              Provider.of<ScoutProvider>(context, listen: false).updateData(
-                widget.column,
-                _elapsed.toString(),
-              );
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData(widget.column, _elapsed.toString());
               _stopwatch.reset();
             });
           } else {
@@ -2819,16 +2833,13 @@ class _TimerButtonState extends State<TimerButton> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              widget.text,
-              style: widget.style,
-            ),
+            Text(widget.text, style: widget.style),
             Text(
               '${displayedTime.toStringAsFixed(1)}s',
               style: TextStyle(fontSize: 20),
             ),
           ],
-        )
+        ),
       ),
     );
   }
@@ -2861,7 +2872,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
     super.initState();
 
     _climbLevel = 0.0;
-    _climbSide = 1;
+    _climbSide = -1;
     _posColumn = widget.isAuto ? 'auto_climb_position' : 'climb_position';
     _levelColumn = widget.isAuto ? 'auto_climb_level' : 'climb_level';
 
@@ -2906,56 +2917,112 @@ class _ClimbWidgetState extends State<ClimbWidget> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       margin: widget.margin,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           BoldText(text: "Climb\nStatus", fontSize: 20),
-          const SizedBox(width: 16),
+          SizedBox(width: 20),
+          Visibility(
+            visible: widget.isAuto,
+            child: Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const BoldText(text: "Climbed?"),
+                  CustomCheckBox(
+                    padding: EdgeInsets.only(bottom: 3),
+                    checkColor: widget.pageColor,
+                    column: 'auto_climb_level',
+                    onChanged: (value) {
+                      setState(() {
+                        _climbLevel = boolToInt(value).toDouble();
+                        Provider.of<ScoutProvider>(
+                          context,
+                          listen: false,
+                        ).updateData(_levelColumn, _climbLevel.toInt());
+                        
+                        if (_climbLevel == 0) {
+                          _climbSide = -1;
+                        } else {
+                          _climbSide = 1;
+                        }
+                        Provider.of<ScoutProvider>(
+                          context,
+                          listen: false,
+                        ).updateData(_posColumn, _climbSide);
+                    });},
+                  ),
+                ],
+              ),
+            ),
+          ),
           Expanded(
+            flex: 2,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Visibility(
                   visible: !widget.isAuto,
                   child: Column(
-                    children:
-                  [const BoldText(text: 'Climb Level'),
-                  SliderTheme(
-                    data: SliderThemeData(
-                      trackHeight: 10,
-                      thumbShape: const RoundedSquareThumbShape(),
-                      overlayColor: Colors.transparent,
-                      overlayShape: const RoundSliderOverlayShape(
-                        overlayRadius: 20,
+                    children: [
+                      const BoldText(text: 'Climb Level'),
+                      SliderTheme(
+                        data: SliderThemeData(
+                          trackHeight: 10,
+                          thumbShape: const RoundedSquareThumbShape(),
+                          overlayColor: Colors.transparent,
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 20,
+                          ),
+                          activeTickMarkColor: Colors.transparent,
+                          inactiveTickMarkColor: Colors.transparent,
+                          valueIndicatorShape:
+                              RoundedRectSliderValueIndicatorShape(),
+                          thumbColor: widget.pageColor,
+                          valueIndicatorColor: widget.pageColor,
+                          activeTrackColor: widget.pageColor.withOpacity(0.5),
+                          inactiveTrackColor: widget.pageColor.withOpacity(0.5),
+                          valueIndicatorTextStyle: TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                        child: Slider(
+                          label:
+                              _climbLevel == 0
+                                  ? "No Climb"
+                                  : _climbLevel.toInt().toString(),
+                          divisions: 3,
+                          min: 0.0,
+                          max: 3.0,
+                          value: _climbLevel,
+                          onChanged: (double value) {
+                            setState(() {
+                              if (_climbLevel == 0 && value != 0) {
+                                _climbSide = 1;
+                                Provider.of<ScoutProvider>(
+                                  context,
+                                  listen: false,
+                                ).updateData(_posColumn, _climbSide);
+                              } else if (_climbLevel != 0 && value == 0) {
+                                _climbSide = -1;
+                                Provider.of<ScoutProvider>(
+                                  context,
+                                  listen: false,
+                                ).updateData(_posColumn, _climbSide);
+                              }
+                              _climbLevel = value;
+                              Provider.of<ScoutProvider>(
+                                context,
+                                listen: false,
+                              ).updateData(_levelColumn, _climbLevel.toInt());
+                            });
+                          },
+                        ),
                       ),
-                      activeTickMarkColor: Colors.transparent,
-                      inactiveTickMarkColor: Colors.transparent,
-                      valueIndicatorShape: RoundedRectSliderValueIndicatorShape(),
-                      thumbColor: widget.pageColor,
-                      valueIndicatorColor: widget.pageColor,
-                      activeTrackColor: widget.pageColor.withOpacity(0.5),
-                      inactiveTrackColor: widget.pageColor.withOpacity(0.5),
-                      valueIndicatorTextStyle: TextStyle(color: Colors.black),
-                    ),
-                    child: Slider(
-                      label:
-                          _climbLevel == 0
-                              ? "No Climb"
-                              : _climbLevel.toInt().toString(),
-                      divisions: 3,
-                      min: 0.0,
-                      max: 3.0,
-                      value: _climbLevel,
-                      onChanged: (double value) {
-                        setState(() {
-                          _climbLevel = value;
-                          Provider.of<ScoutProvider>(
-                            context,
-                            listen: false,
-                          ).updateData(_levelColumn, _climbLevel.toInt());
-                        });
-                      },
-                    ),
-                  ),]
+                    ],
                   ),
                 ),
                 const BoldText(text: "Climb Side"),
@@ -2963,6 +3030,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                 Opacity(
                   opacity: _climbLevel == 0 ? 0.3 : 1,
                   child: SegmentedButton<int>(
+                    emptySelectionAllowed: true,
                     showSelectedIcon: false,
                     style: SegmentedButton.styleFrom(
                       selectedBackgroundColor: widget.pageColor,
@@ -2977,11 +3045,21 @@ class _ClimbWidgetState extends State<ClimbWidget> {
                       ButtonSegment<int>(value: 1, label: Text('Middle')),
                       ButtonSegment<int>(value: 2, label: Text('Right')),
                     ],
-                    selected: <int>{_climbSide},
+                    selected: _climbSide == -1 ? <int>{} : <int>{_climbSide},
                     onSelectionChanged: (Set<int> newSelection) {
                       if (_climbLevel != 0) {
                         setState(() {
-                          _climbSide = newSelection.first;
+                          if (newSelection.isNotEmpty) {
+                            _climbSide = newSelection.first;
+                            Provider.of<ScoutProvider>(
+                              context,
+                              listen: false,
+                            ).updateData(_posColumn, _climbSide);
+                          }
+                        });
+                      } else {
+                        setState(() {
+                          _climbSide = -1;
                           Provider.of<ScoutProvider>(
                             context,
                             listen: false,
