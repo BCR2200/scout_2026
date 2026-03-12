@@ -106,7 +106,7 @@ class _AuraPageState extends State<AuraPage> {
                 SegmentedButton<String>(
                   showSelectedIcon: false,
                   style: SegmentedButton.styleFrom(
-                    selectedBackgroundColor: pageColor,
+                    selectedBackgroundColor: UIcol,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -156,7 +156,7 @@ class _AuraPageState extends State<AuraPage> {
                           multiSelectionEnabled: true,
                           showSelectedIcon: false,
                           style: SegmentedButton.styleFrom(
-                            selectedBackgroundColor: pageColor,
+                            selectedBackgroundColor: UIcol,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -198,7 +198,7 @@ class _AuraPageState extends State<AuraPage> {
                     ),
                     Text('Fired Preload?', style: TextStyle(fontSize: 20)),
                     SizedBox(width: 10),
-                    CustomCheckBox(column: "preload"),
+                    CustomCheckBox(column: "preload", checkColor: UIcol),
                   ],
                 ),
               ],

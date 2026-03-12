@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:rescout_2026/shell/shell_library.dart';
 import 'scout_data.dart';
 
 // ScoutProvider is a state management system and is the gateway to the database
@@ -227,6 +228,8 @@ class ScoutProvider extends ChangeNotifier {
     if (data.isEmpty) {
       return [];
     }
+    
+    bool autoClimbed = true;
 
     // Run for the first (and only) row in the query called data
     data.first.forEach((key, value) {
@@ -242,13 +245,37 @@ class ScoutProvider extends ChangeNotifier {
 
         // Adding the match number to the list<String> for QR
         dataList.add(matchNum?.group(0) ?? '0');
+      } else if (key == 'start_side') {
+        dataList.add((value.toString() == 'Left Trench' || value.toString() == 'Right Trench') ? '1' : '0');
+        dataList.add((value.toString() == 'Left Bump' || value.toString() == 'Right Bump') ? '1' : '0');
+        dataList.add((value.toString() == 'Hub') ? '1' : '0');
+      } else if (key == 'intake_spots') {
+        List<dynamic> spots = [];
+        if (value.toString().isNotEmpty) {
+          try {
+            spots = jsonDecode(value.toString());
+          } catch (e) {
+            spots = [];
+          }
+        }
+        dataList.add(spots.contains('outpost') ? '1' : '0');
+        dataList.add(spots.contains('depot') ? '1' : '0');
+        dataList.add(spots.contains('neutral') ? '1' : '0');
       } else if (key == 'climb_position' || key == 'auto_climb_position') {
-        if (value.toString() == '0') dataList.add('Left');
-        else if (value.toString() == '1') dataList.add('Middle');
-        else dataList.add('Right');
-      } else if (value.toString() == '-1') {
+        dataList.add(value.toString() == '0' ? '1' : '0');
+        dataList.add(value.toString() == '1' ? '1' : '0');
+        dataList.add(value.toString() == '2' ? '1' : '0');
+      } else if (value.toString() == '-1' || value.toString() == '') {
         dataList.add('');
-      } else {
+      } else if (key == 'climb_level') {
+        dataList.add(value.toString() == '1' ? '1' : '0');
+        dataList.add(value.toString() == '2' ? '1' : '0');
+        dataList.add(value.toString() == '3' ? '1' : '0');
+      }
+      else if (key == 'auto_climb_level') {
+        //if (value.toString() == '0') autoClimbed = false;
+        // do nothing
+      } else if (key == 'fouls') {} else {
         // Adding whatever value it is to the list<String> for QR
         dataList.add(value.toString());
       }
