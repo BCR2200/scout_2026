@@ -22,6 +22,9 @@ class ScoutProvider extends ChangeNotifier {
   int _teamNum = 0;
   int get teamNum => _teamNum;
 
+  String _currentScouter = '';
+  String get currentScouter => _currentScouter;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -74,6 +77,9 @@ class ScoutProvider extends ChangeNotifier {
             vibes: e['vibes'] as int,
             dead_timer: e['dead_timer'] as String,
             beached_timer: e['beached_timer'] as String,
+            inop_timer: e['inop_timer'] as String,
+            volleys: e['volleys'] as String? ?? '[]',
+            auto_volleys: e['auto_volleys'] as String? ?? '[]',
           ),
         )
         .toList();
@@ -106,7 +112,7 @@ class ScoutProvider extends ChangeNotifier {
       }
     }
 
-    final newMatch = ScoutModel(match_name: matchname);
+    final newMatch = ScoutModel(match_name: matchname, who_scouted: ''); // removed current scouter carry-over
 
     // Adding the match to database using the ScoutModel
     await ScoutDatabase.insertMatch(ScoutDatabase.tableName, newMatch.toMap());
@@ -121,12 +127,14 @@ class ScoutProvider extends ChangeNotifier {
 
   // Update data in the database using an inputted column and value
   Future updateData(String column, value) async {
-    ScoutDatabase.updateData(
+    await ScoutDatabase.updateData(
         ScoutDatabase.tableName, currentMatch, column, value.toString());
 
     // Check if the team number is being updated, and update it in provider
     if (column == 'team') {
       _teamNum = value;
+    } else if (column == 'who_scouted') {
+      _currentScouter = value.toString();
     }
 
     _nextUntitled = await getNextUntitled();
@@ -165,8 +173,11 @@ class ScoutProvider extends ChangeNotifier {
     //check if the current match is being deleted, and if so set to failsafe
     if (matchName == currentMatch) {
       _currentMatch = '';
-      _teamNum = await ScoutDatabase.getIntData(
+      int fetchedTeamNum = await ScoutDatabase.getIntData(
           ScoutDatabase.tableName, _currentMatch, 'team');
+      _teamNum = fetchedTeamNum == -1 ? 0 : fetchedTeamNum;
+      _currentScouter = await ScoutDatabase.getStringData(
+          ScoutDatabase.tableName, _currentMatch, 'who_scouted');
     }
     await ScoutDatabase.deleteMatch(ScoutDatabase.tableName, matchName);
     scoutItem.removeWhere((item) => item.match_name == matchName);
@@ -181,12 +192,11 @@ class ScoutProvider extends ChangeNotifier {
 
   // Get an int from the database based on an input column
   Future<int> getIntData(String column) async {
-    Future<int> value =
-        ScoutDatabase.getIntData(ScoutDatabase.tableName, currentMatch, column);
+    int value = await ScoutDatabase.getIntData(ScoutDatabase.tableName, currentMatch, column);
 
     // Check if it is getting the team number, and setting it if so
     if (column == 'team') {
-      _teamNum = await value;
+      _teamNum = value == -1 ? 0 : value;
     }
 
     return value;
@@ -213,8 +223,15 @@ class ScoutProvider extends ChangeNotifier {
     _currentMatch = matchName;
 
     // Updating the team number
-    _teamNum = await ScoutDatabase.getIntData(
+    int fetchedTeamNum = await ScoutDatabase.getIntData(
         ScoutDatabase.tableName, matchName, 'team');
+    _teamNum = fetchedTeamNum == -1 ? 0 : fetchedTeamNum;
+
+    String dbScouter = await ScoutDatabase.getStringData(
+        ScoutDatabase.tableName, matchName, 'who_scouted');
+        
+    _currentScouter = dbScouter; // removed carry-over logic
+
     notifyListeners(); // Notify listeners to rebuild when the function runs
   }
 

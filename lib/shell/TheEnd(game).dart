@@ -62,8 +62,12 @@ class _TheEndPageState extends State<TheEndPage> {
     // Read color from provider to ensure page color updates reactively
     final colorProvider = Provider.of<ColorProvider>(context);
     final pageColor = Color(colorProvider.endCol);
-    final UIcol = randHighlight();
+    Color UIcol = randHighlight();
     final roleColumn = "main_role";
+
+    if (!colorProvider.isRandom) {
+      UIcol = Colors.lightBlue;
+    }
 
     return Container(
       color: pageColor, // Setting the background colour

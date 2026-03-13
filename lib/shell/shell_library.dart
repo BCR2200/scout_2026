@@ -755,7 +755,7 @@ class _LabelledSliderState extends State<LabelledSlider> {
 
     // When this widget is loaded in, the slider value is 1.0 by default,
     // but it will try to get then set the value with the _loadData() method
-    _currentSliderValue = 1.0;
+    _currentSliderValue = widget.min;
     isDefault = false;
     column = widget.column;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -770,14 +770,12 @@ class _LabelledSliderState extends State<LabelledSlider> {
       listen: false,
     ).getIntData(column);
 
-    // If the widget is still active and the data isn't the default value (-1)
-    if (mounted && data != -1 && data != 0) {
+    if (mounted && data >= widget.min) {
       setState(() {
         _currentSliderValue = data.toDouble(); // Slider needs it to be a double
       });
     }
-    // If the widget is still active and the data is the default value (-1)
-    else if (mounted && data == -1) {
+    else if (mounted && data < widget.min) {
       setState(() {
         isDefault = true; // Set it to display as the default
       });
@@ -927,14 +925,12 @@ class _DriverSliderState extends State<DriverSlider> {
       listen: false,
     ).getIntData(column);
 
-    // If the widget is still active and the data isn't the default value (-1)
-    if (mounted && data != -1 && data != 0) {
+    if (mounted && data >= 1.0) {
       setState(() {
         _currentSliderValue = data.toDouble(); // Slider needs it to be a double
       });
     }
-    // If the widget is still active and the data is the default value (-1)
-    else if (mounted && data == -1) {
+    else if (mounted && data < 1.0) {
       setState(() {
         isDefault = true; // Set it to display as the default
       });
@@ -1067,14 +1063,12 @@ class _AccuracySliderState extends State<AccuracySlider> {
       listen: false,
     ).getIntData(column);
 
-    // If the widget is still active and the data isn't the default value (-1)
-    if (mounted && data > 0) {
+    if (mounted && data >= 1.0) {
       setState(() {
         _currentSliderValue = data.toDouble(); // Slider needs it to be a double
       });
     }
-    // If the widget is still active and the data is the default value (-1)
-    else if (mounted && data == -1) {
+    else if (mounted && data < 1.0) {
       setState(() {
         isDefault = true; // Set it to display as the default
       });
@@ -1207,14 +1201,12 @@ class _VibesRatingState extends State<VibesRating> {
       listen: false,
     ).getIntData(column);
 
-    // If the widget is still active and the data isn't the default value (-1)
-    if (mounted && data != -1) {
+    if (mounted && data >= 1.0) {
       setState(() {
         _currentSliderValue = data.toDouble(); // Slider needs it to be a double
       });
     }
-    // If the widget is still active and the data is the default value (-1)
-    else if (mounted && data == -1) {
+    else if (mounted && data < 1.0) {
       setState(() {
         isDefault = true; // Set it to display as the default
       });
@@ -1632,18 +1624,13 @@ class WhoScoutedWidget extends StatefulWidget {
 class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
   final String column = 'who_scouted';
   final TextEditingController _controller = TextEditingController();
-  late String whoScoutedText;
+  String _currentMatch = '';
 
   // This runs once when the widget is initialized
   @override
   void initState() {
     super.initState();
-
-    // When the widget is loaded in, set the default text to nothing
-    whoScoutedText = '';
-    _controller.text = whoScoutedText;
-
-    // Try to get then set the whoScout text from the database with the _loadData() method
+    _controller.text = '';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -1651,15 +1638,15 @@ class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
 
   // This method gets then sets the whoScout text from the database
   Future<void> _loadData() async {
-    String data = await Provider.of<ScoutProvider>(
+    final provider = Provider.of<ScoutProvider>(
       context,
       listen: false,
-    ).getStringData(column);
+    );
+    String data = await provider.getStringData(column);
 
-    // If the widget is still active and the data isn't the default value (a space)
-    if (mounted && data != ' ') {
+    if (mounted) {
       setState(() {
-        _controller.text = data;
+         _controller.text = data.trim() == '' ? '' : data;
       });
     }
   }
@@ -1668,13 +1655,21 @@ class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
   @override
   void dispose() {
     super.dispose();
-    _controller
-        .dispose(); // Get rid of the controller when it is finished being used
+    _controller.dispose(); 
   }
 
   // Building the widget tree
   @override
   Widget build(BuildContext context) {
+    // Listen for match changes to automatically load when hitting "Next Match"
+    final match = context.select<ScoutProvider, String>((p) => p.currentMatch);
+    if (match != _currentMatch) {
+      _currentMatch = match;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadData();
+      });
+    }
+
     return CustomContainer(
       color: Colors.white,
       padding: EdgeInsets.only(top: 5, right: 5, bottom: 5, left: 15),
@@ -2709,6 +2704,7 @@ class _TimerButtonState extends State<TimerButton> {
   bool _down = false;
   double _elapsed = 0;
   TimerStateProvider? _timerStateProvider;
+  ScoutProvider? _scoutProvider;
 
   @override
   void initState() {
@@ -2731,14 +2727,24 @@ class _TimerButtonState extends State<TimerButton> {
       context,
       listen: false,
     );
+    _scoutProvider ??= Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    );
   }
 
   @override
   void dispose() {
     if (_down) {
       _timerStateProvider?.decrement();
+      _timer?.cancel();
+      _stopwatch.stop();
+      _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
+      _elapsed = (_elapsed * 10).round() / 10.0;
+      _scoutProvider?.updateData(widget.column, _elapsed.toString());
+    } else {
+      _timer?.cancel();
     }
-    _timer?.cancel();
     super.dispose();
   }
 
@@ -2889,7 +2895,7 @@ class _ClimbWidgetState extends State<ClimbWidget> {
     ).getIntData(_levelColumn);
 
     // If the widget is still active and the data isn't the default value (a space)
-    if (mounted && initLevel != 0) {
+    if (mounted && initLevel >= 0) {
       setState(() {
         _climbLevel = initLevel.toDouble();
       });

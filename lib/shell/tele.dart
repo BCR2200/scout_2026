@@ -70,7 +70,7 @@ class _TelePageState extends State<TelePage> {
     } else {
       UIcol1 = Colors.red;
       UIcol2 = Colors.yellow;
-      UIcol3 = Colors.green;
+      UIcol3 = Colors.deepPurple;
       UIcol4 = Colors.blue;
     }
 
@@ -150,17 +150,17 @@ class _TelePageState extends State<TelePage> {
               children: [
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Dead', column: 'dead_timer',
+                    color: pageColor, text: 'Dead', column: 'dead_timer', isToggle: true,
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Beached', column: 'beached_timer',
+                    color: pageColor, text: 'Beached', column: 'beached_timer', isToggle: true,
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Inoperable', column: 'inop_timer',
+                    color: pageColor, text: 'Inoperable', column: 'inop_timer', isToggle: true,
                   ),
                 ),
               ],

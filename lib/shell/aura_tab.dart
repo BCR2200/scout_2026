@@ -36,6 +36,7 @@ class _AuraPageState extends State<AuraPage> {
   // We no longer need pageColor as state, but we need to generate it once
   late Color initialPageColor;
   final Color initialUIcol = randHighlight();
+
   String _startSide = 'Hub';
   Set<String> _intakeSpots = {};
 
@@ -83,11 +84,15 @@ class _AuraPageState extends State<AuraPage> {
     // Read color from provider to ensure page color updates when provider changes (e.g., when loading settings)
     final colorProvider = Provider.of<ColorProvider>(context);
     final pageColor = Color(colorProvider.auraCol);
+    late Color UIcol;
+
+    if (colorProvider.isRandom) {
+      UIcol = initialUIcol;
+    }  else UIcol = Colors.lightGreen;
 
     // UIcol is based on the initial page color, so we use the stored initial value.
     // If UIcol is used as an accent, it should be derived from the current page color.
     // Assuming UIcol is an accent color and should only be generated once per session:
-    final UIcol = initialUIcol;
 
     return Container(
       color: pageColor, // Setting the background colour

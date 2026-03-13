@@ -23,12 +23,12 @@ class ScoutModel {
    int team,
       defence, drive_rating, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
 
-   String match_name, notes, dead_timer, beached_timer, inop_timer, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, main_role, who_scouted, intake_spots, start_side;
+   String match_name, notes, dead_timer, beached_timer, inop_timer, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, main_role, who_scouted, intake_spots, start_side, volleys, auto_volleys;
 
   ScoutModel({
     this.team = 0,
     required this.match_name,
-    this.defence = 0,
+    this.defence = -1,
     this.drive_rating = -1,
     this.fouls = 0,
     this.auto_climb_level = 0,
@@ -51,6 +51,8 @@ class ScoutModel {
     this.dead_timer = '0.0',
     this.beached_timer = '0.0',
     this.inop_timer = '0.0',
+    this.volleys = '[]',
+    this.auto_volleys = '[]',
   });
 
   Map<String, Object> toMap() {
@@ -80,6 +82,8 @@ class ScoutModel {
       'dead_timer': dead_timer,
       'beached_timer': beached_timer,
       'inop_timer': inop_timer,
+      'volleys': volleys,
+      'auto_volleys': auto_volleys,
     };
   }
 }
@@ -141,11 +145,23 @@ class ScoutDatabase {
         vibes INTEGER NOT NULL,
         accuracy INTEGER NOT NULL,
         notes TEXT,
-        who_scouted TEXT NOT NULL
+        who_scouted TEXT NOT NULL,
+        volleys TEXT NOT NULL,
+        auto_volleys TEXT NOT NULL
         )
         ''');
       },
-      version: 1,
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (oldVersion < 2) {
+          try {
+            await db.execute('ALTER TABLE $tableName ADD COLUMN volleys TEXT NOT NULL DEFAULT "[]"');
+            await db.execute('ALTER TABLE $tableName ADD COLUMN auto_volleys TEXT NOT NULL DEFAULT "[]"');
+          } catch (e) {
+            // Ignore if columns already exist
+          }
+        }
+      },
+      version: 2,
     );
   } // scoutDatabase
 
@@ -204,15 +220,20 @@ class ScoutDatabase {
   static Future<String> getStringData(String table, String matchName, String column) async {
     final db = await ScoutDatabase.scoutDatabase();
     final result = await db.rawQuery('SELECT $column FROM $table WHERE match_name=?', [matchName]);
-    String data = result.first[column].toString();
-    return data;
+    if (result.isNotEmpty) {
+      final value = result.first[column];
+      if (value != null) {
+        return value.toString();
+      }
+    }
+    return '';
   }
 
   // Getting the data for an int from the database
   static Future<int> getIntData(String table, String matchName, String column) async {
     final db = await ScoutDatabase.scoutDatabase();
     final result = await db.rawQuery('SELECT $column FROM $table WHERE match_name=?', [matchName]);
-    int data = Sqflite.firstIntValue(result) ?? 0; // If null, just set it to be 0 (the usual default)
+    int data = Sqflite.firstIntValue(result) ?? -1; // Default to -1 so widgets recognize default state
     return data;
   }
 
