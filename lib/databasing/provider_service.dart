@@ -28,6 +28,16 @@ class ScoutProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  ScoutProvider() {
+    _initMatch();
+  }
+
+  Future<void> _initMatch() async {
+    if (_currentMatch.trim().isEmpty) {
+      await insertMatch('');
+    }
+  }
+
   // Display all matches that contain the input search
   Future<void> searchData(String search) async {
     _isLoading = true;
@@ -170,18 +180,23 @@ class ScoutProvider extends ChangeNotifier {
 
   // Delete a match based on the input match name
   void deleteData(String matchName) async {
-    //check if the current match is being deleted, and if so set to failsafe
-    if (matchName == currentMatch) {
-      _currentMatch = '';
-      int fetchedTeamNum = await ScoutDatabase.getIntData(
-          ScoutDatabase.tableName, _currentMatch, 'team');
-      _teamNum = fetchedTeamNum == -1 ? 0 : fetchedTeamNum;
-      _currentScouter = await ScoutDatabase.getStringData(
-          ScoutDatabase.tableName, _currentMatch, 'who_scouted');
-    }
     await ScoutDatabase.deleteMatch(ScoutDatabase.tableName, matchName);
     scoutItem.removeWhere((item) => item.match_name == matchName);
-    notifyListeners(); // Notify listeners to rebuild when the function runs
+
+    //check if the current match is being deleted, and if so set to the first match in the database
+    if (matchName == currentMatch) {
+      final dataList = await ScoutDatabase.selectSpecific(ScoutDatabase.tableName, '');
+      if (dataList.isNotEmpty) {
+        setMatch(dataList.first['match_name'] as String);
+      } else {
+        _currentMatch = '';
+        _teamNum = 0;
+        _currentScouter = '';
+        await insertMatch('');
+      }
+    } else {
+      notifyListeners(); // Notify listeners to rebuild when the function runs
+    }
   }
 
   // Get a string from the database based on an input column
