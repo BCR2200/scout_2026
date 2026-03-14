@@ -223,6 +223,7 @@ class _AuraPageState extends State<AuraPage> {
               column: 'auto_timer',
             ),
           ),
+          //UndoWidget(margin: EdgeInsets.fromLTRB(50, 0, 50, 25)),
           ClimbWidget(isAuto: true, pageColor: UIcol),
         ],
       ),

@@ -1728,6 +1728,7 @@ class _WhoScoutedWidgetState extends State<WhoScoutedWidget> {
 } // _WhoScoutedWidgetState
 
 // This widget is what is used to set the current match
+
 class MatchSelector extends StatefulWidget {
   const MatchSelector({super.key});
 
@@ -3084,1018 +3085,109 @@ class _ClimbWidgetState extends State<ClimbWidget> {
   }
 }
 
-class VolleyListItem extends StatefulWidget {
-  final Color color;
-  final Color? UIcol;
-  final bool isBlue;
-  final List<dynamic> item;
-  final ValueChanged<String> onTypeChange;
-  final ValueChanged<int> onHopChange;
-  final ValueChanged<int> onAccChange;
-  final ValueChanged<int> onSideChange;
-  final VoidCallback onDelete;
-
-  const VolleyListItem({
-    this.color = Colors.white,
-    required this.isBlue,
-    required this.item,
-    this.UIcol,
-    required this.onTypeChange,
-    required this.onAccChange,
-    required this.onHopChange,
-    required this.onSideChange,
-    required this.onDelete,
-    super.key,
-  });
-
-  @override
-  State<VolleyListItem> createState() => _VolleyListItem();
-}
-
-class _VolleyListItem extends State<VolleyListItem> {
-  late int _percentHopper;
-  late int _percentAcc;
-  late int _mainSide;
-  late String _volleyType;
-  late Color _UIcol;
-  final List<String> typeList = <String>['volley', 'harvest', 'pass'];
-  final List<ButtonSegment<int>> _percents = List<ButtonSegment<int>>.generate(
-    5,
-    (index) {
-      return ButtonSegment<int>(
-        value: (index + 5) * 10,
-        label: Text('${(index + 5) * 10}', style: TextStyle(fontSize: 10)),
-      );
-    },
-  );
-
-  @override
-  void initState() {
-    super.initState();
-
-    _percents.insert(
-      0,
-      ButtonSegment<int>(
-        value: 25,
-        label: Text('25', style: TextStyle(fontSize: 10)),
-      ),
-    );
-    _percents.insert(
-      0,
-      ButtonSegment<int>(
-        value: 0,
-        label: Text('0', style: TextStyle(fontSize: 10)),
-      ),
-    );
-    _percents.add(
-      ButtonSegment<int>(
-        value: 100,
-        label: Text('100', style: TextStyle(fontSize: 10)),
-      ),
-    );
-
-    _volleyType = widget.item[0] as String;
-    _percentHopper = widget.item[1] as int;
-    _percentAcc = widget.item[2] as int;
-    _mainSide = widget.item[3] as int;
-    _UIcol = widget.UIcol ?? randPrimary();
-  }
-
-  @override
-  void didUpdateWidget(covariant VolleyListItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.item[0] != _volleyType) {
-      setState(() {
-        _volleyType = widget.item[0] as String;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dismissible(
-      key: ObjectKey(widget.item),
-      direction: DismissDirection.startToEnd,
-      background: CustomContainer(
-        color: Colors.red,
-        padding: EdgeInsets.only(left: 20, right: 550),
-        child: const Icon(Icons.delete_forever_sharp),
-      ),
-      confirmDismiss:
-          (direction) => showDialog(
-            context: context,
-            builder:
-                ((context) => AlertDialog(
-                  actionsAlignment: MainAxisAlignment.center,
-                  title: Text('Did you want to remove this volley?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text('No'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: Text('Yes'),
-                    ),
-                  ],
-                )),
-          ),
-      onDismissed: (direction) {
-        widget.onDelete();
-      },
-      child: Card(
-        color: widget.color,
-        child: Container(
-          padding: EdgeInsets.fromLTRB(10, 10, 20, 10),
-          child: Row(
-            children: [
-              Icon(Icons.drag_indicator),
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Visibility(
-                      visible: _volleyType != "harvest",
-                      child: Column(
-                        children: [
-                          const Text('% of Hopper Unloaded'),
-                          SegmentedButton<int>(
-                            showSelectedIcon: false,
-                            style: SegmentedButton.styleFrom(
-                              selectedBackgroundColor: _UIcol,
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              visualDensity: VisualDensity(
-                                horizontal: -3,
-                                vertical: -3,
-                              ),
-                            ),
-                            segments: _percents,
-                            selected: <int>{_percentHopper},
-                            onSelectionChanged: (Set<int> newSelection) {
-                              setState(() {
-                                _percentHopper = newSelection.first;
-                                widget.onHopChange(_percentHopper);
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: _volleyType == "volley",
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 10),
-                          const Text('% of Shots Scored'),
-                          SegmentedButton<int>(
-                            showSelectedIcon: false,
-                            style: SegmentedButton.styleFrom(
-                              selectedBackgroundColor: _UIcol,
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              visualDensity: VisualDensity(
-                                horizontal: -3,
-                                vertical: -3,
-                              ),
-                            ),
-                            segments: _percents,
-                            selected: <int>{_percentAcc},
-                            onSelectionChanged: (Set<int> newSelection) {
-                              setState(() {
-                                _percentAcc = newSelection.first;
-                                widget.onAccChange(_percentAcc);
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: _volleyType != "volley",
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          /*const Text('Action:  ', style: TextStyle(height: 0.2, color: Colors.black)),
-                          DropdownButton<String>(
-                            value: _volleyType,
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            elevation: 16,
-                            style: const TextStyle(color: Colors.black),
-                            underline: Container(height: 2, color: widget.UIcol),
-                            onChanged: (String? value) {
-                              if (value != null) {
-                                setState(() {
-                                  _volleyType = value;
-                                });
-                                widget.onTypeChange(value);
-                              }
-                            },
-                            items: typeList.map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(value: value, child: Text(value));
-                            }).toList(),
-                          ),
-                          SizedBox(width: 20),*/
-                          Column(
-                            children: [
-                              const Text('Robot mainly in this side:'),
-                              SegmentedButton<int>(
-                                showSelectedIcon: false,
-                                style: SegmentedButton.styleFrom(
-                                  selectedBackgroundColor:
-                                      _mainSide == 1
-                                          ? Colors.grey[300]
-                                          : (_mainSide == 0
-                                              ? (widget.isBlue
-                                                  ? Colors.blue
-                                                  : Colors.red)
-                                              : (widget.isBlue
-                                                  ? Colors.red
-                                                  : Colors.blue)),
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  visualDensity: VisualDensity(
-                                    horizontal: -4,
-                                    vertical: -3,
-                                  ),
-                                ),
-                                segments: [
-                                  ButtonSegment(value: 0, label: Text('Home')),
-                                  ButtonSegment(
-                                    value: 1,
-                                    label: Text('Neutral'),
-                                  ),
-                                  ButtonSegment(
-                                    value: 2,
-                                    label: Text('Opponent'),
-                                  ),
-                                ],
-                                selected: <int>{_mainSide},
-                                onSelectionChanged: (Set<int> newSelection) {
-                                  setState(() {
-                                    _mainSide = newSelection.first;
-                                    widget.onSideChange(_mainSide);
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class VolleyWidget extends StatefulWidget {
-  final bool isAuto;
-  final Color pageColor;
-  final Color UIcol;
-
-  const VolleyWidget({
-    required this.isAuto,
-    required this.pageColor,
-    required this.UIcol,
-    super.key,
-  });
-  @override
-  State<VolleyWidget> createState() => _VolleyWidgetState();
-}
-
-class _VolleyWidgetState extends State<VolleyWidget> {
-  late String column;
-  late Color buttonCol;
-  bool _isBlue = false;
-  final cardCol = randPrimary().withAlpha(150);
-  late List<dynamic> _items = [];
-
-  // Added ScrollController
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-
-    column = widget.isAuto ? 'auto_volleys' : 'volleys';
-    buttonCol = widget.UIcol;
-
-    // Perform data load and initialization after the first frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadAndInitializeData();
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  // Combines data loading and initialization to ensure order of operations and persistence.
-  Future<void> _loadAndInitializeData() async {
-    final scoutProvider = Provider.of<ScoutProvider>(context, listen: false);
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // 1. Load existing data
-    String data = await scoutProvider.getStringData(column);
-    bool data2 = prefs.getBool('is_blue')!;
-
-    if (!mounted) return;
-
-    _isBlue = data2;
-
-    // 2. Process loaded data and update local state
-    if (data.isNotEmpty && data != "[]") {
-      final decoded = jsonDecode(data);
-      // Migration for old data structure
-      if (decoded.isNotEmpty &&
-          decoded[0] is List &&
-          (decoded[0] as List).isNotEmpty &&
-          decoded[0][0] is int) {
-        _items =
-            decoded.map((item) {
-              final type = (item[0] == 1) ? 'volley' : 'harvest';
-              return [type, item[1], item[2], item[3]];
-            }).toList();
-      } else {
-        _items = decoded;
-      }
-    }
-
-    // 3. Handle auto-initialization ONLY if in auto mode AND no data was loaded.
-    // _items will be empty if data == ''
-    if (mounted && widget.isAuto && _items.isEmpty) {
-      _items.add(['volley', 0, 0, 1]);
-
-      // Update DB. This is safe as it runs after the frame, and the Provider update
-      // should trigger the rebuild that draws the new default item.
-      scoutProvider.updateData(column, jsonEncode(_items));
-      setState(() {});
-    }
-  }
-
-  void _updateData() {
-    Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).updateData(column, jsonEncode(_items));
-  }
-
-  // New method to scroll to the bottom of the list
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final List<VolleyListItem> volleys = <VolleyListItem>[
-      for (int i = 0; i < _items.length; i += 1)
-        VolleyListItem(
-          color:
-              (_items[i][0] as String) == 'volley'
-                  ? cardCol
-                  : cardCol.withAlpha(50),
-          UIcol: buttonCol,
-          isBlue: _isBlue,
-          item: _items[i],
-          onTypeChange: (String value) {
-            setState(() {
-              _items[i][0] = value;
-            });
-            _updateData();
-          },
-          onHopChange: (int value) {
-            _items[i][1] = value;
-            _updateData();
-          },
-          onAccChange: (int value) {
-            _items[i][2] = value;
-            _updateData();
-          },
-          onSideChange: (int value) {
-            _items[i][3] = value;
-            _updateData();
-          },
-          onDelete: () {
-            setState(() {
-              _items.removeAt(i);
-              _updateData();
-            });
-          },
-          key: ObjectKey(
-            _items[i],
-          ), // Use ValueKey for better performance/reordering stability
-        ),
-    ];
-
-    Widget proxyDecorator(
-      Widget child,
-      int index,
-      Animation<double> animation,
-    ) {
-      return AnimatedBuilder(
-        animation: animation,
-        builder: (BuildContext context, Widget? child) {
-          final double animValue =
-              lerpDouble(0, 1, Curves.easeInOut.transform(animation.value))!;
-          final double elevation = lerpDouble(1, 6, animValue)!;
-          final double scale = lerpDouble(1, 1.05, animValue)!;
-          return Transform.scale(
-            scale: scale,
-            // Create a Card based on the color and the content of the dragged one
-            // and set its elevation to the animated value.
-            child: Opacity(
-              opacity: 1 - (animation.value * 0.5),
-              child: Card(
-                elevation: elevation,
-                color: volleys[index].color,
-                child: volleys[index],
-              ),
-            ),
-          );
-        },
-        child: child,
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Text(
-          "Action History",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 10),
-        Expanded(
-          flex: 8,
-          child: ReorderableListView(
-            scrollController: _scrollController, // Attach ScrollController
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            proxyDecorator: proxyDecorator,
-            onReorder: (int oldIndex, int newIndex) {
-              setState(() {
-                if (oldIndex < newIndex) {
-                  newIndex -= 1;
-                }
-                final List<dynamic> item = _items.removeAt(oldIndex);
-                _items.insert(newIndex, item);
-                _updateData();
-              });
-            },
-            children: volleys,
-          ),
-        ),
-        SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Container(
-              height: 50,
-              constraints: BoxConstraints(minHeight: 67.7),
-              padding: EdgeInsets.only(left: 0, right: 5, top: 10, bottom: 0),
-              child: FilledButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(buttonCol),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, size: 35),
-                    SizedBox(width: 10),
-                    BoldText(text: "Volley", fontSize: 20),
-                  ],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _items.add(['volley', 0, 0, 1]);
-                    _updateData();
-                  });
-                  // Scroll to bottom after adding the item and the UI has rebuilt
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => _scrollToBottom(),
-                  );
-                },
-              ),
-            ),
-            Container(
-              height: 50,
-              constraints: BoxConstraints(minHeight: 67.7),
-              padding: EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 0),
-              child: FilledButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(buttonCol),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, size: 35),
-                    SizedBox(width: 10),
-                    BoldText(text: "Pass", fontSize: 20),
-                  ],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _items.add(['pass', 0, 0, 1]);
-                    _updateData();
-                  });
-                  // Scroll to bottom after adding the item and the UI has rebuilt
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => _scrollToBottom(),
-                  );
-                },
-              ),
-            ),
-            Container(
-              height: 50,
-              constraints: BoxConstraints(minHeight: 67.7),
-              padding: EdgeInsets.only(left: 0, right: 5, top: 10, bottom: 0),
-              child: FilledButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(buttonCol),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, size: 35),
-                    SizedBox(width: 10),
-                    BoldText(text: "Harvest", fontSize: 20),
-                  ],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _items.add(['harvest', 0, 0, 1]);
-                    _updateData();
-                  });
-                  // Scroll to bottom after adding the item and the UI has rebuilt
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => _scrollToBottom(),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class RobotDied extends StatefulWidget {
-  final String? title;
-  final Color? checkColor;
-  final EdgeInsetsGeometry padding;
-  final double fontSize;
-  final double scale;
-  final double? width;
-  final bool redHighlight;
-  final VoidCallback? onChanged;
-  final String column; // Asking for the database column
-
-  // Constructor (the this.[variable]s are like options for the widget)
-  const RobotDied({
-    this.title,
-    this.checkColor,
-    this.scale = 2.0,
-    this.fontSize = 16.0,
-    this.padding = const EdgeInsets.all(3.0),
-    this.width,
-    this.redHighlight = false,
-    this.onChanged,
-    super.key,
-    required this.column, // Required so the data has a place to send
-  });
-
-  @override
-  State<RobotDied> createState() => _RobotDiedState();
-}
-
-class _RobotDiedState extends State<RobotDied> {
-  late bool isChecked;
-  late bool isDefault;
-
-  // This runs once when the widget is initialized
-  @override
-  void initState() {
-    super.initState();
-
-    // Set the default parameters upon initialization
-    isChecked = false;
-    isDefault = false;
-
-    // After initialization, get and set from database using _loadData method
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
-  }
-
-  // This method gets and sets the checkbox state from the data in the database
-  Future<void> _loadData() async {
-    int data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getIntData(widget.column);
-
-    // Reload the widget to display data only if it the widget is still displayed (due to async)
-    if (mounted) {
-      setState(() {
-        // If the data isn't the default value, set the check state using the intToBool function
-        if (data != -1) {
-          isChecked = intToBool(data);
-          isDefault = false;
-        }
-        // If the data IS the default value and the redHighlight option for the widget is true
-        else if (widget.redHighlight && data == -1) {
-          isDefault = true;
-        }
-      });
-    }
-  }
-
-  // Building the widget tree
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: widget.padding,
-      width: widget.width,
-
-      decoration: BoxDecoration(
-        color:
-            isDefault
-                ? Colors.red
-                : null, // If it is the default, it will have a red highlight
-        borderRadius: BorderRadius.circular(
-          10.0,
-        ), // Rounding the corners (for if it is highlighted)
-      ),
-
-      child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment
-                .center, // Squish everything into the center vertically
-        children: <Widget>[
-          // Display the title only if there is a title
-          if (widget.title != null)
-            BoldText(text: widget.title!, fontSize: widget.fontSize),
-
-          // The checkbox itself, wrapped with a scale for variable sizing
-          Transform.scale(
-            scale: widget.scale,
-
-            // Consumer is used so it updates when the database data changes
-            child: Consumer<ScoutProvider>(
-              builder: (context, scoutProvider, child) {
-                // If the widget has a reason to load from the database (onChanged callback exists or redHighlight is true)
-                if (widget.onChanged != null || widget.redHighlight) {
-                  _loadData(); // Method defined earlier in class
-                }
-
-                return Checkbox(
-                  activeColor: widget.checkColor,
-                  focusColor: widget.checkColor,
-                  hoverColor: widget.checkColor,
-                  value: isChecked,
-                  onChanged: (value) {
-                    // Redraw the widget when pressed
-                    setState(() {
-                      isChecked = value!;
-                      isDefault =
-                          false; // No longer the default if it got updated
-                      scoutProvider.updateData(
-                        widget.column,
-                        boolToInt(value),
-                      ); // Send data to the database
-
-                      // Run callback if it exists
-                      if (widget.onChanged != null) {
-                        widget.onChanged!();
-                      }
-                    });
-                  }, // onChanged
-                );
-              }, // builder:
-            ),
-          ),
-        ],
-      ),
-    );
-  } // build
-} // _RobotDiedState
-
-class Beached extends StatefulWidget {
-  final String? title;
-  final Color? checkColor;
-  final EdgeInsetsGeometry padding;
-  final double fontSize;
-  final double scale;
-  final double? width;
-  final bool redHighlight;
-  final VoidCallback? onChanged;
-  final String column; // Asking for the database column
-
-  // Constructor (the this.[variable]s are like options for the widget)
-  const Beached({
-    this.title,
-    this.checkColor,
-    this.scale = 2.0,
-    this.fontSize = 16.0,
-    this.padding = const EdgeInsets.all(3.0),
-    this.width,
-    this.redHighlight = false,
-    this.onChanged,
-    super.key,
-    required this.column, // Required so the data has a place to send
-  });
-
-  @override
-  State<Beached> createState() => _BeachedState();
-}
-
-class _BeachedState extends State<Beached> {
-  late bool isChecked;
-  late bool isDefault;
-
-  // This runs once when the widget is initialized
-  @override
-  void initState() {
-    super.initState();
-
-    // Set the default parameters upon initialization
-    isChecked = false;
-    isDefault = false;
-
-    // After initialization, get and set from database using _loadData method
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
-  }
-
-  // This method gets and sets the checkbox state from the data in the database
-  Future<void> _loadData() async {
-    int data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getIntData(widget.column);
-
-    // Reload the widget to display data only if it the widget is still displayed (due to async)
-    if (mounted) {
-      setState(() {
-        // If the data isn't the default value, set the check state using the intToBool function
-        if (data != -1) {
-          isChecked = intToBool(data);
-          isDefault = false;
-        }
-        // If the data IS the default value and the redHighlight option for the widget is true
-        else if (widget.redHighlight && data == -1) {
-          isDefault = true;
-        }
-      });
-    }
-  }
-
-  // Building the widget tree
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: widget.padding,
-      width: widget.width,
-
-      decoration: BoxDecoration(
-        color:
-            isDefault
-                ? Colors.red
-                : null, // If it is the default, it will have a red highlight
-        borderRadius: BorderRadius.circular(
-          10.0,
-        ), // Rounding the corners (for if it is highlighted)
-      ),
-
-      child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment
-                .center, // Squish everything into the center vertically
-        children: <Widget>[
-          // Display the title only if there is a title
-          if (widget.title != null)
-            BoldText(text: widget.title!, fontSize: widget.fontSize),
-
-          // The checkbox itself, wrapped with a scale for variable sizing
-          Transform.scale(
-            scale: widget.scale,
-
-            // Consumer is used so it updates when the database data changes
-            child: Consumer<ScoutProvider>(
-              builder: (context, scoutProvider, child) {
-                // If the widget has a reason to load from the database (onChanged callback exists or redHighlight is true)
-                if (widget.onChanged != null || widget.redHighlight) {
-                  _loadData(); // Method defined earlier in class
-                }
-
-                return Checkbox(
-                  activeColor: widget.checkColor,
-                  focusColor: widget.checkColor,
-                  hoverColor: widget.checkColor,
-                  value: isChecked,
-                  onChanged: (value) {
-                    // Redraw the widget when pressed
-                    setState(() {
-                      isChecked = value!;
-                      isDefault =
-                          false; // No longer the default if it got updated
-                      scoutProvider.updateData(
-                        widget.column,
-                        boolToInt(value),
-                      ); // Send data to the database
-
-                      // Run callback if it exists
-                      if (widget.onChanged != null) {
-                        widget.onChanged!();
-                      }
-                    });
-                  }, // onChanged
-                );
-              }, // builder:
-            ),
-          ),
-        ],
-      ),
-    );
-  } // build
-} // _BeachedState
-
-class FuelJammed extends StatefulWidget {
-  final String? title;
-  final Color? checkColor;
-  final EdgeInsetsGeometry padding;
-  final double fontSize;
-  final double scale;
-  final double? width;
-  final bool redHighlight;
-  final VoidCallback? onChanged;
-  final String column; // Asking for the database column
-
-  // Constructor (the this.[variable]s are like options for the widget)
-  const FuelJammed({
-    this.title,
-    this.checkColor,
-    this.scale = 2.0,
-    this.fontSize = 16.0,
-    this.padding = const EdgeInsets.all(3.0),
-    this.width,
-    this.redHighlight = false,
-    this.onChanged,
-    super.key,
-    required this.column, // Required so the data has a place to send
-  });
-
-  @override
-  State<FuelJammed> createState() => _FuelJammedState();
-}
-
-class _FuelJammedState extends State<FuelJammed> {
-  late bool isChecked;
-  late bool isDefault;
-
-  // This runs once when the widget is initialized
-  @override
-  void initState() {
-    super.initState();
-
-    // Set the default parameters upon initialization
-    isChecked = false;
-    isDefault = false;
-
-    // After initialization, get and set from database using _loadData method
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
-  }
-
-  // This method gets and sets the checkbox state from the data in the database
-  Future<void> _loadData() async {
-    int data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getIntData(widget.column);
-
-    // Reload the widget to display data only if it the widget is still displayed (due to async)
-    if (mounted) {
-      setState(() {
-        // If the data isn't the default value, set the check state using the intToBool function
-        if (data != -1) {
-          isChecked = intToBool(data);
-          isDefault = false;
-        }
-        // If the data IS the default value and the redHighlight option for the widget is true
-        else if (widget.redHighlight && data == -1) {
-          isDefault = true;
-        }
-      });
-    }
-  }
-
-  // Building the widget tree
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: widget.padding,
-      width: widget.width,
-
-      decoration: BoxDecoration(
-        color:
-            isDefault
-                ? Colors.red
-                : null, // If it is the default, it will have a red highlight
-        borderRadius: BorderRadius.circular(
-          10.0,
-        ), // Rounding the corners (for if it is highlighted)
-      ),
-
-      child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment
-                .center, // Squish everything into the center vertically
-        children: <Widget>[
-          // Display the title only if there is a title
-          if (widget.title != null)
-            BoldText(text: widget.title!, fontSize: widget.fontSize),
-
-          // The checkbox itself, wrapped with a scale for variable sizing
-          Transform.scale(
-            scale: widget.scale,
-
-            // Consumer is used so it updates when the database data changes
-            child: Consumer<ScoutProvider>(
-              builder: (context, scoutProvider, child) {
-                // If the widget has a reason to load from the database (onChanged callback exists or redHighlight is true)
-                if (widget.onChanged != null || widget.redHighlight) {
-                  _loadData(); // Method defined earlier in class
-                }
-
-                return Checkbox(
-                  activeColor: widget.checkColor,
-                  focusColor: widget.checkColor,
-                  hoverColor: widget.checkColor,
-                  value: isChecked,
-                  onChanged: (value) {
-                    // Redraw the widget when pressed
-                    setState(() {
-                      isChecked = value!;
-                      isDefault =
-                          false; // No longer the default if it got updated
-                      scoutProvider.updateData(
-                        widget.column,
-                        boolToInt(value),
-                      ); // Send data to the database
-
-                      // Run callback if it exists
-                      if (widget.onChanged != null) {
-                        widget.onChanged!();
-                      }
-                    });
-                  }, // onChanged
-                );
-              }, // builder:
-            ),
-          ),
-        ],
-      ),
-    );
-  } // build
-} // _FuelJammedState
-
 /*
-class StartPosWidget extends StatefulWidget {
-  final Color UICol;
+class UndoWidget extends StatefulWidget {
+  final EdgeInsets margin;
 
-  const StartPosWidget({
-    required this.UICol,
+  const UndoWidget({
+    this.margin = const EdgeInsets.all(25),
     super.key,
   });
 
   @override
-  State<StartPosWidget> createState() => _StartPosState();
-}*/
+  State<UndoWidget> createState() => _UndoWidgetState();
+}
+
+typedef Pair = ({String first, int second});
+
+class _UndoWidgetState extends State<UndoWidget> {
+  List<Pair> _undoList = List.empty(growable: true);
+  List<Pair> _redoList = List.empty(growable: true);
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    String undoData = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getStringData('undo_list');
+    String redoData = await Provider.of<ScoutProvider>(
+      context,
+      listen: false,
+    ).getStringData('redo_list');
+
+    // If the widget is still active and the data isn't the default value (a space)
+    if (mounted && undoData != '') {
+      setState(() {
+        _undoList = Map.castFrom(jsonDecode(undoData));
+      });
+    }
+
+    if (mounted && redoData != '') {
+      setState(() {
+        _redoList = Map.castFrom(jsonDecode(redoData));
+      });
+    }
+  }
+
+  Widget build(BuildContext context) {
+    return CustomContainer(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: widget.margin,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Undo timer action', style: TextStyle(fontSize: 20)),
+          IconButton(onPressed: () {
+            setState(() {
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData(_undoList.keys.last, _undoList.values.last);
+
+              _redoList.put
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData('redo_list',
+
+              _undoList.remove(_undoList.keys.last);
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData('undo_list', jsonEncode(_undoList));
+            });
+          }, icon: Icon(Icons.undo), iconSize: 40,),
+          //VerticalDivider(width,),
+          IconButton(onPressed: () {
+            setState(() {
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData(_redoList.keys.last, _redoList.values.last);
+
+              _redoList.remove(_redoList.keys.last);
+              Provider.of<ScoutProvider>(
+                context,
+                listen: false,
+              ).updateData('redo_list', jsonEncode(_redoList));
+            });
+          }, icon: Icon(Icons.redo), iconSize: 40,),
+          Text('Redo timer action', style: TextStyle(fontSize: 20))
+        ]
+      )
+    );
+  }
+}
+
+String pairArrayToJson (List<Pair> list) {
+  Map<String, int> map;
+  map = Map.fromIterable(list, key: (element) =>*/

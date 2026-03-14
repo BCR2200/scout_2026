@@ -21,9 +21,9 @@ import 'package:path/path.dart';
 // ATTENTION in the database below and the provider_service file
 class ScoutModel {
    int team,
-      defence, drive_rating, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
+      defence, drive_rating, fouls, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
 
-   String match_name, notes, dead_timer, beached_timer, inop_timer, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, main_role, who_scouted, intake_spots, start_side, volleys, auto_volleys;
+   String match_name, notes, dead_timer, beached_timer, inop_timer, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, main_role, who_scouted, intake_spots, start_side, undo_list, redo_list;
 
   ScoutModel({
     this.team = 0,
@@ -31,10 +31,9 @@ class ScoutModel {
     this.defence = -1,
     this.drive_rating = -1,
     this.fouls = 0,
-    this.auto_climb_level = 0,
-    this.auto_climb_position = 1,
+    this.auto_climb_position = -1,
     this.climb_level = 0,
-    this.climb_position = 1,
+    this.climb_position = -1,
     this.notes = '',
     this.main_role = 'Defence',
     this.who_scouted = '',
@@ -51,8 +50,8 @@ class ScoutModel {
     this.dead_timer = '0.0',
     this.beached_timer = '0.0',
     this.inop_timer = '0.0',
-    this.volleys = '[]',
-    this.auto_volleys = '[]',
+    this.undo_list = '[]',
+    this.redo_list = '[]',
   });
 
   Map<String, Object> toMap() {
@@ -62,7 +61,6 @@ class ScoutModel {
       'defence': defence,
       'drive_rating': drive_rating,
       'fouls': fouls,
-      'auto_climb_level': auto_climb_level,
       'auto_climb_position': auto_climb_position,
       'climb_level': climb_level,
       'climb_position': climb_position,
@@ -82,8 +80,8 @@ class ScoutModel {
       'dead_timer': dead_timer,
       'beached_timer': beached_timer,
       'inop_timer': inop_timer,
-      'volleys': volleys,
-      'auto_volleys': auto_volleys,
+      'undo_list': undo_list,
+      'redo_list': redo_list,
     };
   }
 }
@@ -123,11 +121,12 @@ class ScoutDatabase {
         CREATE TABLE $tableName (
         team INTEGER NOT NULL,
         match_name TEXT NOT NULL PRIMARY KEY,
+        undo_list TEXT NOT NULL,
+        redo_list TEXT NOT NULL,
         start_side TEXT,
         preload INTEGER NOT NULL,
         intake_spots TEXT,
         auto_timer TEXT NOT NULL,
-        auto_climb_level INTEGER NOT NULL,
         auto_climb_position INTEGER NOT NULL,
         shoot_timer TEXT NOT NULL,
         intake_timer TEXT NOT NULL,
@@ -145,9 +144,7 @@ class ScoutDatabase {
         vibes INTEGER NOT NULL,
         accuracy INTEGER NOT NULL,
         notes TEXT,
-        who_scouted TEXT NOT NULL,
-        volleys TEXT NOT NULL,
-        auto_volleys TEXT NOT NULL
+        who_scouted TEXT NOT NULL
         )
         ''');
       },

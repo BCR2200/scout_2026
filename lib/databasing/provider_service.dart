@@ -68,7 +68,6 @@ class ScoutProvider extends ChangeNotifier {
             defence: e['defence'] as int,
             drive_rating: e['drive_rating'] as int,
             fouls: e['fouls'] as int,
-            auto_climb_level: e['auto_climb_level'] as int,
             auto_climb_position: e['auto_climb_position'] as int,
             climb_level: e['climb_level'] as int,
             climb_position: e['climb_position'] as int,
@@ -88,8 +87,8 @@ class ScoutProvider extends ChangeNotifier {
             dead_timer: e['dead_timer'] as String,
             beached_timer: e['beached_timer'] as String,
             inop_timer: e['inop_timer'] as String,
-            volleys: e['volleys'] as String? ?? '[]',
-            auto_volleys: e['auto_volleys'] as String? ?? '[]',
+            undo_list: e['undo_list'] as String,
+            redo_list: e['redo_list'] as String,
           ),
         )
         .toList();
@@ -304,10 +303,9 @@ class ScoutProvider extends ChangeNotifier {
         dataList.add(value.toString() == '2' ? '1' : '0');
         dataList.add(value.toString() == '3' ? '1' : '0');
       }
-      else if (key == 'auto_climb_level') {
-        //if (value.toString() == '0') autoClimbed = false;
+      else if (key == 'undo_list' || key == 'redo_list' || key == 'fouls') {
         // do nothing
-      } else if (key == 'fouls') {} else {
+      } else {
         // Adding whatever value it is to the list<String> for QR
         dataList.add(value.toString());
       }
