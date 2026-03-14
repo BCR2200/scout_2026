@@ -71,9 +71,14 @@ class _AuraPageState extends State<AuraPage> {
     ).getStringData('intake_spots');
 
     // If the widget is still active and the data isn't the default value (a space)
-    if (mounted && sideData.isNotEmpty && intakeData.isNotEmpty) {
+    if (mounted && sideData.isNotEmpty) {
       setState(() {
         _startSide = sideData;
+      });
+    }
+
+    if (mounted && intakeData.isNotEmpty) {
+      setState(() {
         _intakeSpots = Set<String>.from(jsonDecode(intakeData));
       });
     }
