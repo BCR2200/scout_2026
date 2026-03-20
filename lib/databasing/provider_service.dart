@@ -68,6 +68,7 @@ class ScoutProvider extends ChangeNotifier {
             defence: e['defence'] as int,
             drive_rating: e['drive_rating'] as int,
             fouls: e['fouls'] as int,
+            auto_climb_level: e['auto_climb_level'] as int,
             auto_climb_position: e['auto_climb_position'] as int,
             climb_level: e['climb_level'] as int,
             climb_position: e['climb_position'] as int,
@@ -110,7 +111,7 @@ class ScoutProvider extends ChangeNotifier {
   }
 
   // Insert a match into the database, using the match name in this class
-  Future insertMatch(String matchname) async {
+  Future<String> insertMatch(String matchname) async {
     if (matchname == '') matchname = currentMatch;
     else matchname = await getNextUntitled();
 
@@ -132,6 +133,7 @@ class ScoutProvider extends ChangeNotifier {
     scoutItem.add(newMatch);
 
     notifyListeners(); // Notify listeners to rebuild when the function runs
+    return matchname;
   } // insertMatch
 
   // Update data in the database using an inputted column and value
@@ -303,7 +305,7 @@ class ScoutProvider extends ChangeNotifier {
         dataList.add(value.toString() == '2' ? '1' : '0');
         dataList.add(value.toString() == '3' ? '1' : '0');
       }
-      else if (key == 'undo_list' || key == 'redo_list' || key == 'fouls') {
+      else if (key == 'undo_list' || key == 'redo_list' || key == 'fouls' || key == 'auto_climb_level') {
         // do nothing
       } else {
         // Adding whatever value it is to the list<String> for QR

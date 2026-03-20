@@ -21,7 +21,7 @@ import 'package:path/path.dart';
 // ATTENTION in the database below and the provider_service file
 class ScoutModel {
    int team,
-      defence, drive_rating, fouls, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
+      defence, drive_rating, fouls, auto_climb_level, auto_climb_position, climb_level, climb_position, preload, accuracy, vibes;
 
    String match_name, notes, dead_timer, beached_timer, inop_timer, auto_timer, shoot_timer, intake_timer, pass_timer, defence_timer, main_role, who_scouted, intake_spots, start_side, undo_list, redo_list;
 
@@ -31,11 +31,12 @@ class ScoutModel {
     this.defence = -1,
     this.drive_rating = -1,
     this.fouls = 0,
+    this.auto_climb_level = 0,
     this.auto_climb_position = -1,
     this.climb_level = 0,
     this.climb_position = -1,
     this.notes = '',
-    this.main_role = 'Defence',
+    this.main_role = 'Scoring',
     this.who_scouted = '',
     this.auto_timer = '0.0',
     this.shoot_timer = '0.0',
@@ -61,6 +62,7 @@ class ScoutModel {
       'defence': defence,
       'drive_rating': drive_rating,
       'fouls': fouls,
+      'auto_climb_level': auto_climb_level,
       'auto_climb_position': auto_climb_position,
       'climb_level': climb_level,
       'climb_position': climb_position,
@@ -127,6 +129,7 @@ class ScoutDatabase {
         preload INTEGER NOT NULL,
         intake_spots TEXT,
         auto_timer TEXT NOT NULL,
+        auto_climb_level INTEGER NOT NULL,
         auto_climb_position INTEGER NOT NULL,
         shoot_timer TEXT NOT NULL,
         intake_timer TEXT NOT NULL,

@@ -134,6 +134,7 @@ class _TelePageState extends State<TelePage> {
               ],
             ),
           ),
+          UndoWidget(margin: EdgeInsets.fromLTRB(25, 0, 25, 10)),
           NumberInputWidget(
             column: 'fouls', // Setting the column for the database
             scale: 1.25,

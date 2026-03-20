@@ -1318,7 +1318,7 @@ typedef MenuEntry = DropdownMenuEntry<String>;
 
 class _MainRoleDropdownState extends State<MainRoleDropdown> {
   final String roleColumn = 'main_role';
-  final List<String> list = <String>['Defence', 'Passing', 'Scoring'];
+  final List<String> list = <String>['Scoring', 'Defence', 'Passing'];
   static late List<MenuEntry> menuEntries;
   late double _currentSliderValue;
   late String _mainRole;
@@ -2138,11 +2138,16 @@ class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
                                 Colors.lightBlue,
                               ),
                             ),
-                            onPressed: () {
-                              Provider.of<ScoutProvider>(
+                            onPressed: () async {
+                              final provider = Provider.of<ScoutProvider>(
                                 context,
                                 listen: false,
-                              ).insertMatch('yep');
+                              );
+                              String newMatchName = await provider.insertMatch('yep');
+                              provider.setMatch(newMatchName);
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                              }
                             },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -2704,6 +2709,7 @@ class _TimerButtonState extends State<TimerButton> {
   late Color _activeColor;
   bool _down = false;
   double _elapsed = 0;
+  List<Pair> _undoList = [];
   TimerStateProvider? _timerStateProvider;
   ScoutProvider? _scoutProvider;
 
@@ -2717,7 +2723,9 @@ class _TimerButtonState extends State<TimerButton> {
 
     // After initialization, get and set from database using _loadData method
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      if (mounted) {
+        _loadData(Provider.of<ScoutProvider>(context, listen: false));
+      }
     });
   }
 
@@ -2750,104 +2758,120 @@ class _TimerButtonState extends State<TimerButton> {
   }
 
   // This method gets and sets the checkbox state from the data in the database
-  Future<void> _loadData() async {
-    String data = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getStringData(widget.column);
+  Future<void> _loadData(ScoutProvider scoutProvider) async {
+    String data = await scoutProvider.getStringData(widget.column);
+    String undoData = await scoutProvider.getStringData('undo_list');
 
     // Reload the widget to display data only if it the widget is still displayed (due to async)
     if (mounted) {
-      setState(() {
-        final parsed = double.tryParse(data);
-        if (parsed != null) {
-          _elapsed = parsed;
-        }
-      });
+      final parsed = double.tryParse(data);
+      final parsedUndo = jsonToPairArray(undoData);
+      
+      bool needsUpdate = false;
+      if (parsed != null && parsed != _elapsed) {
+        needsUpdate = true;
+      }
+      if (undoData != pairArrayToJson(_undoList)) {
+        needsUpdate = true;
+      }
+      
+      if (needsUpdate) {
+        setState(() {
+          if (parsed != null) _elapsed = parsed;
+          _undoList = parsedUndo;
+        });
+      }
     }
+  }
+
+  void buttonPress() {
+    _timerStateProvider?.increment();
+    _stopwatch.reset();
+    _stopwatch.start();
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      setState(() {});
+    });
+    setState(() {
+      _down = true;
+    });
+  }
+
+  void buttonRelease() {
+    _timerStateProvider?.decrement();
+    _timer?.cancel();
+    _stopwatch.stop();
+    setState(() {
+      _down = false;
+      _undoList.add((first: widget.column, second: _elapsed));
+      if (_undoList.length > 10) {
+        _undoList.removeAt(0);
+      }
+      Provider.of<ScoutProvider>(
+        context,
+        listen: false,
+      ).updateData('undo_list', pairArrayToJson(_undoList));
+      Provider.of<ScoutProvider>(
+        context,
+        listen: false,
+      ).updateData('redo_list', '[]');
+
+      _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
+      _elapsed = (_elapsed * 10).round() / 10.0;
+      Provider.of<ScoutProvider>(
+        context,
+        listen: false,
+      ).updateData(widget.column, _elapsed.toString());
+      _stopwatch.reset();
+    });
   }
 
   // Building the widget tree
   @override
   Widget build(BuildContext context) {
-    double displayedTime = _elapsed;
-    if (_down) {
-      displayedTime += _stopwatch.elapsedMilliseconds / 1000.0;
-    }
+    return Consumer<ScoutProvider>(
+      builder: (context, scoutProvider, child) {
+        _loadData(scoutProvider);
+        double displayedTime = _elapsed;
+        if (_down) {
+          displayedTime += _stopwatch.elapsedMilliseconds / 1000.0;
+        }
 
-    return Listener(
-      onPointerDown: (_) {
-        if (!widget.isToggle) {
-          _timerStateProvider?.increment();
-          _stopwatch.reset();
-          _stopwatch.start();
-          _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-            setState(() {});
-          });
-          setState(() {
-            _down = true;
-          });
-        }
-      },
-      onPointerUp: (_) {
-        if (!widget.isToggle) {
-          _timerStateProvider?.decrement();
-          _timer?.cancel();
-          _stopwatch.stop();
-          setState(() {
-            _down = false;
-            _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
-            _elapsed = (_elapsed * 10).round() / 10.0;
-            Provider.of<ScoutProvider>(
-              context,
-              listen: false,
-            ).updateData(widget.column, _elapsed.toString());
-            _stopwatch.reset();
-          });
-        } else {
-          if (_down) {
-            _timerStateProvider?.decrement();
-            _timer?.cancel();
-            _stopwatch.stop();
-            setState(() {
-              _down = false;
-              _elapsed += _stopwatch.elapsedMilliseconds / 1000.0;
-              _elapsed = (_elapsed * 10).round() / 10.0;
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData(widget.column, _elapsed.toString());
-              _stopwatch.reset();
-            });
-          } else {
-            _timerStateProvider?.increment();
-            _stopwatch.reset();
-            _stopwatch.start();
-            _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-              setState(() {});
-            });
-            setState(() {
-              _down = true;
-            });
-          }
-        }
-      },
-      child: CustomContainer(
-        color: _down ? _activeColor : widget.color,
-        padding: widget.padding,
-        margin: widget.margin,
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(widget.text, style: widget.style),
-            Text(
-              '${displayedTime.toStringAsFixed(1)}s',
-              style: TextStyle(fontSize: 20),
+        return Listener(
+          onPointerDown: (_) {
+            if (!widget.isToggle) {
+              buttonPress();
+            }
+          },
+          onPointerUp: (_) {
+            if (!widget.isToggle) {
+              buttonRelease();
+            } else {
+              if (_down) {
+                buttonRelease();
+              } else {
+                buttonPress();
+              }
+            }
+          },
+          child: CustomContainer(
+            color: _down ? _activeColor : widget.color,
+            padding: widget.padding,
+            margin: widget.margin,
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(widget.text, style: widget.style),
+                //Text(pairArrayToJson(_undoList), style: widget.style),
+                Text(
+                  '${displayedTime.toStringAsFixed(1)}s',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -3085,7 +3109,6 @@ class _ClimbWidgetState extends State<ClimbWidget> {
   }
 }
 
-/*
 class UndoWidget extends StatefulWidget {
   final EdgeInsets margin;
 
@@ -3098,96 +3121,146 @@ class UndoWidget extends StatefulWidget {
   State<UndoWidget> createState() => _UndoWidgetState();
 }
 
-typedef Pair = ({String first, int second});
+typedef Pair = ({String first, double second});
 
 class _UndoWidgetState extends State<UndoWidget> {
   List<Pair> _undoList = List.empty(growable: true);
   List<Pair> _redoList = List.empty(growable: true);
+  bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      if (mounted) {
+        _loadData(Provider.of<ScoutProvider>(context, listen: false));
+      }
     });
   }
 
-  Future<void> _loadData() async {
-    String undoData = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getStringData('undo_list');
-    String redoData = await Provider.of<ScoutProvider>(
-      context,
-      listen: false,
-    ).getStringData('redo_list');
+  Future<void> _loadData(ScoutProvider scoutProvider) async {
+    String undoData = await scoutProvider.getStringData('undo_list');
+    String redoData = await scoutProvider.getStringData('redo_list');
 
     // If the widget is still active and the data isn't the default value (a space)
-    if (mounted && undoData != '') {
-      setState(() {
-        _undoList = Map.castFrom(jsonDecode(undoData));
-      });
-    }
-
-    if (mounted && redoData != '') {
-      setState(() {
-        _redoList = Map.castFrom(jsonDecode(redoData));
-      });
+    if (mounted) {
+      bool needsUpdate = false;
+      if (undoData != pairArrayToJson(_undoList)) needsUpdate = true;
+      if (redoData != pairArrayToJson(_redoList)) needsUpdate = true;
+      
+      if (needsUpdate) {
+        setState(() {
+          _undoList = jsonToPairArray(undoData);
+          _redoList = jsonToPairArray(redoData);
+        });
+      }
     }
   }
 
+  @override
   Widget build(BuildContext context) {
-    return CustomContainer(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      margin: widget.margin,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Undo timer action', style: TextStyle(fontSize: 20)),
-          IconButton(onPressed: () {
-            setState(() {
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData(_undoList.keys.last, _undoList.values.last);
+    return Consumer<ScoutProvider>(
+      builder: (context, scoutProvider, child) {
+        _loadData(scoutProvider);
+        return CustomContainer(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: widget.margin,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Undo timer action', style: TextStyle(fontSize: 20)),
+              IconButton(
+                onPressed: (_undoList.isNotEmpty && !_isProcessing) ? () async {
+                  setState(() { _isProcessing = true; });
+                  
+                  String colToUndo = _undoList.last.first;
+                  double targetValue = _undoList.last.second;
+                  
+                  String currentValueStr = await scoutProvider.getStringData(colToUndo);
+                  double currentValue = double.tryParse(currentValueStr) ?? 0.0;
+                  
+                  if (!mounted) return;
+                  
+                  setState(() {
+                    _redoList.add((first: colToUndo, second: currentValue));
+                    scoutProvider.updateData('redo_list', pairArrayToJson(_redoList));
 
-              _redoList.put
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData('redo_list',
+                    scoutProvider.updateData(colToUndo, targetValue);
 
-              _undoList.remove(_undoList.keys.last);
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData('undo_list', jsonEncode(_undoList));
-            });
-          }, icon: Icon(Icons.undo), iconSize: 40,),
-          //VerticalDivider(width,),
-          IconButton(onPressed: () {
-            setState(() {
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData(_redoList.keys.last, _redoList.values.last);
+                    _undoList.removeLast();
+                    scoutProvider.updateData('undo_list', pairArrayToJson(_undoList));
+                    
+                    _isProcessing = false;
+                  });
+                } : null,
+                icon: Icon(Icons.undo),
+                iconSize: 40,
+              ),
+              //VerticalDivider(width,),
+              IconButton(
+                onPressed: (_redoList.isNotEmpty && !_isProcessing) ? () async {
+                  setState(() { _isProcessing = true; });
+                  
+                  String colToRedo = _redoList.last.first;
+                  double targetValue = _redoList.last.second;
+                  
+                  String currentValueStr = await scoutProvider.getStringData(colToRedo);
+                  double currentValue = double.tryParse(currentValueStr) ?? 0.0;
 
-              _redoList.remove(_redoList.keys.last);
-              Provider.of<ScoutProvider>(
-                context,
-                listen: false,
-              ).updateData('redo_list', jsonEncode(_redoList));
-            });
-          }, icon: Icon(Icons.redo), iconSize: 40,),
-          Text('Redo timer action', style: TextStyle(fontSize: 20))
-        ]
-      )
+                  if (!mounted) return;
+
+                  setState(() {
+                    scoutProvider.updateData(colToRedo, targetValue);
+
+                    _undoList.add((first: colToRedo, second: currentValue));
+                    if (_undoList.length > 10) {
+                      _undoList.removeAt(0);
+                    }
+                    scoutProvider.updateData('undo_list', pairArrayToJson(_undoList));
+
+                    _redoList.removeLast();
+                    scoutProvider.updateData('redo_list', pairArrayToJson(_redoList));
+                    
+                    _isProcessing = false;
+                  });
+                } : null,
+                icon: Icon(Icons.redo),
+                iconSize: 40,
+              ),
+              Text('Redo timer action', style: TextStyle(fontSize: 20))
+            ]
+          )
+        );
+      },
     );
   }
 }
 
-String pairArrayToJson (List<Pair> list) {
-  Map<String, int> map;
-  map = Map.fromIterable(list, key: (element) =>*/
+String pairArrayToJson(List<Pair> list) {
+  // Convert each Record into a Map before encoding to JSON
+  final listOfMaps = list.map((pair) =>
+  {
+    'first': pair.first,
+    'second': pair.second
+  }).toList();
+
+  return jsonEncode(listOfMaps);
+}
+
+List<Pair> jsonToPairArray(String jsonString) {
+  if (jsonString
+      .trim()
+      .isEmpty) return [];
+
+  // Decode the JSON string back into a List of Maps
+  final List<dynamic> decodedList = jsonDecode(jsonString);
+
+  // Map each decoded item back into the Pair Record format
+  return decodedList.map((item) =>
+  (
+  first: item['first'] as String,
+  second: (item['second'] as num).toDouble()
+  )).toList();
+}

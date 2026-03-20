@@ -216,14 +216,14 @@ class _AuraPageState extends State<AuraPage> {
           ),
           Expanded(
             child: TimerButton(
-              margin: EdgeInsets.only(left:50, top: 50, right:50, bottom: 25),
+              margin: EdgeInsets.only(left:50, top: 50, right:50, bottom: 20),
               color: UIcol,
               text: 'Shoot',
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, fontFamily: 'Red_Hat_Display'),
               column: 'auto_timer',
             ),
           ),
-          //UndoWidget(margin: EdgeInsets.fromLTRB(50, 0, 50, 25)),
+          UndoWidget(margin: EdgeInsets.fromLTRB(50, 0, 50, 25)),
           ClimbWidget(isAuto: true, pageColor: UIcol),
         ],
       ),
