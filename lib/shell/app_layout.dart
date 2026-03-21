@@ -32,7 +32,7 @@ class ScoutApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => ScoutProvider()),
         ChangeNotifierProvider(create: (context) => ColorProvider()..loadSettings()),
-        ChangeNotifierProvider(create: (context) => TimerStateProvider()),
+        ChangeNotifierProvider(create: (context) => TimerStateProvider()..loadSettings()),
       ],
       builder: (context, child) => MaterialApp(
         debugShowCheckedModeBanner: false, // Get rid of debug banner

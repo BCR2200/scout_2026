@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:rescout_2026/shell/shell_library.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'scout_data.dart';
 
 // ScoutProvider is a state management system and is the gateway to the database
@@ -319,8 +320,17 @@ class ScoutProvider extends ChangeNotifier {
 
 class TimerStateProvider extends ChangeNotifier {
   int _runningTimers = 0;
+  bool _isToggle = false;
+  SharedPreferencesAsync prefs = SharedPreferencesAsync();
 
   bool get isTimerRunning => _runningTimers > 0;
+  bool get isToggle => _isToggle;
+
+  Future<void> loadSettings() async {
+    _isToggle = await prefs.getBool('toggle') ?? true;
+
+    notifyListeners(); // Updates any listening widgets
+  }
 
   void increment() {
     _runningTimers++;
@@ -335,6 +345,14 @@ class TimerStateProvider extends ChangeNotifier {
       if (_runningTimers == 0) {
         notifyListeners();
       }
+    }
+  }
+
+  Future<void> toggleToggle() async {
+    if (_runningTimers == 0) {
+      _isToggle = !_isToggle;
+      await prefs.setBool('toggle', _isToggle);
+      notifyListeners();
     }
   }
 }

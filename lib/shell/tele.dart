@@ -146,26 +146,31 @@ class _TelePageState extends State<TelePage> {
             margin: EdgeInsets.only(left: 25, right: 25, bottom: 10),
             color: Colors.white,
             padding: EdgeInsets.all(10),
-            child: Row(
+
+            child: Consumer<TimerStateProvider>(
+                builder: (context, timerProvider, child) { return Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Dead', column: 'dead_timer', isToggle: true,
+                    color: pageColor, text: 'Dead', column: 'dead_timer', isToggle: timerProvider.isToggle,
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Beached', column: 'beached_timer', isToggle: true,
+                    color: pageColor, text: 'Beached', column: 'beached_timer', isToggle: timerProvider.isToggle,
                   ),
                 ),
                 Expanded(
                   child: TimerButton(
-                    color: pageColor, text: 'Inoperable', column: 'inop_timer', isToggle: true,
+                    color: pageColor, text: 'Inoperable', column: 'inop_timer', isToggle: timerProvider.isToggle,
                   ),
                 ),
               ],
-            ),
+            );
+                }
+                ),
+
           ),
         ],
       ),

@@ -578,15 +578,22 @@ class _SettingsWidgetState extends State<SettingsWidget> {
           const Divider(),
 
           // Fourth list tile, also just a to-do to fill space
-          ListTile(
-            // TODO make tutorial juuust in case (make it a pop-up, not new page)
-
-            // These are under stateless widgets in widget_library.dart
-            title: const BoldText(text: 'Click For Tutorial', fontSize: 22.5),
-            subtitle: const BoldText(text: 'NOT YET AVAILABLE', fontSize: 20),
-
-            // Making it tappable but do nothing
-            onTap: () {},
+          Consumer<TimerStateProvider>(
+            builder: (context, timerProvider, child) {
+              return ListTile(
+                title: const BoldText(
+                  text: 'Toggle/Hold',
+                  fontSize: 22.5,
+                ),
+                subtitle: BoldText(
+                  text:
+                  timerProvider.isToggle ? "Mode: Toggle" : "Mode: Hold",
+                ),
+                onTap: () {
+                  timerProvider.toggleToggle();
+                },
+              );
+            },
           ),
         ], // children
       ),
@@ -1318,7 +1325,7 @@ typedef MenuEntry = DropdownMenuEntry<String>;
 
 class _MainRoleDropdownState extends State<MainRoleDropdown> {
   final String roleColumn = 'main_role';
-  final List<String> list = <String>['Scoring', 'Defence', 'Passing'];
+  final List<String> list = <String>['Scoring', 'Defence', 'Passing', 'Nothing'];
   static late List<MenuEntry> menuEntries;
   late double _currentSliderValue;
   late String _mainRole;
@@ -2007,6 +2014,7 @@ class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
           ], // children:
         ),
         content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Consumer<ScoutProvider>(
               builder: (context, scoutProvider, child) {
@@ -2023,7 +2031,7 @@ class _MatchPopUpWidgetState extends State<MatchPopUpWidget> {
                     // Display matches if there are matches
                     SizedBox(
                       height: 500,
-                      width: 300,
+                      width: 350,
                       child: Column(
                         children: [
                           Expanded(
